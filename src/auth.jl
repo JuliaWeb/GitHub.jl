@@ -1,4 +1,6 @@
 
+# Types -------
+
 abstract Authorization
 
 
@@ -16,7 +18,8 @@ end
 immutable AnonymousAuth <: Authorization
 end
 
-# -------
+
+# Interface -------
 
 function authenticate(user::String, password::String)
     auth = BasicAuth(user, password)
@@ -32,4 +35,19 @@ function authenticate(token::String)
     end
 
     auth
+end
+
+
+# Utility -------
+
+function authenticate_headers(headers, auth::OAuth2)
+    headers["Authorization"] = "token $(auth.token)"
+end
+
+function authenticate_headers(headers, auth::BasicAuth)
+    error("authentication with BasicAuth is not fully supported")
+end
+
+function authenticate_headers(headers, auth::AnonymousAuth)
+    # nothing to be done
 end
