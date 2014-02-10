@@ -5,11 +5,13 @@ using Requests
 using JSON
 using HttpCommon
 
+
 export authenticate,
        set_api_endpoint,
        set_web_endpoint,
        user,
-       stargazers
+       stargazers,
+       starred
 
 
 include("endpoint.jl")
