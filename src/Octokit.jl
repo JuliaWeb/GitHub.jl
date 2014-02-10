@@ -14,6 +14,8 @@ export authenticate,
        set_api_endpoint,
        set_web_endpoint,
        user,
+       star,
+       unstar,
        stargazers,
        starred
 
