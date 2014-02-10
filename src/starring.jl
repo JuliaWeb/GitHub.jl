@@ -21,10 +21,17 @@ function starred(user; auth = AnonymousAuth(), options...)
     starred(auth, user; options...)
 end
 
-function starred(auth::Authorization, user; headers = Dict(), options...)
+function starred(auth::Authorization, user; headers = Dict(),
+                                            query = Dict(),
+                                            sort = nothing,
+                                            direction = nothing,
+                                            options...)
     authenticate_headers(headers, auth)
 
-    r = get(URI(API_ENDPOINT; path = "/users/$user/starred"); options...)
+    sort != nothing && (query["sort"] = sort)
+    direction != nothing && (query["direction"] = direction)
+
+    r = get(URI(API_ENDPOINT; path = "/users/$user/starred"); query = query, options...)
 
     handle_error(r)
 
