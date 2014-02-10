@@ -6,6 +6,10 @@ using JSON
 using HttpCommon
 
 
+export HttpError,
+       AuthException
+
+
 export authenticate,
        set_api_endpoint,
        set_web_endpoint,
