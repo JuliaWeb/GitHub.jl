@@ -8,12 +8,14 @@ using HttpCommon
 export authenticate,
        set_api_endpoint,
        set_web_endpoint,
+       user,
        stargazers
 
 
 include("endpoint.jl")
 include("error.jl")
 include("auth.jl")
+include("user.jl")
 include("starring.jl")
 
 end
