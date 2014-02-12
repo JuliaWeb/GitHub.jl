@@ -17,7 +17,8 @@ export authenticate,
        star,
        unstar,
        stargazers,
-       starred
+       starred,
+       forks
 
 
 include("endpoint.jl")
@@ -25,6 +26,7 @@ include("error.jl")
 include("auth.jl")
 include("user.jl")
 include("starring.jl")
+include("forks.jl")
 
 end
 
