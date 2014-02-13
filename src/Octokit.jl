@@ -18,7 +18,8 @@ export authenticate,
        unstar,
        stargazers,
        starred,
-       forks
+       forks,
+       fork
 
 
 include("endpoint.jl")
