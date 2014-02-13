@@ -19,7 +19,8 @@ export authenticate,
        stargazers,
        starred,
        forks,
-       fork
+       fork,
+       contributors
 
 
 include("endpoint.jl")
@@ -28,6 +29,7 @@ include("auth.jl")
 include("user.jl")
 include("starring.jl")
 include("forks.jl")
+include("statistics.jl")
 
 end
 

@@ -18,6 +18,11 @@ type HttpError
 end
 
 
+type GithubError
+    message
+end
+
+
 # Utility -------
 
 function handle_error(r::Response)
