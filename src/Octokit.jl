@@ -20,7 +20,8 @@ export authenticate,
        starred,
        forks,
        fork,
-       contributors
+       contributors,
+       commit_activity
 
 
 include("endpoint.jl")
