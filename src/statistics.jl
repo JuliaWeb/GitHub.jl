@@ -31,6 +31,16 @@ function code_frequency(auth::Authorization, owner, repo, attempts = 3; headers 
 end
 
 
+function participation(owner, repo, attempts = 3; auth = AnonymousAuth(), options...)
+    participation(auth, owner, repo, attempts; options...)
+end
+
+function participation(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
+    r = attempt_stats_request(auth, owner, repo, "participation", attempts; headers = headers, options...)
+    JSON.parse(r.data)
+end
+
+
 # Utility -------
 
 function attempt_stats_request(auth, owner, repo, stat, attempts; headers = Dict(), options...)
