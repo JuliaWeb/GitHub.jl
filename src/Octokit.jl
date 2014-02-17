@@ -21,7 +21,8 @@ export authenticate,
        forks,
        fork,
        contributors,
-       commit_activity
+       commit_activity,
+       code_frequency
 
 
 include("endpoint.jl")

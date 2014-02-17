@@ -21,6 +21,16 @@ function commit_activity(auth::Authorization, owner, repo, attempts = 3; headers
 end
 
 
+function code_frequency(owner, repo, attempts = 3; auth = AnonymousAuth(), options...)
+    code_frequency(auth, owner, repo, attempts; options...)
+end
+
+function code_frequency(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
+    r = attempt_stats_request(auth, owner, repo, "code_frequency", attempts; headers = headers, options...)
+    JSON.parse(r.data)
+end
+
+
 # Utility -------
 
 function attempt_stats_request(auth, owner, repo, stat, attempts; headers = Dict(), options...)
