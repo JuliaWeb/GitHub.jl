@@ -48,3 +48,27 @@ function watching(auth::Authorization, owner, repo; headers = Dict(), options...
 
     return false  # who knows... assume no
 end
+
+
+function watch(owner, repo; auth = AnonymousAuth(), options...)
+    watch(auth, owner, repo; options...)
+end
+
+function watch(auth::Authorization, owner, repo; headers = Dict(),
+                                                 query = Dict(),
+                                                 subscribed = nothing,
+                                                 ignored = nothing,
+                                                 options...)
+    authenticate_headers(headers, auth)
+
+    subscribed != nothing && (query["subscribed"] = subscribed)
+    ignored != nothing && (query["ignored"] = ignored)
+
+    println("QUERY: ", query)
+
+    r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscription"); headers = headers,
+                                                                          query = query,
+                                                                          options...)
+    handle_error(r)
+end
+
