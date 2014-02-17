@@ -30,7 +30,8 @@ export authenticate,
        add_collaborator,
        remove_collaborator,
        watchers,
-       watched
+       watched,
+       watching
 
 
 include("endpoint.jl")
