@@ -32,7 +32,8 @@ export authenticate,
        watchers,
        watched,
        watching,
-       watch
+       watch,
+       unwatch
 
 
 include("endpoint.jl")

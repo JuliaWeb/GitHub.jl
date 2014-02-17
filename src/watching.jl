@@ -72,3 +72,15 @@ function watch(auth::Authorization, owner, repo; headers = Dict(),
     handle_error(r)
 end
 
+
+function unwatch(owner, repo; auth = AnonymousAuth(), options...)
+    unwatch(auth, owner, repo; options...)
+end
+
+function unwatch(auth::Authorization, owner, repo; headers = Dict(), options...)
+    authenticate_headers(headers, auth)
+
+    r = delete(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscription"); headers = headers,
+                                                                             options...)
+    handle_error(r)
+end
