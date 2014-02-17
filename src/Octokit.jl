@@ -24,7 +24,8 @@ export authenticate,
        commit_activity,
        code_frequency,
        participation,
-       punch_card
+       punch_card,
+       collaborators
 
 
 include("endpoint.jl")
@@ -34,6 +35,7 @@ include("user.jl")
 include("starring.jl")
 include("forks.jl")
 include("statistics.jl")
+include("collaborators.jl")
 
 end
 
