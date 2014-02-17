@@ -29,7 +29,8 @@ export authenticate,
        iscollaborator,
        add_collaborator,
        remove_collaborator,
-       watchers
+       watchers,
+       watched
 
 
 include("endpoint.jl")
