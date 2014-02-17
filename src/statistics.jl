@@ -41,6 +41,16 @@ function participation(auth::Authorization, owner, repo, attempts = 3; headers =
 end
 
 
+function punch_card(owner, repo, attempts = 3; auth = AnonymousAuth(), options...)
+    punch_card(auth, owner, repo, attempts; options...)
+end
+
+function punch_card(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
+    r = attempt_stats_request(auth, owner, repo, "punch_card", attempts; headers = headers, options...)
+    JSON.parse(r.data)
+end
+
+
 # Utility -------
 
 function attempt_stats_request(auth, owner, repo, stat, attempts; headers = Dict(), options...)

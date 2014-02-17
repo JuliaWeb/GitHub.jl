@@ -23,7 +23,8 @@ export authenticate,
        contributors,
        commit_activity,
        code_frequency,
-       participation
+       participation,
+       punch_card
 
 
 include("endpoint.jl")
