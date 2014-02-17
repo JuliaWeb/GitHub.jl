@@ -28,7 +28,8 @@ export authenticate,
        collaborators,
        iscollaborator,
        add_collaborator,
-       remove_collaborator
+       remove_collaborator,
+       watchers
 
 
 include("endpoint.jl")
@@ -39,6 +40,7 @@ include("starring.jl")
 include("forks.jl")
 include("statistics.jl")
 include("collaborators.jl")
+include("watching.jl")
 
 end
 
