@@ -34,3 +34,31 @@ function iscollaborator(auth::Authorization, owner, repo, user; headers = Dict()
 
     return false  # at this point, assume no
 end
+
+
+function add_collaborator(owner, repo, user; auth = AnonymousAuth(), options...)
+    add_collaborator(auth, owner, repo, user; options...)
+end
+
+function add_collaborator(auth::Authorization, owner, repo, user; headers = Dict(), options...)
+    authenticate_headers(headers, auth)
+    r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators/$user");
+            headers = headers,
+            options...)
+
+    handle_error(r)
+end
+
+
+function remove_collaborator(owner, repo, user; auth = AnonymousAuth(), options...)
+    remove_collaborator(auth, owner, repo, user; options...)
+end
+
+function remove_collaborator(auth::Authorization, owner, repo, user; headers = Dict(), options...)
+    authenticate_headers(headers, auth)
+    r = delete(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators/$user");
+            headers = headers,
+            options...)
+
+    handle_error(r)
+end

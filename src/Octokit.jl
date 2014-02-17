@@ -26,7 +26,9 @@ export authenticate,
        participation,
        punch_card,
        collaborators,
-       iscollaborator
+       iscollaborator,
+       add_collaborator,
+       remove_collaborator
 
 
 include("endpoint.jl")
