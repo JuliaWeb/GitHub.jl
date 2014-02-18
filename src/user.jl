@@ -10,6 +10,7 @@ type User
     bio
     location
     gravatar_id
+    avatar_url
 
     public_repos
     owned_private_repos
@@ -42,6 +43,7 @@ type User
             get(data, "bio", nothing),
             get(data, "location", nothing),
             get(data, "gravatar_id", nothing),
+            get(data, "avatar_url", nothing),
             get(data, "public_repos", nothing),
             get(data, "owned_private_repos", nothing),
             get(data, "total_private_repos", nothing),
@@ -70,7 +72,6 @@ end
 
 function user(auth::Authorization, username; headers = Dict(), options...)
     authenticate_headers(headers, auth)
-
     r = get(URI(API_ENDPOINT; path = "/users/$username");
             headers = headers,
             options...)
@@ -78,4 +79,24 @@ function user(auth::Authorization, username; headers = Dict(), options...)
     handle_error(r)
 
     User(JSON.parse(r.data))
+end
+
+
+function followers(user::String; auth = AnonymousAuth(), options...)
+    followers(auth, user; options...)
+end
+
+function followers(user::User; auth = AnonymousAuth(), options...)
+    followers(auth, user.login; options...)
+end
+
+function followers(auth::Authorization, user; headers = Dict(), options...)
+    authenticate_headers(headers, auth)
+    r = get(URI(API_ENDPOINT; path = "/users/$user/followers");
+            headers = headers,
+            options...)
+
+    handle_error(r)
+
+    [ User(f) for f in JSON.parse(r.data) ]
 end
