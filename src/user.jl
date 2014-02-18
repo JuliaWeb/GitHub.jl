@@ -100,3 +100,23 @@ function followers(auth::Authorization, user; headers = Dict(), options...)
 
     [ User(f) for f in JSON.parse(r.data) ]
 end
+
+
+function following(user::String; auth = AnonymousAuth(), options...)
+    following(auth, user; options...)
+end
+
+function following(user::User; auth = AnonymousAuth(), options...)
+    following(auth, user.login; options...)
+end
+
+function following(auth::Authorization, user; headers = Dict(), options...)
+    authenticate_headers(headers, auth)
+    r = get(URI(API_ENDPOINT; path = "/users/$user/following");
+            headers = headers,
+            options...)
+
+    handle_error(r)
+
+    [ User(f) for f in JSON.parse(r.data) ]
+end
