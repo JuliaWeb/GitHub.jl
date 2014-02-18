@@ -6,6 +6,8 @@ type User
     email
     name
     login
+    blog
+    bio
     location
     gravatar_id
 
@@ -36,6 +38,8 @@ type User
             get(data, "email", nothing),
             get(data, "name", nothing),
             get(data, "login", nothing),
+            get(data, "blog", nothing),
+            get(data, "bio", nothing),
             get(data, "location", nothing),
             get(data, "gravatar_id", nothing),
             get(data, "public_repos", nothing),
@@ -56,6 +60,7 @@ type User
             get(data, "disk_usage", nothing))
     end
 end
+
 
 # Interface -------
 
