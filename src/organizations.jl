@@ -60,6 +60,32 @@ type Organization
     end
 end
 
+function show(io::IO, org::Organization)
+    println(io, "$(org.login) ($(org.email))")
+
+    if org.blog != nothing && !isempty(org.blog)
+        println(io, "  $(org.blog)")
+    end
+
+    if org.location != nothing && !isempty(org.location)
+        println(io, "  $(org.location)")
+    end
+
+    if org.public_repos != nothing ||
+       org.owned_private_repos != nothing ||
+       org.public_gists != nothing ||
+       org.private_gists != nothing
+
+        println(io)
+    end
+
+    org.public_repos != nothing && println(io, "  public repos: $(org.public_repos)")
+    org.owned_private_repos != nothing && println(io, "  private repos: $(org.owned_private_repos)")
+
+    org.public_gists != nothing && println(io, "  public gists: $(org.public_gists)")
+    org.private_gists != nothing && println(io, "  private gists: $(org.private_gists)")
+end
+
 
 # Interface -------
 

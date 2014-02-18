@@ -1,12 +1,16 @@
 
 module Octokit
 
+import Base.show
+
 using Requests
 using JSON
 using HttpCommon
 
 
-export HttpError,
+export User,
+       Organization,
+       HttpError,
        AuthException
 
 
