@@ -98,7 +98,7 @@ function followers(auth::Authorization, user; headers = Dict(), options...)
 
     handle_error(r)
 
-    [ User(f) for f in JSON.parse(r.data) ]
+    map!(f -> User(f), JSON.parse(r.data))
 end
 
 
@@ -118,5 +118,5 @@ function following(auth::Authorization, user; headers = Dict(), options...)
 
     handle_error(r)
 
-    [ User(f) for f in JSON.parse(r.data) ]
+    map!(f -> User(f), JSON.parse(r.data))
 end
