@@ -35,7 +35,9 @@ export authenticate,
        watch,
        unwatch,
        followers,
-       following
+       following,
+       org,
+       orgs
 
 
 include("endpoint.jl")
@@ -47,6 +49,7 @@ include("forks.jl")
 include("statistics.jl")
 include("collaborators.jl")
 include("watching.jl")
+include("organizations.jl")
 
 end
 
