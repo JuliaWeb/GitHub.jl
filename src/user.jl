@@ -63,6 +63,37 @@ type User
     end
 end
 
+function show(io::IO, user::User)
+    println(io, "$(user.login) ($(user.email))")
+
+    if user.blog != nothing && !isempty(user.blog)
+        println(io, "  $(user.blog)")
+    end
+
+    if user.location != nothing && !isempty(user.location)
+        println(io, "  $(user.location)")
+    end
+
+    if user.public_repos != nothing ||
+       user.owned_private_repos != nothing ||
+       user.public_gists != nothing ||
+       user.private_gists != nothing ||
+       user.followers != nothing ||
+       user.following != nothing
+
+        println(io)
+    end
+
+    user.followers != nothing && println(io, "  followers: $(user.followers)")
+    user.following != nothing && println(io, "  following: $(user.following)")
+
+    user.public_repos != nothing && println(io, "  public repos: $(user.public_repos)")
+    user.owned_private_repos != nothing && println(io, "  private repos: $(user.owned_private_repos)")
+
+    user.public_gists != nothing && println(io, "  public gists: $(user.public_gists)")
+    user.private_gists != nothing && println(io, "  private gists: $(user.private_gists)")
+end
+
 
 # Interface -------
 
