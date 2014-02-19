@@ -7,7 +7,7 @@
 ### Installation
 
 ```julia
-julia> Pkg.clone("https://github.com/WestleyArgentum/Octokit.jl.git")
+Pkg.clone("https://github.com/WestleyArgentum/Octokit.jl.git")
 ```
 
 ### API
