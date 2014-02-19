@@ -45,6 +45,22 @@ following(user::User)
 - `user` is either a GitHub login or `User` type
 - the returned data will be an array of `User` types
 
+
+#### Organizations
+
+Organizations let multiple users manage repositories together.
+
+```julia
+org(name; auth = AnonymousAuth())
+```
+- `name` is the GitHub organization login name
+
+```julia
+orgs(user::String; auth = AnonymousAuth())
+```
+- `user` is the GitHub account about which you are curious
+
+
 #### Statistics
 
 Repository statistics are interesting bits of information about activity. GitHub caches this data when possible, but sometimes a request will trigger regeneration and come back empty. For this reason all statistics functions have an argument `attempts` which will be the number of tries made before admitting defeat.
@@ -65,5 +81,79 @@ participation(owner, repo, attempts = 3; auth = AnonymousAuth())
 punch_card(owner, repo, attempts = 3; auth = AnonymousAuth())
 ```
 - `owner` is a GitHub login
-- `repo` is the repository name
+- `repo` is a repository name
 - `attempts` is the number of tries made before admitting defeat
+
+
+#### Collaborators
+
+Collaborators are users that work together and share access to repositories.
+
+```julia
+collaborators(owner, repo; auth = AnonymousAuth())
+```
+```julia
+iscollaborator(owner, repo, user; auth = AnonymousAuth())
+```
+```julia
+add_collaborator(owner, repo, user; auth = AnonymousAuth()
+```
+```julia
+remove_collaborator(owner, repo, user; auth = AnonymousAuth())
+```
+- `owner` is a GitHub login
+- `repo` is a repository name
+- `user` is the GitHub login being inspected, added, or removed
+
+
+#### Forks
+
+```julia
+forks(owner, repo; auth = AnonymousAuth())
+```
+```julia
+fork(owner, repo, organization = ""; auth = AnonymousAuth())
+```
+- `owner` is a GitHub login
+- `repo` is a repository name
+
+
+#### Starring
+
+```julia
+stargazers(owner, repo; auth = AnonymousAuth())
+```
+```julia
+starred(user; auth = AnonymousAuth())
+```
+```julia
+star(owner, repo; auth = AnonymousAuth())
+```
+```julia
+unstar(owner, repo; auth = AnonymousAuth())
+```
+- `owner` is a GitHub login
+- `repo` is a repository name
+- `user` is a GitHub login
+
+
+#### Watching
+
+```julia
+watchers(owner, repo; auth = AnonymousAuth())
+```
+```julia
+watched(user; auth = AnonymousAuth())
+```
+```julia
+watching(owner, repo; auth = AnonymousAuth())
+```
+```julia
+watch(owner, repo; auth = AnonymousAuth())
+```
+```julia
+unwatch(owner, repo; auth = AnonymousAuth())
+```
+- `owner` is a GitHub login
+- `repo` is a repository name
+- `user` is a GitHub login
