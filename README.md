@@ -38,9 +38,12 @@ user(username; auth = AnonymousAuth())
 followers(user::String)
 followers(user::User)
 ```
+```julia
+following(user::String)
+following(user::User)
+```
 - `user` is either a GitHub login or `User` type
 - the returned data will be an array of `User` types
-
 
 #### Statistics
 
