@@ -1,18 +1,27 @@
-## Octokit.jl
+# Octokit.jl
 
 ##### A Julia package targeting the GitHub API (v3)
 
 [![Build Status](https://travis-ci.org/WestleyArgentum/Octokit.jl.png?branch=master)](https://travis-ci.org/WestleyArgentum/Octokit.jl)
 
-### Installation
+## Quick start
 
 ```julia
-Pkg.clone("https://github.com/WestleyArgentum/Octokit.jl.git")
+julia> Pkg.clone("https://github.com/WestleyArgentum/Octokit.jl.git")
+
+julia> using Octokit
+
+julia> my_auth = authenticate("an_access_token")
+OAuth2("an_access_token")
+
+julia> star("WestleyArgentum", "Octokit.jl"; auth = my_auth)  # :)
+
+julia> starred("WestleyArgentum", "Octokit.jl")
 ```
 
-### API
+## API
 
-#### Authentication
+### Authentication
 
 All API methods accept a named parameter `auth` of type `Octokit.Authorization`. By default, this parameter will be an instance of `AnonymousAuth`, and the API request will be made without any privileges.
 
@@ -21,10 +30,10 @@ If you would like to make requests as an authorized user, you need to `authentic
 ```julia
 authenticate(token::String)
 ```
-- `token` is an "application token" which you can [read about generating here](https://help.github.com/articles/creating-an-access-token-for-command-line-use)
+- `token` is an "access token" which you can [read about generating here](https://help.github.com/articles/creating-an-access-token-for-command-line-use)
 
 
-#### Users
+### Users
 
 The `User` type is used to represent GitHub accounts. It contains lots of interesting information about an account, and can be used in other API requests.
 
@@ -46,7 +55,7 @@ following(user::User)
 - the returned data will be an array of `User` types
 
 
-#### Organizations
+### Organizations
 
 Organizations let multiple users manage repositories together.
 
@@ -61,7 +70,7 @@ orgs(user::String; auth = AnonymousAuth())
 - `user` is the GitHub account about which you are curious
 
 
-#### Statistics
+### Statistics
 
 Repository statistics are interesting bits of information about activity. GitHub caches this data when possible, but sometimes a request will trigger regeneration and come back empty. For this reason all statistics functions have an argument `attempts` which will be the number of tries made before admitting defeat.
 
@@ -85,28 +94,7 @@ punch_card(owner, repo, attempts = 3; auth = AnonymousAuth())
 - `attempts` is the number of tries made before admitting defeat
 
 
-#### Collaborators
-
-Collaborators are users that work together and share access to repositories.
-
-```julia
-collaborators(owner, repo; auth = AnonymousAuth())
-```
-```julia
-iscollaborator(owner, repo, user; auth = AnonymousAuth())
-```
-```julia
-add_collaborator(owner, repo, user; auth = AnonymousAuth()
-```
-```julia
-remove_collaborator(owner, repo, user; auth = AnonymousAuth())
-```
-- `owner` is a GitHub login
-- `repo` is a repository name
-- `user` is the GitHub login being inspected, added, or removed
-
-
-#### Forks
+### Forks
 
 ```julia
 forks(owner, repo; auth = AnonymousAuth())
@@ -118,7 +106,7 @@ fork(owner, repo, organization = ""; auth = AnonymousAuth())
 - `repo` is a repository name
 
 
-#### Starring
+### Starring
 
 ```julia
 stargazers(owner, repo; auth = AnonymousAuth())
@@ -137,7 +125,7 @@ unstar(owner, repo; auth = AnonymousAuth())
 - `user` is a GitHub login
 
 
-#### Watching
+### Watching
 
 ```julia
 watchers(owner, repo; auth = AnonymousAuth())
@@ -157,3 +145,24 @@ unwatch(owner, repo; auth = AnonymousAuth())
 - `owner` is a GitHub login
 - `repo` is a repository name
 - `user` is a GitHub login
+
+
+### Collaborators
+
+Collaborators are users that work together and share access to a repository.
+
+```julia
+collaborators(owner, repo; auth = AnonymousAuth())
+```
+```julia
+iscollaborator(owner, repo, user; auth = AnonymousAuth())
+```
+```julia
+add_collaborator(owner, repo, user; auth = AnonymousAuth()
+```
+```julia
+remove_collaborator(owner, repo, user; auth = AnonymousAuth())
+```
+- `owner` is a GitHub login
+- `repo` is a repository name
+- `user` is the GitHub login being inspected, added, or removed
