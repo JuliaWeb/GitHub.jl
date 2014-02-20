@@ -10,6 +10,7 @@ using HttpCommon
 
 export User,
        Organization,
+       Repo,
        HttpError,
        AuthException
 
@@ -41,19 +42,23 @@ export authenticate,
        followers,
        following,
        org,
-       orgs
+       orgs,
+       repo
 
 
+include("utils.jl")
 include("endpoint.jl")
 include("error.jl")
 include("auth.jl")
 include("user.jl")
+include("organizations.jl")
+include("repo.jl")
 include("starring.jl")
 include("forks.jl")
 include("statistics.jl")
 include("collaborators.jl")
 include("watching.jl")
-include("organizations.jl")
+
 
 end
 
