@@ -30,32 +30,36 @@ type Repo
     has_downloads
 
     function Repo(data::Dict)
-        new(get(data, "id", nothing),
-            github_obj_from_type(get(data, "owner", nothing)),
-            get(data, "name", nothing),
-            get(data, "full_name", nothing),
-            get(data, "description", nothing),
-            get(data, "private", nothing),
-            get(data, "fork", nothing),
-            get(data, "homepage", nothing),
-            get(data, "language", nothing),
-            get(data, "forks_count", nothing),
-            get(data, "stargazers_count", nothing),
-            get(data, "watchers_count", nothing),
-            get(data, "size", nothing),
-            get(data, "default_branch", nothing),
-            get(data, "master_branch", nothing),
-            get(data, "open_issues_count", nothing),
-            get(data, "pushed_at", nothing),
-            get(data, "created_at", nothing),
-            get(data, "updated_at", nothing),
-            get(data, "subscribers_count", nothing),
-            get(data, "organization", nothing),
-            get(data, "parent", nothing),
-            get(data, "source", nothing),
-            get(data, "has_issues", nothing),
-            get(data, "has_wiki", nothing),
-            get(data, "has_downloads", nothing))
+        r = new(get(data, "id", nothing),
+                github_obj_from_type(get(data, "owner", Dict())),
+                get(data, "name", nothing),
+                get(data, "full_name", nothing),
+                get(data, "description", nothing),
+                get(data, "private", nothing),
+                get(data, "fork", nothing),
+                get(data, "homepage", nothing),
+                get(data, "language", nothing),
+                get(data, "forks_count", nothing),
+                get(data, "stargazers_count", nothing),
+                get(data, "watchers_count", nothing),
+                get(data, "size", nothing),
+                get(data, "default_branch", nothing),
+                get(data, "master_branch", nothing),
+                get(data, "open_issues_count", nothing),
+                get(data, "pushed_at", nothing),
+                get(data, "created_at", nothing),
+                get(data, "updated_at", nothing),
+                get(data, "subscribers_count", nothing),
+                github_obj_from_type(get(data, "organization", Dict())),
+                get(data, "parent", nothing),
+                get(data, "source", nothing),
+                get(data, "has_issues", nothing),
+                get(data, "has_wiki", nothing),
+                get(data, "has_downloads", nothing))
+
+        r.parent != nothing && (r.parent = Repo(r.parent))
+        r.source != nothing && (r.source = Repo(r.source))
+        r
     end
 end
 
