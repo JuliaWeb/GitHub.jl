@@ -61,29 +61,19 @@ type Organization
 end
 
 function show(io::IO, org::Organization)
-    println(io, "$(org.login) ($(org.email))")
+    print(io, "$User - $(org.login)")
 
-    if org.blog != nothing && !isempty(org.blog)
-        println(io, "  $(org.blog)")
+    if org.name != nothing && !isempty(org.name) && org.blog != nothing && !isempty(org.blog)
+        print(io, " ($(org.name), $(org.blog))")
+    elseif org.name != nothing
+        print(io, " ($(org.name))")
+    elseif org.blog != nothing
+        print(io, " ($(org.blog))")
     end
 
-    if org.location != nothing && !isempty(org.location)
-        println(io, "  $(org.location)")
+    if org.bio != nothing && !isempty(org.bio)
+        print(io, "\n\"$(org.bio)\"")
     end
-
-    if org.public_repos != nothing ||
-       org.owned_private_repos != nothing ||
-       org.public_gists != nothing ||
-       org.private_gists != nothing
-
-        println(io)
-    end
-
-    org.public_repos != nothing && println(io, "  public repos: $(org.public_repos)")
-    org.owned_private_repos != nothing && println(io, "  private repos: $(org.owned_private_repos)")
-
-    org.public_gists != nothing && println(io, "  public gists: $(org.public_gists)")
-    org.private_gists != nothing && println(io, "  private gists: $(org.private_gists)")
 end
 
 
