@@ -9,9 +9,19 @@ immutable BasicAuth <: Authorization
     password::String
 end
 
+function show(io::IO, a::BasicAuth)
+    pw_str = repeat("*", 8)
+    print(io, "Octokit Authorization ($(a.user), $pw_str))")
+end
+
 
 immutable OAuth2 <: Authorization
     token::String
+end
+
+function show(io::IO, a::OAuth2)
+    token_str = a.token[1:6] * repeat("*", length(a.token) - 6)
+    print(io, "Octokit Authorization ($token_str)")
 end
 
 
