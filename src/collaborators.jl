@@ -14,6 +14,7 @@ function collaborators(auth::Authorization, owner, repo; headers = Dict(), optio
     handle_error(r)
 
     data = JSON.parse(r.data)
+    map!( u -> User(u), data)
 end
 
 
