@@ -14,6 +14,7 @@ function forks(auth, owner, repo; headers = Dict(), options...)
     handle_error(r)
 
     data = JSON.parse(r.data)
+    map!( r -> Repo(r), data)
 end
 
 

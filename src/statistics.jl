@@ -7,7 +7,12 @@ end
 
 function contributors(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
     r = attempt_stats_request(auth, owner, repo, "contributors", attempts; headers = headers, options...)
-    JSON.parse(r.data)
+
+    data = JSON.parse(r.data)
+    map!(data) do udata
+        udata["author"] = User(udata["author"])
+        udata
+    end
 end
 
 

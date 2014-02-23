@@ -14,6 +14,7 @@ function stargazers(auth::Authorization, owner, repo; headers = Dict(), options.
     handle_error(r)
 
     data = JSON.parse(r.data)
+    map!( u -> User(u), data)
 end
 
 
@@ -37,6 +38,7 @@ function starred(auth::Authorization, user; headers = Dict(),
     handle_error(r)
 
     data = JSON.parse(r.data)
+    map!( u -> Repo(u), data)
 end
 
 
