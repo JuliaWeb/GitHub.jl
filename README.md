@@ -70,6 +70,17 @@ orgs(user::String; auth = AnonymousAuth())
 - `user` is the GitHub account about which you are curious
 
 
+### Repos
+
+The `Repo` type is used to represent a repository hosted by GitHub. It contains all sorts of useful information about a repositories usage and history.
+
+```julia
+repo(owner, repo_name; auth = AnonymousAuth())
+```
+- `owner` is the GitHub login of the `User` or `Organization` that manages the repo
+- `repo_name` is the repositories name on GitHub
+
+
 ### Statistics
 
 Repository statistics are interesting bits of information about activity. GitHub caches this data when possible, but sometimes a request will trigger regeneration and come back empty. For this reason all statistics functions have an argument `attempts` which will be the number of tries made before admitting defeat.
