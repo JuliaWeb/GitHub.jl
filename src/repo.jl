@@ -65,8 +65,8 @@ end
 
 function show(io::IO, repo::Repo)
     print(io, "Repo - $(repo.full_name)")
-    repo.homepage != nothing && print(io, " ($(repo.homepage))")
-    repo.description != nothing && print(io, "\n\"$(repo.description)\"")
+    repo.homepage != nothing && !isempty(repo.homepage) && print(io, " ($(repo.homepage))")
+    repo.description != nothing && !isempty(repo.description) && print(io, "\n\"$(repo.description)\"")
 end
 
 
