@@ -11,8 +11,8 @@ julia> Pkg.clone("https://github.com/WestleyArgentum/Octokit.jl.git")
 
 julia> using Octokit
 
-julia> my_auth = authenticate("an_access_token")
-OAuth2("an_access_token")
+julia> auth = authenticate("an_access_token_for_your_account")
+Octokit Authorization (8caaff**********************************)
 
 julia> star("WestleyArgentum", "Octokit.jl"; auth = my_auth)  # :)
 
