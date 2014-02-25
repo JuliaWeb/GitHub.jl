@@ -1,29 +1,29 @@
-# Octokit.jl
+# GitHub.jl
 
 ##### A Julia package targeting the GitHub API (v3)
 
-[![Build Status](https://travis-ci.org/WestleyArgentum/Octokit.jl.png?branch=master)](https://travis-ci.org/WestleyArgentum/Octokit.jl)
+[![Build Status](https://travis-ci.org/WestleyArgentum/GitHub.jl.png?branch=master)](https://travis-ci.org/WestleyArgentum/GitHub.jl)
 
 ## Quick start
 
 ```julia
-julia> Pkg.clone("https://github.com/WestleyArgentum/Octokit.jl.git")
+julia> Pkg.clone("https://github.com/WestleyArgentum/GitHub.jl.git")
 
-julia> using Octokit
+julia> using GitHub
 
 julia> auth = authenticate("an_access_token_for_your_account")
-Octokit Authorization (8caaff**********************************)
+GitHub Authorization (8caaff**********************************)
 
-julia> star("WestleyArgentum", "Octokit.jl"; auth = my_auth)  # :)
+julia> star("WestleyArgentum", "GitHub.jl"; auth = my_auth)  # :)
 
-julia> starred("WestleyArgentum", "Octokit.jl")
+julia> stargazers("WestleyArgentum", "GitHub.jl")
 ```
 
 ## API
 
 ### Authentication
 
-All API methods accept a named parameter `auth` of type `Octokit.Authorization`. By default, this parameter will be an instance of `AnonymousAuth`, and the API request will be made without any privileges.
+All API methods accept a named parameter `auth` of type `GitHub.Authorization`. By default, this parameter will be an instance of `AnonymousAuth`, and the API request will be made without any privileges.
 
 If you would like to make requests as an authorized user, you need to `authenticate`.
 

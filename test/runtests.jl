@@ -1,2 +1,2 @@
 
-using Octokit
+using GitHub

@@ -1,24 +1,24 @@
 
 # Types -------
 
-abstract OctokitException
+abstract GitHubException <: Base.Exception
 
 
-type AuthException
+type AuthException <: GitHubException
     status
     message
     url
 end
 
 
-type HttpError
+type HttpError <: GitHubException
     status
     message
     url
 end
 
 
-type GithubError
+type GithubError <: GitHubException
     message
 end
 

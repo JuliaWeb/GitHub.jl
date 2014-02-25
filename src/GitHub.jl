@@ -1,5 +1,5 @@
 
-module Octokit
+module GitHub
 
 import Base.show
 

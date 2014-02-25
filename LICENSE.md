@@ -1,6 +1,6 @@
 The MIT License (MIT)
 
-Copyright (c) 2014 Westley Argentum Hennigh and [other contributers](http://github.com/WestleyArgentum/Octokit.jl/graphs/contributors)
+Copyright (c) 2014 Westley Argentum Hennigh and [other contributers](http://github.com/WestleyArgentum/GitHub.jl/graphs/contributors)
 
 ```
 Permission is hereby granted, free of charge, to any person obtaining a copy of
