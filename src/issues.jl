@@ -63,3 +63,37 @@ function issue(auth::Authorization, user::String, repo, num; headers = Dict(), o
 
     Issue(JSON.parse(r.data))
 end
+
+
+function create_issue(user::String, repo, title; auth = AnonymousAuth(), options...)
+    create_issue(auth, user, repo, title; options...)
+end
+
+function create_issue(user::User, repo, title; auth = AnonymousAuth(), options...)
+    create_issue(auth, user.login, repo, title; options...)
+end
+
+function create_issue(auth::Authorization, user::String, repo, title; body = nothing,
+                                                                      assignee = nothing,
+                                                                      milestone = nothing,
+                                                                      labels = nothing,
+                                                                      headers = Dict(),
+                                                                      options...)
+    authenticate_headers(headers, auth)
+
+    data = Dict()
+    data["title"] = title
+    body != nothing && (data["body"] = body)
+    assignee != nothing && (data["assignee"] = assignee)
+    milestone != nothing && (data["milestone"] = milestone)
+    labels != nothing && (data["labels"] = labels)
+
+    r = post(URI(API_ENDPOINT; path = "/repos/$user/$repo/issues");
+             headers = headers,
+             data = data,
+             options...)
+
+    handle_error(r)
+
+    Issue(JSON.parse(r.data))
+end
