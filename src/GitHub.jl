@@ -11,6 +11,7 @@ using HttpCommon
 export User,
        Organization,
        Repo,
+       Issue,
        HttpError,
        AuthException
 
@@ -43,7 +44,8 @@ export authenticate,
        following,
        org,
        orgs,
-       repo
+       repo,
+       issue
 
 
 include("utils.jl")
@@ -53,6 +55,7 @@ include("auth.jl")
 include("user.jl")
 include("organizations.jl")
 include("repo.jl")
+include("issues.jl")
 include("starring.jl")
 include("forks.jl")
 include("statistics.jl")
