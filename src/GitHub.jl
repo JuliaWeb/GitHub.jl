@@ -45,7 +45,8 @@ export authenticate,
        org,
        orgs,
        repo,
-       issue
+       issue,
+       create_issue
 
 
 include("utils.jl")
