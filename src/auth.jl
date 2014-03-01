@@ -41,7 +41,7 @@ function authenticate(token::String)
     r = get(API_ENDPOINT; query = { "access_token" => auth.token })
     if r.status < 200 || r.status >= 300
         data = JSON.parse(r.data)
-        throw(AuthException(r.status, get(data, "message", ""), get(data, "documentation_url", "")))
+        throw(AuthError(r.status, get(data, "message", ""), get(data, "documentation_url", "")))
     end
 
     auth

@@ -7,15 +7,16 @@ using Requests
 using JSON
 using HttpCommon
 
-
+# types
 export User,
        Organization,
        Repo,
        Issue,
        HttpError,
-       AuthException
+       AuthError,
+       StatsError
 
-
+# methods
 export authenticate,
        set_api_endpoint,
        set_web_endpoint,
@@ -53,9 +54,9 @@ include("utils.jl")
 include("endpoint.jl")
 include("error.jl")
 include("auth.jl")
-include("user.jl")
+include("users.jl")
 include("organizations.jl")
-include("repo.jl")
+include("repos.jl")
 include("issues.jl")
 include("starring.jl")
 include("forks.jl")

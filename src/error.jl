@@ -4,10 +4,15 @@
 abstract GitHubException <: Base.Exception
 
 
-type AuthException <: GitHubException
+type AuthError <: GitHubException
     status
     message
     url
+end
+
+
+type StatsError <: GitHubException
+    message
 end
 
 
@@ -15,11 +20,6 @@ type HttpError <: GitHubException
     status
     message
     url
-end
-
-
-type GithubError <: GitHubException
-    message
 end
 
 

@@ -75,5 +75,5 @@ function attempt_stats_request(auth, owner, repo, stat, attempts; headers = Dict
         sleep(2.0)
     end
 
-    throw(GitHubError("Unsuccessfully attempted to retrieve $stat $attempts times."))
+    throw(StatsError("Unsuccessfully attempted to retrieve $stat $attempts times."))
 end
