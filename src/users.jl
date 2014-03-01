@@ -1,7 +1,7 @@
 
 # Types -------
 
-type User
+type User <: Owner
     id
     email
     name

@@ -45,17 +45,17 @@ end
 
 # Interface -------
 
-function issue(user::String, repo, num; auth = AnonymousAuth(), options...)
-    issue(auth, user, repo, num; options...)
+function issue(owner::String, repo, num; auth = AnonymousAuth(), options...)
+    issue(auth, owner, repo, num; options...)
 end
 
-function issue(user::User, repo, num; auth = AnonymousAuth(), options...)
-    issue(auth, user.login, repo, num; options...)
+function issue(owner::Owner, repo, num; auth = AnonymousAuth(), options...)
+    issue(auth, owner.login, repo, num; options...)
 end
 
-function issue(auth::Authorization, user::String, repo, num; headers = Dict(), options...)
+function issue(auth::Authorization, owner::String, repo, num; headers = Dict(), options...)
     authenticate_headers(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/repos/$user/$repo/issues/$num");
+    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
             headers = headers,
             options...)
 
@@ -65,20 +65,20 @@ function issue(auth::Authorization, user::String, repo, num; headers = Dict(), o
 end
 
 
-function create_issue(user::String, repo, title; auth = AnonymousAuth(), options...)
-    create_issue(auth, user, repo, title; options...)
+function create_issue(owner::String, repo, title; auth = AnonymousAuth(), options...)
+    create_issue(auth, owner, repo, title; options...)
 end
 
-function create_issue(user::User, repo, title; auth = AnonymousAuth(), options...)
-    create_issue(auth, user.login, repo, title; options...)
+function create_issue(owner::Owner, repo, title; auth = AnonymousAuth(), options...)
+    create_issue(auth, owner.login, repo, title; options...)
 end
 
-function create_issue(auth::Authorization, user::String, repo, title; body = nothing,
-                                                                      assignee = nothing,
-                                                                      milestone = nothing,
-                                                                      labels = nothing,
-                                                                      headers = Dict(),
-                                                                      options...)
+function create_issue(auth::Authorization, owner::String, repo, title; body = nothing,
+                                                                       assignee = nothing,
+                                                                       milestone = nothing,
+                                                                       labels = nothing,
+                                                                       headers = Dict(),
+                                                                       options...)
     authenticate_headers(headers, auth)
 
     data = Dict()
@@ -88,7 +88,7 @@ function create_issue(auth::Authorization, user::String, repo, title; body = not
     milestone != nothing && (data["milestone"] = milestone)
     labels != nothing && (data["labels"] = labels)
 
-    r = post(URI(API_ENDPOINT; path = "/repos/$user/$repo/issues");
+    r = post(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues");
              headers = headers,
              data = data,
              options...)
@@ -97,3 +97,45 @@ function create_issue(auth::Authorization, user::String, repo, title; body = not
 
     Issue(JSON.parse(r.data))
 end
+
+
+function edit_issue(owner::String, repo, num; auth = AnonymousAuth(), options...)
+    edit_issue(auth, owner, repo, num; options...)
+end
+
+function edit_issue(owner::Owner, repo, num; auth = AnonymousAuth(), options...)
+    edit_issue(auth, owner.login, repo, num; options...)
+end
+
+function edit_issue(auth::Authorization, owner::String, repo, num; title = nothing,
+                                                                   body = nothing,
+                                                                   assignee = nothing,
+                                                                   state = nothing,
+                                                                   milestone = nothing,
+                                                                   labels = nothing,
+                                                                   headers = Dict(),
+                                                                   options...)
+    authenticate_headers(headers, auth)
+
+    data = Dict()
+    title != nothing && (data["title"] = title)
+    body != nothing && (data["body"] = body)
+    assignee != nothing && (data["assignee"] = assignee)
+    state != nothing && (data["state"] = state)
+    milestone != nothing && (data["milestone"] = milestone)
+    labels != nothing && (data["labels"] = labels)
+
+    r = post(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
+             headers = headers,
+             data = data,
+             options...)
+
+    handle_error(r)
+
+    Issue(JSON.parse(r.data))
+end
+
+
+
+
+

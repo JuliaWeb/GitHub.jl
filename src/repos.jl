@@ -1,7 +1,7 @@
 
 # Types -------
 
-type Repo
+type Repo <: GitHubType
     id
     owner
     name

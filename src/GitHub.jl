@@ -7,6 +7,11 @@ using Requests
 using JSON
 using HttpCommon
 
+
+abstract GitHubType
+abstract Owner <: GitHubType
+
+
 # types
 export User,
        Organization,
@@ -47,7 +52,8 @@ export authenticate,
        orgs,
        repo,
        issue,
-       create_issue
+       create_issue,
+       edit_issue
 
 
 include("utils.jl")

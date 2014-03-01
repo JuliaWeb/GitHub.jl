@@ -1,7 +1,7 @@
 
 # Types -------
 
-type Organization
+type Organization <: Owner
     id
     email
     name
