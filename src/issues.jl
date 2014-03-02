@@ -37,6 +37,10 @@ end
 function show(io::IO, issue::Issue)
     print(io, "$Issue #$(issue.number)")
 
+    if issue.state != nothing && !isempty(issue.state)
+        print(io, " ($(issue.state))")
+    end
+
     if issue.title != nothing && !isempty(issue.title)
         print(io, " - \"$(issue.title)\"")
     end
