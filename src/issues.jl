@@ -129,7 +129,7 @@ function edit_issue(auth::Authorization, owner::String, repo, num; title = nothi
     milestone != nothing && (data["milestone"] = milestone)
     labels != nothing && (data["labels"] = labels)
 
-    r = post(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
+    r = patch(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
              headers = headers,
              data = data,
              options...)
