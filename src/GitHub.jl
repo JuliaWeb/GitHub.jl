@@ -53,7 +53,8 @@ export authenticate,
        repo,
        issue,
        create_issue,
-       edit_issue
+       edit_issue,
+       issues
 
 
 include("utils.jl")
