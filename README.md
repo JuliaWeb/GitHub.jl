@@ -177,3 +177,32 @@ remove_collaborator(owner, repo, user; auth = AnonymousAuth())
 - `owner` is a GitHub login
 - `repo` is a repository name
 - `user` is the GitHub login being inspected, added, or removed
+
+
+### Issues
+
+The `Issue` type is used to represent issues and pull requests made against repositories.
+
+```julia
+issues(owner, repo; auth = AnonymousAuth(),
+                    milestone = nothing,
+                    state = nothing,
+                    assignee = nothing,
+                    creator = nothing,
+                    mentioned = nothing,
+                    labels = nothing,
+                    sort = nothing,
+                    direction = nothing,
+                    since = nothing)
+```
+- `owner` is a GitHub login or `User` type
+- `repo` is a repository name
+- `milestone` can be an int or string ("*" matches all milestones, "none" returns issues with no milestone)
+- `state` can be "open" or "closed"
+- `assignee` can be the name of a user ("*" matches all users, "none" returns issues with no assignee)
+- `creator` can be the user that created the issue
+- `mentioned` is for any user mentioned in the issue
+- `labels` is an array of lables to match
+- `sort` can be "created", "updated", or "comments" (defaults to "created")
+- `direction` can be "asc" or "desc" (defaults to "desc")
+- `since` can be an ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) string
