@@ -184,6 +184,13 @@ remove_collaborator(owner, repo, user; auth = AnonymousAuth())
 The `Issue` type is used to represent issues and pull requests made against repositories.
 
 ```julia
+issue(owner, repo, num; auth = AnonymousAuth())
+```
+- `owner` is a GitHub login or `User` type
+- `repo` is the name of a repository
+- `num` is the issue numer
+
+```julia
 issues(owner, repo; auth = AnonymousAuth(),
                     milestone = nothing,
                     state = nothing,
