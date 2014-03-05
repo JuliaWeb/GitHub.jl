@@ -213,3 +213,18 @@ issues(owner, repo; auth = AnonymousAuth(),
 - `sort` can be "created", "updated", or "comments" (defaults to "created")
 - `direction` can be "asc" or "desc" (defaults to "desc")
 - `since` can be an ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) string
+
+```julia
+create_issue(owner, repo, title; auth = AnonymousAuth(),
+                                 body = nothing,
+                                 assignee = nothing,
+                                 milestone = nothing,
+                                 labels = nothing)
+```
+- `owner` is a GitHub login or `User` type
+- `repo` is a repository name
+- `title` is the title of your new issue
+- `body` can be a text description of your issue
+- `assignee` is a GitHub login
+- `milestone` is the milestone number
+- `labels` is an array of label strings
