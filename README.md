@@ -228,3 +228,22 @@ create_issue(owner, repo, title; auth = AnonymousAuth(),
 - `assignee` is a GitHub login
 - `milestone` is the milestone number
 - `labels` is an array of label strings
+
+```julia
+edit_issue(owner, repo, num; auth = AnonymousAuth(),
+                             title = nothing,
+                             body = nothing,
+                             assignee = nothing,
+                             state = nothing,
+                             milestone = nothing,
+                             labels = nothing)
+```
+- `owner` is a GitHub login or `User` type
+- `repo` is a repository name
+- `num` is the issue number
+- `title` can be a new title for the issue
+- `body` can be a new body for the issue
+- `assignee` can be the new assignee
+- `state` can be "open" or "closed"
+- `milestone` can be the milestone number
+- `labels` can be an array of label strings
