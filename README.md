@@ -11,7 +11,7 @@ julia> Pkg.add("GitHub")
 
 julia> using GitHub
 
-julia> auth = authenticate("an_access_token_for_your_account")
+julia> my_auth = authenticate("an_access_token_for_your_account")
 GitHub Authorization (8caaff**********************************)
 
 julia> star("WestleyArgentum", "GitHub.jl"; auth = my_auth)  # :)
