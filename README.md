@@ -7,7 +7,7 @@
 ## Quick start
 
 ```julia
-julia> Pkg.clone("https://github.com/WestleyArgentum/GitHub.jl.git")
+julia> Pkg.add("GitHub")
 
 julia> using GitHub
 
