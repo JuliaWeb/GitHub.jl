@@ -23,17 +23,17 @@ function fork(owner, repo, organization = ""; auth = AnonymousAuth(), options...
 end
 
 function fork(auth, owner, repo, organization = ""; headers = Dict(),
-                                                    data = Dict(),
+                                                    json = Dict(),
                                                     options...)
     authenticate_headers(headers, auth)
 
     if organization != ""
-        data["organization"] = organization
+        json["organization"] = organization
     end
 
     r = post(URI(API_ENDPOINT; path = "/repos/$owner/$repo/forks");
             headers = headers,
-            data = data,
+            json = json,
             options...)
 
     handle_error(r)

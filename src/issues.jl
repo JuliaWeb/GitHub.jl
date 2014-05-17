@@ -87,23 +87,23 @@ function issues(auth::Authorization, owner::String, repo; milestone = nothing,
                                                           direction = nothing,
                                                           since = nothing,
                                                           headers = Dict(),
-                                                          data = Dict(),
+                                                          query = Dict(),
                                                           options...)
     authenticate_headers(headers, auth)
 
-    milestone != nothing && (data["milestone"] = milestone)
-    state != nothing && (data["state"] = state)
-    assignee != nothing && (data["assignee"] = assignee)
-    creator != nothing && (data["creator"] = creator)
-    mentioned != nothing && (data["mentioned"] = mentioned)
-    labels != nothing && (data["labels"] = labels)
-    sort != nothing && (data["sort"] = sort)
-    direction != nothing && (data["direction"] = direction)
-    since != nothing && (data["since"] = since)
+    milestone != nothing && (query["milestone"] = milestone)
+    state != nothing && (query["state"] = state)
+    assignee != nothing && (query["assignee"] = assignee)
+    creator != nothing && (query["creator"] = creator)
+    mentioned != nothing && (query["mentioned"] = mentioned)
+    labels != nothing && (query["labels"] = labels)
+    sort != nothing && (query["sort"] = sort)
+    direction != nothing && (query["direction"] = direction)
+    since != nothing && (query["since"] = since)
 
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues");
             headers = headers,
-            query = data,
+            query = query,
             options...)
 
     handle_error(r)
@@ -125,19 +125,19 @@ function create_issue(auth::Authorization, owner::String, repo, title; body = no
                                                                        milestone = nothing,
                                                                        labels = nothing,
                                                                        headers = Dict(),
-                                                                       data = Dict(),
+                                                                       json = Dict(),
                                                                        options...)
     authenticate_headers(headers, auth)
 
-    data["title"] = title
-    body != nothing && (data["body"] = body)
-    assignee != nothing && (data["assignee"] = assignee)
-    milestone != nothing && (data["milestone"] = milestone)
-    labels != nothing && (data["labels"] = labels)
+    json["title"] = title
+    body != nothing && (json["body"] = body)
+    assignee != nothing && (json["assignee"] = assignee)
+    milestone != nothing && (json["milestone"] = milestone)
+    labels != nothing && (json["labels"] = labels)
 
     r = post(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues");
              headers = headers,
-             data = data,
+             json = json,
              options...)
 
     handle_error(r)
@@ -161,20 +161,20 @@ function edit_issue(auth::Authorization, owner::String, repo, num; title = nothi
                                                                    milestone = nothing,
                                                                    labels = nothing,
                                                                    headers = Dict(),
-                                                                   data = Dict(),
+                                                                   json = Dict(),
                                                                    options...)
     authenticate_headers(headers, auth)
 
-    title != nothing && (data["title"] = title)
-    body != nothing && (data["body"] = body)
-    assignee != nothing && (data["assignee"] = assignee)
-    state != nothing && (data["state"] = state)
-    milestone != nothing && (data["milestone"] = milestone)
-    labels != nothing && (data["labels"] = labels)
+    title != nothing && (json["title"] = title)
+    body != nothing && (json["body"] = body)
+    assignee != nothing && (json["assignee"] = assignee)
+    state != nothing && (json["state"] = state)
+    milestone != nothing && (json["milestone"] = milestone)
+    labels != nothing && (json["labels"] = labels)
 
     r = patch(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
              headers = headers,
-             data = data,
+             json = json,
              options...)
 
     handle_error(r)

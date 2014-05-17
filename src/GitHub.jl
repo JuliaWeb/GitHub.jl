@@ -4,7 +4,7 @@ module GitHub
 import Base.show
 
 using Requests
-using JSON
+import JSON
 using HttpCommon
 
 
