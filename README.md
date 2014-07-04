@@ -81,6 +81,18 @@ repo(owner, repo_name; auth = AnonymousAuth())
 - `repo_name` is the repositories name on GitHub
 
 
+```julia
+repos(owner::Owner; auth = AnonymousAuth(),
+                   typ = nothing,
+                   sort = nothing,
+                   direction = nothing)
+```
+- `owner` is a `User` or `Organization`
+- `typ` is "all", "member", or "owner" (the default) for User
+- `typ` is "all" (the default), "public", "private", "forks", "sources", or "member".
+- `sort` is "created", "updated", "pushed", or "full_name" (the default).
+- `direction` is "asc" or "desc" (the default).
+
 ### Statistics
 
 Repository statistics are interesting bits of information about activity. GitHub caches this data when possible, but sometimes a request will trigger regeneration and come back empty. For this reason all statistics functions have an argument `attempts` which will be the number of tries made before admitting defeat.
