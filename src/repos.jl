@@ -86,3 +86,34 @@ function repo(auth::Authorization, owner, repo_name; headers = Dict(), options..
 
     Repo(JSON.parse(r.data))
 end
+
+function repos(owner::User; auth = AnonymousAuth(), options...)
+  repos(auth, "/users/$(owner.login)"; options...)
+end
+
+function repos(owner::Organization; auth = AnonymousAuth(), options...)
+  repos(auth, "/orgs/$(owner.login)"; options...)
+end
+
+function repos(auth::Authorization, owner; typ = nothing, # for user: all, member, [owner]
+                                                          # for org: [all], public, private, forks, sources, member
+                                           sort = nothing, # created, updated, pushed, [full_name]
+                                           direction = nothing, # asc, [desc]
+                                           headers = Dict(),
+                                           data = Dict(),
+                                           options...)
+  authenticate_headers(headers, auth)
+
+  typ == nothing || (data["type"] = typ)
+  sort == nothing || (data["sort"] = sort)
+  direction == nothing || (data["direction"] = direction)
+
+  r = get(URI(API_ENDPOINT; path = "$owner/repos");
+                            headers = headers,
+                            query = data,
+                            options...)
+
+  handle_error(r)
+
+  Repo[Repo(d) for d in JSON.parse(r.data)]
+end
