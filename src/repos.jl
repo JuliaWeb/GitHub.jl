@@ -115,5 +115,16 @@ function repos(auth::Authorization, owner; typ = nothing, # for user: all, membe
 
   handle_error(r)
 
-  Repo[Repo(d) for d in JSON.parse(r.data)]
+  # Handle Pagination Links
+  results = JSON.parse(r.data)
+  links = parse_link_header(r.headers["Link"])
+  while haskey(links,"next")
+    r = get(links["next"])
+    handle_error(r)
+
+    append!(results,JSON.parse(r.data))
+    links = parse_link_header(r.headers["Link"])
+  end
+
+  Repo[Repo(d) for d in results]
 end
