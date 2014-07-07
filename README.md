@@ -190,6 +190,42 @@ remove_collaborator(owner, repo, user; auth = AnonymousAuth())
 - `repo` is a repository name
 - `user` is the GitHub login being inspected, added, or removed
 
+#### Examples
+```julia
+julia> using GitHub
+
+julia> collaborators("JuliaLang","Julia")
+26-element Array{Any,1}:
+ User - amitmurthy
+ User - andreasnoackjensen
+ ⋮
+ User - tshort
+ User - vtjnash
+
+julia> o = org("JuliaLang")
+User - JuliaLang (The Julia Language, http://julialang.org/)
+
+julia> collaborators(o,"julia")
+26-element Array{Any,1}:
+ User - amitmurthy
+ User - andreasnoackjensen
+ ⋮
+ User - tshort
+ User - vtjnash
+
+julia> r = repo("JuliaLang","julia")
+Repo - JuliaLang/julia (http://julialang.org/)
+"The Julia Language: A fresh approach to technical computing."
+
+julia> collaborators(r)
+26-element Array{Any,1}:
+ User - amitmurthy
+ User - andreasnoackjensen
+ ⋮
+ User - tshort
+ User - vtjnash
+```
+
 
 ### Issues
 
