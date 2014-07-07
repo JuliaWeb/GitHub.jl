@@ -1,6 +1,14 @@
 
 # Interface -------
 
+function collaborators(repo::Repo; auth = AnonymousAuth(), options...)
+    collaborators(auth, repo.owner.login, repo.name; options...)
+end
+
+function collaborators(owner::Owner, repo; auth = AnonymousAuth(), options...)
+    collaborators(auth, owner.login, repo; options...)
+end
+
 function collaborators(owner, repo; auth = AnonymousAuth(), options...)
     collaborators(auth, owner, repo; options...)
 end
