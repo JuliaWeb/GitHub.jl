@@ -101,6 +101,7 @@ function repos(auth::Authorization, owner; typ = nothing, # for user: all, membe
                                            direction = nothing, # asc, [desc]
                                            headers = Dict(),
                                            data = Dict(),
+                                           result_limit = -1,
                                            options...)
   authenticate_headers(headers, auth)
 
@@ -108,23 +109,8 @@ function repos(auth::Authorization, owner; typ = nothing, # for user: all, membe
   sort == nothing || (data["sort"] = sort)
   direction == nothing || (data["direction"] = direction)
 
-  r = get(URI(API_ENDPOINT; path = "$owner/repos");
-                            headers = headers,
-                            query = data,
-                            options...)
-
-  handle_error(r)
-
-  # Handle Pagination Links
-  results = JSON.parse(r.data)
-  links = parse_link_header(r.headers["Link"])
-  while haskey(links,"next")
-    r = get(links["next"])
-    handle_error(r)
-
-    append!(results,JSON.parse(r.data))
-    links = parse_link_header(r.headers["Link"])
-  end
-
-  Repo[Repo(d) for d in results]
+  pages = get_pages(URI(API_ENDPOINT; path = "$owner/repos"), result_limit;
+                headers = headers, query = data, options...)
+  items = get_items_from_pages(pages)
+  return Repo[Repo(d) for d in items]
 end
