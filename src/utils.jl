@@ -25,8 +25,8 @@ end
 
 # Given a URI, fetches it
 # Returns the response and the next link, if any.
-function next_page(next_link::URI)
-  r = get(next_link)
+function next_page(next_link::URI,headers::Dict{String,String})
+  r = get(next_link;headers=headers)
   handle_error(r)
   links = parse_link_header(r.headers["Link"])
   if haskey(links, "next")
@@ -38,9 +38,10 @@ end
 # To make pages iterable
 type Pager
   initial_link::URI
+  headers::Dict{String,String}
 end
 Base.start(p::Pager) = p.initial_link
-Base.next(p::Pager, l::URI) = next_page(l)
+Base.next(p::Pager, l::URI) = next_page(l,p.headers)
 Base.done(p::Pager, l::URI) = false
 Base.done(p::Pager, l::Nothing) = true
 
@@ -49,16 +50,19 @@ Base.done(p::Pager, l::Nothing) = true
 # result_limit is the desired number of results; the default (-1) indicates all results
 # per_page is the number of results to expect per page; default is 30, GitHub's default
 # Returns an Array of Responses (1 per page)
-function get_pages(u::URI,result_limit::Int=-1,per_page::Int=30;options...)
-  r = get(u;options...)
+function get_pages(u::URI,result_limit::Int=-1,per_page::Int=30;headers = Dict(),options...)
+  r = get(u;headers=headers,options...)
   handle_error(r)
 
   pages = [r]
-  links = parse_link_header(r.headers["Link"])
-  if haskey(links,"next")
-    p = Pager(links["next"])
+  links = haskey(r.headers,"Link") ? parse_link_header(r.headers["Link"]) : nothing
+  if links != nothing && haskey(links,"next") && (result_limit < 0 || per_page < result_limit)
+    p = Pager(links["next"],headers)
     for page in p
       push!(pages,page)
+      if result_limit > 0 && length(pages) * 30 >= result_limit
+        break
+      end
     end
   end
   return pages

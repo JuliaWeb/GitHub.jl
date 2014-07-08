@@ -106,15 +106,13 @@ function followers(user::User; auth = AnonymousAuth(), options...)
     followers(auth, user.login; options...)
 end
 
-function followers(auth::Authorization, user; headers = Dict(), options...)
+function followers(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
     authenticate_headers(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/users/$user/followers");
-            headers = headers,
-            options...)
-
-    handle_error(r)
-
-    map!(f -> User(f), JSON.parse(r.data))
+    pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/followers"), result_limit;
+                  headers = headers,
+                  options...)
+    items = get_items_from_pages(pages)
+    return User[User(i) for i in items]
 end
 
 
@@ -126,13 +124,11 @@ function following(user::User; auth = AnonymousAuth(), options...)
     following(auth, user.login; options...)
 end
 
-function following(auth::Authorization, user; headers = Dict(), options...)
+function following(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
     authenticate_headers(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/users/$user/following");
-            headers = headers,
-            options...)
-
-    handle_error(r)
-
-    map!(f -> User(f), JSON.parse(r.data))
+    pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/following"), result_limit;
+                      headers = headers,
+                      options...)
+    items = get_items_from_pages(pages)
+    return User[User(i) for i in items]
 end

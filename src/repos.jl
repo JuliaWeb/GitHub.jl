@@ -103,14 +103,14 @@ function repos(auth::Authorization, owner; typ = nothing, # for user: all, membe
                                            data = Dict(),
                                            result_limit = -1,
                                            options...)
-  authenticate_headers(headers, auth)
+    authenticate_headers(headers, auth)
 
-  typ == nothing || (data["type"] = typ)
-  sort == nothing || (data["sort"] = sort)
-  direction == nothing || (data["direction"] = direction)
+    typ == nothing || (data["type"] = typ)
+    sort == nothing || (data["sort"] = sort)
+    direction == nothing || (data["direction"] = direction)
 
-  pages = get_pages(URI(API_ENDPOINT; path = "$owner/repos"), result_limit;
-                headers = headers, query = data, options...)
-  items = get_items_from_pages(pages)
-  return Repo[Repo(d) for d in items]
+    pages = get_pages(URI(API_ENDPOINT; path = "$owner/repos"), result_limit;
+                      headers = headers, query = data, options...)
+    items = get_items_from_pages(pages)
+    return Repo[Repo(d) for d in items]
 end
