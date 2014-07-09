@@ -13,16 +13,13 @@ function collaborators(owner, repo; auth = AnonymousAuth(), options...)
     collaborators(auth, owner, repo; options...)
 end
 
-function collaborators(auth::Authorization, owner, repo; headers = Dict(), options...)
+function collaborators(auth::Authorization, owner, repo; result_limit = -1, headers = Dict(), options...)
     authenticate_headers(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators");
-            headers = headers,
-            options...)
-
-    handle_error(r)
-
-    data = JSON.parse(r.data)
-    map!( u -> User(u), data)
+    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators"), result_limit;
+                      headers = headers,
+                      options...)
+    items = get_items_from_pages(pages)
+    return User[User(i) for i in items]
 end
 
 

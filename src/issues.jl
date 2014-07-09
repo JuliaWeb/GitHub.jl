@@ -88,6 +88,7 @@ function issues(auth::Authorization, owner::String, repo; milestone = nothing,
                                                           since = nothing,
                                                           headers = Dict(),
                                                           query = Dict(),
+                                                          result_limit = -1,
                                                           options...)
     authenticate_headers(headers, auth)
 
@@ -101,14 +102,12 @@ function issues(auth::Authorization, owner::String, repo; milestone = nothing,
     direction != nothing && (query["direction"] = direction)
     since != nothing && (query["since"] = since)
 
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues");
-            headers = headers,
-            query = query,
-            options...)
-
-    handle_error(r)
-
-    map!(i -> Issue(i), JSON.parse(r.data))
+    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues"), result_limit;
+                      headers = headers,
+                      query = query,
+                      options...)
+    items = get_items_from_pages(pages)
+    return Issue[Issue(i) for i in items]
 end
 
 

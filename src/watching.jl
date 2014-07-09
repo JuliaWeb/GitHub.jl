@@ -5,16 +5,13 @@ function watchers(owner, repo; auth = AnonymousAuth(), options...)
     watchers(auth, owner, repo; options...)
 end
 
-function watchers(auth::Authorization, owner, repo; headers = Dict(), options...)
+function watchers(auth::Authorization, owner, repo; headers = Dict(), result_limit = -1, options...)
     authenticate_headers(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscribers");
+    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscribers"), result_limit;
             headers = headers,
             options...)
-
-    handle_error(r)
-
-    data = JSON.parse(r.data)
-    map!( u -> User(u), data)
+    items = get_items_from_pages(pages)
+    return User[User(i) for i in items]
 end
 
 
@@ -22,14 +19,13 @@ function watched(user; auth = AnonymousAuth(), options...)
     watched(auth, user; options...)
 end
 
-function watched(auth::Authorization, user; headers = Dict(), options...)
+function watched(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
     authenticate_headers(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/users/$user/subscriptions"); headers = headers,
-                                                                    options...)
-    handle_error(r)
-
-    data = JSON.parse(r.data)
-    map!( r -> Repo(r), data)
+    pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/subscriptions"), result_limit;
+                      headers = headers,
+                      options...)
+    items = get_items_from_pages(pages)
+    return Repo[Repo(i) for i in items]
 end
 
 

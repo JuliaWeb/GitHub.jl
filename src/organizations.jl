@@ -103,13 +103,11 @@ function orgs(user::User; auth = AnonymousAuth(), options...)
     orgs(auth, user.login; options...)
 end
 
-function orgs(auth::Authorization, user; headers = Dict(), options...)
+function orgs(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
     authenticate_headers(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/users/$user/orgs");
-            headers = headers,
-            options...)
-
-    handle_error(r)
-
-    map!(o -> Organization(o), JSON.parse(r.data))
+    pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/orgs"), result_limit;
+                      headers = headers,
+                      options...)
+    items = get_items_from_pages(pages)
+    return Organization[Organization(i) for i in items]
 end

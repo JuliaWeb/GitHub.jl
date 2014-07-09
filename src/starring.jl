@@ -5,16 +5,15 @@ function stargazers(owner, repo; auth = AnonymousAuth(), options...)
     stargazers(auth, owner, repo; options...)
 end
 
-function stargazers(auth::Authorization, owner, repo; headers = Dict(), options...)
+function stargazers(auth::Authorization, owner, repo; per_page = 30, headers = Dict(), result_limit = -1, options...)
     authenticate_headers(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/stargazers");
-            headers = headers,
-            options...)
-
-    handle_error(r)
-
-    data = JSON.parse(r.data)
-    map!( u -> User(u), data)
+    query = ["per_page" => per_page]
+    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/stargazers"), result_limit, per_page;
+                      headers = headers,
+                      query = query,
+                      options...)
+    items = get_items_from_pages(pages)
+    return User[User(i) for i in items]
 end
 
 
@@ -26,19 +25,19 @@ function starred(auth::Authorization, user; headers = Dict(),
                                             query = Dict(),
                                             sort = nothing,
                                             direction = nothing,
+                                            result_limit = -1,
                                             options...)
     authenticate_headers(headers, auth)
 
     sort != nothing && (query["sort"] = sort)
     direction != nothing && (query["direction"] = direction)
 
-    r = get(URI(API_ENDPOINT; path = "/users/$user/starred"); query = query,
-                                                              headers = headers,
-                                                              options...)
-    handle_error(r)
-
-    data = JSON.parse(r.data)
-    map!( u -> Repo(u), data)
+    pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/starred"), result_limit;
+                      query = query,
+                      headers = headers,
+                      options...)
+    items = get_items_from_pages(pages)
+    return Repo[Repo(i) for i in items]
 end
 
 
