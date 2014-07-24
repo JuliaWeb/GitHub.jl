@@ -64,6 +64,7 @@ function watch(auth::Authorization, owner, repo; headers = Dict(),
 
     r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscription"); headers = headers,
                                                                           query = query,
+                                                                          data = "{}",
                                                                           options...)
     handle_error(r)
 end

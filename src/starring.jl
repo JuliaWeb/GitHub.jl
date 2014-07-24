@@ -49,6 +49,7 @@ function star(auth::Authorization, owner, repo; headers = Dict(), options...)
     authenticate_headers(headers, auth)
 
     r = put(URI(API_ENDPOINT; path = "/user/starred/$owner/$repo"); headers = headers,
+                                                                    data = "{}",
                                                                     options...)
     handle_error(r)
 end
