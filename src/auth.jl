@@ -59,5 +59,5 @@ function authenticate_headers(headers, auth::BasicAuth)
 end
 
 function authenticate_headers(headers, auth::AnonymousAuth)
-    # nothing to be done
+    headers  # nothing to be done
 end
