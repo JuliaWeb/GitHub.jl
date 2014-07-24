@@ -62,8 +62,6 @@ function watch(auth::Authorization, owner, repo; headers = Dict(),
     subscribed != nothing && (query["subscribed"] = subscribed)
     ignored != nothing && (query["ignored"] = ignored)
 
-    println("QUERY: ", query)
-
     r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscription"); headers = headers,
                                                                           query = query,
                                                                           options...)
