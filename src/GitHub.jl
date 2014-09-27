@@ -3,10 +3,10 @@ module GitHub
 
 import Base.show
 
-using Requests
 import JSON
+using Dates
 using HttpCommon
-
+using Requests
 
 abstract GitHubType
 abstract Owner <: GitHubType
