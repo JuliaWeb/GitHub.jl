@@ -3,10 +3,10 @@ module GitHub
 
 import Base.show
 
-using Requests
 import JSON
+using Dates
 using HttpCommon
-
+using Requests
 
 abstract GitHubType
 abstract Owner <: GitHubType
@@ -17,6 +17,7 @@ export User,
        Organization,
        Repo,
        Issue,
+       Comment,
        HttpError,
        AuthError,
        StatsError
@@ -55,7 +56,8 @@ export authenticate,
        issue,
        create_issue,
        edit_issue,
-       issues
+       issues,
+       comments
 
 
 include("utils.jl")
@@ -66,6 +68,7 @@ include("users.jl")
 include("organizations.jl")
 include("repos.jl")
 include("issues.jl")
+include("comments.jl")
 include("starring.jl")
 include("forks.jl")
 include("statistics.jl")

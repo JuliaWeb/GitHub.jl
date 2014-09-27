@@ -295,3 +295,15 @@ edit_issue(owner, repo, num; auth = AnonymousAuth(),
 - `state` can be "open" or "closed"
 - `milestone` can be the milestone number
 - `labels` can be an array of label strings
+
+### Comments
+
+The `Comment` type is used to represent comments on Github issues.
+
+```julia
+comments(owner, repo, num; auth = AnonymousAuth())
+```
+- `owner` is a GitHub login or `User` type
+- `repo` is a repository name
+- `num` is the issue number
+
