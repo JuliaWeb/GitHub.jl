@@ -1,11 +1,11 @@
 
 # Interface -------
 
-function contributors(owner, repo, attempts = 3; auth = AnonymousAuth(), options...)
-    contributors(auth, owner, repo, attempts; options...)
+function contributor_stats(owner, repo, attempts = 3; auth = AnonymousAuth(), options...)
+    contributor_stats(auth, owner, repo, attempts; options...)
 end
 
-function contributors(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
+function contributor_stats(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
     data = attempt_stats_request(auth, owner, repo, "contributors", attempts; headers = headers, options...)
 
     map!(data) do udata

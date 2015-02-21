@@ -114,3 +114,26 @@ function repos(auth::Authorization, owner; typ = nothing, # for user: all, membe
     items = get_items_from_pages(pages)
     return Repo[Repo(d) for d in items]
 end
+
+
+function contributors(owner, repo; auth = AnonymousAuth(), options...)
+    contributors(auth, owner, repo; options...)
+end
+
+function contributors(auth::Authorization, owner, repo; headers = Dict(),
+                                                        query = Dict(),
+                                                        include_anon = false,
+                                                        result_limit = -1,
+                                                        options...)
+    authenticate_headers(headers, auth)
+
+    include_anon && (query["anon"] = "true")
+
+    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contributors"), result_limit;
+                      query = query,
+                      headers = headers,
+                      options...)
+
+    data = get_items_from_pages(pages)
+    [ { "author" => User(c), "contributions" => c["contributions"] } for c in data ]
+end
