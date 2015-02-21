@@ -6,9 +6,8 @@ function contributors(owner, repo, attempts = 3; auth = AnonymousAuth(), options
 end
 
 function contributors(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
-    r = attempt_stats_request(auth, owner, repo, "contributors", attempts; headers = headers, options...)
+    data = attempt_stats_request(auth, owner, repo, "contributors", attempts; headers = headers, options...)
 
-    data = JSON.parse(r.data)
     map!(data) do udata
         udata["author"] = User(udata["author"])
         udata
@@ -21,8 +20,7 @@ function commit_activity(owner, repo, attempts = 3; auth = AnonymousAuth(), opti
 end
 
 function commit_activity(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
-    r = attempt_stats_request(auth, owner, repo, "commit_activity", attempts; headers = headers, options...)
-    JSON.parse(r.data)
+    attempt_stats_request(auth, owner, repo, "commit_activity", attempts; headers = headers, options...)
 end
 
 
@@ -31,8 +29,7 @@ function code_frequency(owner, repo, attempts = 3; auth = AnonymousAuth(), optio
 end
 
 function code_frequency(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
-    r = attempt_stats_request(auth, owner, repo, "code_frequency", attempts; headers = headers, options...)
-    JSON.parse(r.data)
+    attempt_stats_request(auth, owner, repo, "code_frequency", attempts; headers = headers, options...)
 end
 
 
@@ -41,8 +38,7 @@ function participation(owner, repo, attempts = 3; auth = AnonymousAuth(), option
 end
 
 function participation(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
-    r = attempt_stats_request(auth, owner, repo, "participation", attempts; headers = headers, options...)
-    JSON.parse(r.data)
+    attempt_stats_request(auth, owner, repo, "participation", attempts; headers = headers, options...)
 end
 
 
@@ -51,8 +47,7 @@ function punch_card(owner, repo, attempts = 3; auth = AnonymousAuth(), options..
 end
 
 function punch_card(auth::Authorization, owner, repo, attempts = 3; headers = Dict(), options...)
-    r = attempt_stats_request(auth, owner, repo, "punch_card", attempts; headers = headers, options...)
-    JSON.parse(r.data)
+    attempt_stats_request(auth, owner, repo, "punch_card", attempts; headers = headers, options...)
 end
 
 
@@ -69,7 +64,8 @@ function attempt_stats_request(auth, owner, repo, stat, attempts; headers = Dict
         handle_error(r)
 
         if r.status == 200
-            return r
+            pages = _get_pages(r; headers = headers, options...)
+            return get_items_from_pages(pages)
         end
 
         sleep(2.0)

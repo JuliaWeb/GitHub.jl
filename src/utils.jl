@@ -55,10 +55,7 @@ Base.done(p::Pager, l::Nothing) = true
 # result_limit is the desired number of results; the default (-1) indicates all results
 # per_page is the number of results to expect per page; default is 30, GitHub's default
 # Returns an Array of Responses (1 per page)
-function get_pages(u::URI, result_limit::Int = -1, per_page::Int = 30; headers = Dict(), options...)
-    r = get(u; headers = headers, options...)
-    handle_error(r)
-
+function _get_pages(r::Response, result_limit::Int = -1, per_page::Int = 30; headers = Dict(), options...)
     pages = [r]
     links = haskey(r.headers, "Link") ? parse_link_header(r.headers["Link"]) : nothing
 
@@ -76,12 +73,21 @@ function get_pages(u::URI, result_limit::Int = -1, per_page::Int = 30; headers =
     return pages
 end
 
+function get_pages(u::URI, result_limit::Int = -1, per_page::Int = 30; headers = Dict(), options...)
+    r = get(u; headers = headers, options...)
+    handle_error(r)
+
+    return _get_pages(r, result_limit, per_page; headers = headers, options...)
+end
+
 # get_paged gives you an Array{Response,1}
 # get_items_from_pages turns that into an Array{Dict,1}
 # each Dict is one of the items in the paginated list of results
 function get_items_from_pages(pages)
-    results = Dict[]
-    for page in pages
+    length(pages) < 1 && return Dict[]
+
+    results = JSON.parse(pages[1].data)
+    for page in pages[2:end]
         parsed = JSON.parse(page.data)
         append!(results, parsed)
     end
