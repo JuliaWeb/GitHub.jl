@@ -93,12 +93,22 @@ repos(owner::Owner; auth = AnonymousAuth(),
 - `sort` is "created", "updated", "pushed", or "full_name" (the default).
 - `direction` is "asc" or "desc" (the default).
 
+
+```julia
+contributors(owner, repo; auth = AnonymousAuth()
+                          include_anon = false)
+```
+- `owner` is the GitHub login of the `User` or `Organization` that manages the repo
+- `repo` is the repositories name on GitHub
+- `include_anon` will tell GitHub to include anonymous contributions
+
+
 ### Statistics
 
 Repository statistics are interesting bits of information about activity. GitHub caches this data when possible, but sometimes a request will trigger regeneration and come back empty. For this reason all statistics functions have an argument `attempts` which will be the number of tries made before admitting defeat.
 
 ```julia
-contributors(owner, repo, attempts = 3; auth = AnonymousAuth())
+contributor_stats(owner, repo, attempts = 3; auth = AnonymousAuth())
 ```
 ```julia
 commit_activity(owner, repo, attempts = 3; auth = AnonymousAuth())
