@@ -86,17 +86,17 @@ type Commit
 end
 
 
-# function contents(repo::Repo; auth = AnonymousAuth(), options...)
-#   contents(auth, repo.owner.login, repo.name; options...)
-# end
-#
-# function contents(owner::Owner, repo; auth = AnonymousAuth(), options...)
-#   contents(auth, owner.login, repo; options...)
-# end
-#
-# function contents(owner, repo; auth = AnonymousAuth(), path = "", options...)
-#   contents(auth, owner, repo; options...)
-# end
+function contents(repo::Repo; auth = AnonymousAuth(), options...)
+  contents(auth, repo.owner.login, repo.name; options...)
+end
+
+function contents(owner::Owner, repo; auth = AnonymousAuth(), options...)
+  contents(auth, owner.login, repo; options...)
+end
+
+function contents(owner, repo; auth = AnonymousAuth(), path = "", options...)
+  contents(auth, owner, repo; options...)
+end
 
 function contents(auth::Authorization, owner::String, repo::String;
                     path::String = "", headers = Dict(), ref = nothing,
@@ -160,7 +160,6 @@ function delete_file(auth::Authorization, owner::String, repo::String,
             path = "/repos/$owner/$repo/contents/$path"),
             json=data, headers = headers)
     handle_error(r)
-    # print(get(JSON.parse(r.data), "commit", nothing))
     return Commit(get(JSON.parse(r.data), "commit", nothing))
 end
 
@@ -173,8 +172,3 @@ function readme(auth::Authorization, owner, repo; headers = Dict(), options...)
     readme_file = File(JSON.parse(r.data))
     return readme_file
 end
-
-## Issues
-#4) need to add get data method to files with links...
-#5) need to fix some fields in files & commit types
-#6) Implement Owner, etc classes in new functions
