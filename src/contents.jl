@@ -112,7 +112,7 @@ end
 
 function create_file(auth::Authorization, owner::String, repo::String,
                     path::String, message::String, content; headers = Dict(),
-                    branch::String = nothing, author = nothing,
+                    branch = nothing, author = nothing,
                     committer = nothing, options...)
       data = {"message"=> message, "content"=> content,
               "author"=> author, "committer"=> committer, "branch" => branch}
@@ -121,7 +121,7 @@ end
 
 
 function update_file(auth::Authorization, owner::String, repo::String,
-                    path::String, message::String, sha::String, content;
+                    path::String, sha::String, message::String, content;
                     author::User = User({"name"=> "NA", "email"=>"NA"}),
                     committer::User = User({"name"=> "NA", "email"=>"NA"}),
                     headers = Dict(), branch = nothing)
