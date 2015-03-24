@@ -6,14 +6,14 @@ using GitHub, FactCheck
 # myTestAccount = "..."
 # myTestRepo = "..."
 
-facts("Read GitHub.jl Repo Files") do
-  owner = "WestleyArgentum"
-  repo = "GitHub.jl"
-  context("Readme function returns readme file data") do
-    readme_data = readme(GitHub.AnonymousAuth(), owner, repo)
-    @fact typeof(readme_data) => File
-  end
-end
+# facts("Read GitHub.jl Repo Files") do
+#   owner = "WestleyArgentum"
+#   repo = "GitHub.jl"
+#   context("Readme function returns readme file data") do
+#     readme_data = readme(GitHub.AnonymousAuth(), owner, repo)
+#     @fact typeof(readme_data) => File
+#   end
+# end
 
 # facts("Create, Modify & Delete File") do
 #   context("Contents function returns list of files") do
