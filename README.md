@@ -267,7 +267,7 @@ issues(owner, repo; auth = AnonymousAuth(),
 - `assignee` can be the name of a user ("*" matches all users, "none" returns issues with no assignee)
 - `creator` can be the user that created the issue
 - `mentioned` is for any user mentioned in the issue
-- `labels` is an array of lables to match
+- `labels` is an array of labels to match
 - `sort` can be "created", "updated", or "comments" (defaults to "created")
 - `direction` can be "asc" or "desc" (defaults to "desc")
 - `since` can be an ISO 8601 format (YYYY-MM-DDTHH:MM:SSZ) string
