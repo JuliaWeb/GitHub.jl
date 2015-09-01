@@ -4,10 +4,16 @@ module GitHub
 import Base.show
 
 import JSON
-using Dates
+using Compat
 using HttpCommon
 using Requests
-using Codecs #only until julia 0.4 introduces base function for base64 encoding???
+import Requests: get, post, put, delete, options
+
+if VERSION < v"0.4-"
+    using Dates
+else
+    using Base.Dates
+end
 
 abstract GitHubType
 abstract Owner <: GitHubType

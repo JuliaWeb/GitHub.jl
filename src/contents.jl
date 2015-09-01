@@ -37,7 +37,7 @@ type File
 
     function decodeContent(content)
       content == nothing && return nothing
-      return join([bytestring(decode(Base64, line)) for line in
+      return join([bytestring(base64decode(line)) for line in
                   split(content, '\n')], "")
     end
 
@@ -114,20 +114,21 @@ function create_file(auth::Authorization, owner::String, repo::String,
                     path::String, message::String, content; headers = Dict(),
                     branch = nothing, author = nothing,
                     committer = nothing, options...)
-      data = {"message"=> message, "content"=> content,
-              "author"=> author, "committer"=> committer, "branch" => branch}
+      data = @compat Dict("message" => message, "content" => content,
+                          "author" => author, "committer" => committer, 
+                          "branch" => branch)
   return upload_file(auth, owner, repo, path, data, headers)
 end
 
 
 function update_file(auth::Authorization, owner::String, repo::String,
                     path::String, sha::String, message::String, content;
-                    author::User = User({"name"=> "NA", "email"=>"NA"}),
-                    committer::User = User({"name"=> "NA", "email"=>"NA"}),
+                    author::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
+                    committer::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
                     headers = Dict(), branch = nothing)
-    data = {"message"=> message, "content"=> content,
-            "author"=> author, "committer"=> committer,
-            "sha"=> sha, "branch" => branch}
+    data = @compat Dict("message"=> message, "content"=> content,
+                        "author"=> author, "committer"=> committer,
+                        "sha"=> sha, "branch" => branch)
   return upload_file(auth, owner, repo, path, data, headers)
 end
 
@@ -136,22 +137,23 @@ function upload_file(auth::Authorization, owner::String, repo::String,
     for (k,v) in data
       v == nothing && delete!(data, k)
     end
-    data["content"] = bytestring(encode(Base64, JSON.json(data["content"])))
+    data["content"] = bytestring(base64encode(JSON.json(data["content"])))
     authenticate_headers(headers, auth)
     r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contents/$path"),
             json=data; headers = headers)
     handle_error(r)
     resp = JSON.parse(r.data)
-    return {"content" => File(get(resp, "content", nothing)),
-            "commit" => Commit(get(resp, "commit", nothing))}
+    return @compat Dict("content" => File(get(resp, "content", nothing)),
+                        "commit" => Commit(get(resp, "commit", nothing)))
 end
 
 
 function delete_file(auth::Authorization, owner::String, repo::String,
                 path::String, sha::String, message::String; branch = "default",
-                headers = Dict(), author::User = User({"name"=> "NA", "email"=>"NA"}),
-                committer::User = User({"name"=> "NA", "email"=>"NA"}))
-    data = {"message" => message, "sha" => sha}
+                headers = Dict(), 
+                author::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
+                committer::User = User(@compat Dict("name"=> "NA", "email"=>"NA")))
+    data = @compat Dict("message" => message, "sha" => sha)
     branch == "default" || (data["branch"] = branch)
     author.name == "NA" || (data["author"] = author)
     committer.name == "NA" || (data["committer"] = committer)

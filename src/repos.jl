@@ -135,5 +135,5 @@ function contributors(auth::Authorization, owner, repo; headers = Dict(),
                       options...)
 
     data = get_items_from_pages(pages)
-    [ { "author" => User(c), "contributions" => c["contributions"] } for c in data ]
+    [ @compat Dict("author" => User(c), "contributions" => c["contributions"]) for c in data ]
 end

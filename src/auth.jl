@@ -38,7 +38,7 @@ end
 function authenticate(token::String)
     auth = OAuth2(token)
 
-    r = get(API_ENDPOINT; query = { "access_token" => auth.token })
+    r = get(API_ENDPOINT; query = @compat Dict("access_token" => auth.token))
     if r.status < 200 || r.status >= 300
         data = JSON.parse(r.data)
         throw(AuthError(r.status, get(data, "message", ""), get(data, "documentation_url", "")))
