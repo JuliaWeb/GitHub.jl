@@ -84,11 +84,11 @@ end
 # get_items_from_pages turns that into an Array{Dict,1}
 # each Dict is one of the items in the paginated list of results
 function get_items_from_pages(pages)
-    length(pages) < 1 && return Dict[]
+    isempty(pages) && return Dict[]
 
-    results = JSON.parse(pages[1].data)
+    results = JSON.parse(utf8(pages[1].data))
     for page in pages[2:end]
-        parsed = JSON.parse(page.data)
+        parsed = JSON.parse(utf8(page.data))
         append!(results, parsed)
     end
 
