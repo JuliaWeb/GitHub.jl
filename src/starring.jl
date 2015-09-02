@@ -7,7 +7,7 @@ end
 
 function stargazers(auth::Authorization, owner, repo; per_page = 30, headers = Dict(), result_limit = -1, options...)
     authenticate_headers(headers, auth)
-    query = ["per_page" => per_page]
+    query = @compat Dict("per_page" => per_page)
     pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/stargazers"), result_limit, per_page;
                       headers = headers,
                       query = query,
