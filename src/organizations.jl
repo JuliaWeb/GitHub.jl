@@ -91,7 +91,7 @@ function org(auth::Authorization, name; headers = Dict(), options...)
 
     handle_error(r)
 
-    Organization(JSON.parse(r.data))
+    Organization(Requests.json(r))
 end
 
 

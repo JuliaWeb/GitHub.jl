@@ -84,7 +84,7 @@ function repo(auth::Authorization, owner, repo_name; headers = Dict(), options..
 
     handle_error(r)
 
-    Repo(JSON.parse(r.data))
+    Repo(Requests.json(r))
 end
 
 function repos(owner::User; auth = AnonymousAuth(), options...)

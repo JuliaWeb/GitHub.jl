@@ -30,7 +30,7 @@ function handle_error(r::Response)
         return
     end
 
-    data = JSON.parse(r.data)
+    data = Requests.json(r)
 
     if r.status < 600
         throw(HttpError(r.status, get(data, "message", ""), get(data, "documentation_url", "")))

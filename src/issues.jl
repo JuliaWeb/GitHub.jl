@@ -65,7 +65,7 @@ function issue(auth::Authorization, owner::String, repo, num; headers = Dict(), 
 
     handle_error(r)
 
-    Issue(JSON.parse(r.data))
+    Issue(Requests.json(r))
 end
 
 
@@ -141,7 +141,7 @@ function create_issue(auth::Authorization, owner::String, repo, title; body = no
 
     handle_error(r)
 
-    Issue(JSON.parse(r.data))
+    Issue(Requests.json(r))
 end
 
 
@@ -178,7 +178,7 @@ function edit_issue(auth::Authorization, owner::String, repo, num; title = nothi
 
     handle_error(r)
 
-    Issue(JSON.parse(r.data))
+    Issue(Requests.json(r))
 end
 
 

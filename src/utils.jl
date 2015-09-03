@@ -86,9 +86,9 @@ end
 function get_items_from_pages(pages)
     isempty(pages) && return Dict[]
 
-    results = JSON.parse(utf8(pages[1].data))
+    results = Requests.json(pages[1])
     for page in pages[2:end]
-        parsed = JSON.parse(utf8(page.data))
+        parsed = Requests.json(page)
         append!(results, parsed)
     end
 

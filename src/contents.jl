@@ -107,7 +107,7 @@ function contents(auth::Authorization, owner::String, repo::String;
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contents/$path");
                     headers = headers, query = query, options...)
     handle_error(r)
-    return File(JSON.parse(r.data))
+    return File(Requests.json(r))
 end
 
 function create_file(auth::Authorization, owner::String, repo::String,
@@ -142,7 +142,7 @@ function upload_file(auth::Authorization, owner::String, repo::String,
     r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contents/$path"),
             json=data; headers = headers)
     handle_error(r)
-    resp = JSON.parse(r.data)
+    resp = Requests.json(r)
     return @compat Dict("content" => File(get(resp, "content", nothing)),
                         "commit" => Commit(get(resp, "commit", nothing)))
 end
@@ -162,7 +162,7 @@ function delete_file(auth::Authorization, owner::String, repo::String,
             path = "/repos/$owner/$repo/contents/$path"),
             json=data, headers = headers)
     handle_error(r)
-    return Commit(get(JSON.parse(r.data), "commit", nothing))
+    return Commit(get(Requests.json(r), "commit", nothing))
 end
 
 
@@ -171,6 +171,6 @@ function readme(auth::Authorization, owner, repo; headers = Dict(), options...)
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/readme");
                     headers = headers)
     handle_error(r)
-    readme_file = File(JSON.parse(r.data))
+    readme_file = File(Requests.json(r))
     return readme_file
 end

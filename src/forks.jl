@@ -35,5 +35,5 @@ function fork(auth, owner, repo, organization = ""; headers = Dict(),
 
     handle_error(r)
 
-    data = JSON.parse(r.data)
+    data = Requests.json(r)
 end

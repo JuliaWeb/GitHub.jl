@@ -94,7 +94,8 @@ function user(auth::Authorization, username; headers = Dict(), options...)
 
     handle_error(r)
 
-    User(JSON.parse(r.data))
+    # User(Requests.json(r))
+    r
 end
 
 
