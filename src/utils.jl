@@ -14,8 +14,8 @@ end
 # Pagination Helper Functions
 
 # Parses a Link header into the links it represents
-function parse_link_header(s::String)
-    results = Dict{String, URI}()
+function parse_link_header(s::AbstractString)
+    results = Dict{AbstractString, URI}()
 
     # <url>; rel="name", <url2>; rel="name2", ...
     for m in eachmatch(r"<([^>]+)>; rel=\"(\w+)\",? ?", s)
@@ -27,7 +27,7 @@ end
 
 # Given a URI, fetches it
 # Returns the response and the next link, if any.
-function next_page(next_link::URI, headers::Dict{String, String})
+function next_page(next_link::URI, headers::Dict{AbstractString, AbstractString})
     r = get(next_link;headers = headers)
     handle_error(r)
 
@@ -42,13 +42,13 @@ end
 # To make pages iterable
 type Pager
     initial_link::URI
-    headers::Dict{String, String}
+    headers::Dict{AbstractString, AbstractString}
 end
 
 Base.start(p::Pager) = p.initial_link
 Base.next(p::Pager, l::URI) = next_page(l, p.headers)
 Base.done(p::Pager, l::URI) = false
-Base.done(p::Pager, l::Nothing) = true
+Base.done(p::Pager, l::Void) = true
 
 # Designed to be called by functions that want paginated access
 # u and all the keyword argument comprise the call you would have make to Requests.get

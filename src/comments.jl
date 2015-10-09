@@ -38,11 +38,11 @@ function comments(owner::Owner, repo, issue; auth = AnonymousAuth(), options...)
     comments(auth, owner.login, repo, issue; options...)
 end
 
-function comments(owner::String, repo, issue; auth = AnonymousAuth(), options...)
+function comments(owner::AbstractString, repo, issue; auth = AnonymousAuth(), options...)
     comments(auth, owner, repo, issue; options...)
 end
 
-function comments(auth::Authorization, owner::String, repo, issue;
+function comments(auth::Authorization, owner::AbstractString, repo, issue;
                                                             headers = Dict(),
                                                             query = Dict(),
                                                             result_limit = -1,

@@ -49,7 +49,7 @@ end
 
 # Interface -------
 
-function issue(owner::String, repo, num; auth = AnonymousAuth(), options...)
+function issue(owner::AbstractString, repo, num; auth = AnonymousAuth(), options...)
     issue(auth, owner, repo, num; options...)
 end
 
@@ -57,7 +57,7 @@ function issue(owner::Owner, repo, num; auth = AnonymousAuth(), options...)
     issue(auth, owner.login, repo, num; options...)
 end
 
-function issue(auth::Authorization, owner::String, repo, num; headers = Dict(), options...)
+function issue(auth::Authorization, owner::AbstractString, repo, num; headers = Dict(), options...)
     authenticate_headers(headers, auth)
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
             headers = headers,
@@ -69,7 +69,7 @@ function issue(auth::Authorization, owner::String, repo, num; headers = Dict(), 
 end
 
 
-function issues(owner::String, repo; auth = AnonymousAuth(), options...)
+function issues(owner::AbstractString, repo; auth = AnonymousAuth(), options...)
     issues(auth, owner, repo; options...)
 end
 
@@ -77,7 +77,7 @@ function issues(owner::Owner, repo; auth = AnonymousAuth(), options...)
     issues(auth, owner.login, repo; options...)
 end
 
-function issues(auth::Authorization, owner::String, repo; milestone = nothing,
+function issues(auth::Authorization, owner::AbstractString, repo; milestone = nothing,
                                                           state = nothing,
                                                           assignee = nothing,
                                                           creator = nothing,
@@ -111,7 +111,7 @@ function issues(auth::Authorization, owner::String, repo; milestone = nothing,
 end
 
 
-function create_issue(owner::String, repo, title; auth = AnonymousAuth(), options...)
+function create_issue(owner::AbstractString, repo, title; auth = AnonymousAuth(), options...)
     create_issue(auth, owner, repo, title; options...)
 end
 
@@ -119,7 +119,7 @@ function create_issue(owner::Owner, repo, title; auth = AnonymousAuth(), options
     create_issue(auth, owner.login, repo, title; options...)
 end
 
-function create_issue(auth::Authorization, owner::String, repo, title; body = nothing,
+function create_issue(auth::Authorization, owner::AbstractString, repo, title; body = nothing,
                                                                        assignee = nothing,
                                                                        milestone = nothing,
                                                                        labels = nothing,
@@ -145,7 +145,7 @@ function create_issue(auth::Authorization, owner::String, repo, title; body = no
 end
 
 
-function edit_issue(owner::String, repo, num; auth = AnonymousAuth(), options...)
+function edit_issue(owner::AbstractString, repo, num; auth = AnonymousAuth(), options...)
     edit_issue(auth, owner, repo, num; options...)
 end
 
@@ -153,7 +153,7 @@ function edit_issue(owner::Owner, repo, num; auth = AnonymousAuth(), options...)
     edit_issue(auth, owner.login, repo, num; options...)
 end
 
-function edit_issue(auth::Authorization, owner::String, repo, num; title = nothing,
+function edit_issue(auth::Authorization, owner::AbstractString, repo, num; title = nothing,
                                                                    body = nothing,
                                                                    assignee = nothing,
                                                                    state = nothing,

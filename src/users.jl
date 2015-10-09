@@ -99,7 +99,7 @@ function user(auth::Authorization, username; headers = Dict(), options...)
 end
 
 
-function followers(user::String; auth = AnonymousAuth(), options...)
+function followers(user::AbstractString; auth = AnonymousAuth(), options...)
     followers(auth, user; options...)
 end
 
@@ -117,7 +117,7 @@ function followers(auth::Authorization, user; headers = Dict(), result_limit = -
 end
 
 
-function following(user::String; auth = AnonymousAuth(), options...)
+function following(user::AbstractString; auth = AnonymousAuth(), options...)
     following(auth, user; options...)
 end
 
