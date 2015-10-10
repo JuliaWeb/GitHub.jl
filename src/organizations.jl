@@ -95,7 +95,7 @@ function org(auth::Authorization, name; headers = Dict(), options...)
 end
 
 
-function orgs(user::String; auth = AnonymousAuth(), options...)
+function orgs(user::AbstractString; auth = AnonymousAuth(), options...)
     orgs(auth, user; options...)
 end
 

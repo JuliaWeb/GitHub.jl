@@ -98,8 +98,8 @@ function contents(owner, repo; auth = AnonymousAuth(), path = "", options...)
   contents(auth, owner, repo; options...)
 end
 
-function contents(auth::Authorization, owner::String, repo::String;
-                    path::String = "", headers = Dict(), ref = nothing,
+function contents(auth::Authorization, owner::AbstractString, repo::AbstractString;
+                    path::AbstractString = "", headers = Dict(), ref = nothing,
                     options...)
     authenticate_headers(headers, auth)
     query = Dict()
@@ -110,8 +110,8 @@ function contents(auth::Authorization, owner::String, repo::String;
     return File(Requests.json(r))
 end
 
-function create_file(auth::Authorization, owner::String, repo::String,
-                    path::String, message::String, content; headers = Dict(),
+function create_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
+                    path::AbstractString, message::AbstractString, content; headers = Dict(),
                     branch = nothing, author = nothing,
                     committer = nothing, options...)
       data = @compat Dict("message" => message, "content" => content,
@@ -121,8 +121,8 @@ function create_file(auth::Authorization, owner::String, repo::String,
 end
 
 
-function update_file(auth::Authorization, owner::String, repo::String,
-                    path::String, sha::String, message::String, content;
+function update_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
+                    path::AbstractString, sha::AbstractString, message::AbstractString, content;
                     author::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
                     committer::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
                     headers = Dict(), branch = nothing)
@@ -132,8 +132,8 @@ function update_file(auth::Authorization, owner::String, repo::String,
   return upload_file(auth, owner, repo, path, data, headers)
 end
 
-function upload_file(auth::Authorization, owner::String, repo::String,
-                    path::String, data, headers)
+function upload_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
+                    path::AbstractString, data, headers)
     for (k,v) in data
       v == nothing && delete!(data, k)
     end
@@ -148,8 +148,8 @@ function upload_file(auth::Authorization, owner::String, repo::String,
 end
 
 
-function delete_file(auth::Authorization, owner::String, repo::String,
-                path::String, sha::String, message::String; branch = "default",
+function delete_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
+                path::AbstractString, sha::AbstractString, message::AbstractString; branch = "default",
                 headers = Dict(), 
                 author::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
                 committer::User = User(@compat Dict("name"=> "NA", "email"=>"NA")))

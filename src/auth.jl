@@ -5,8 +5,8 @@ abstract Authorization
 
 
 immutable BasicAuth <: Authorization
-    user::String
-    password::String
+    user::AbstractString
+    password::AbstractString
 end
 
 function show(io::IO, a::BasicAuth)
@@ -16,7 +16,7 @@ end
 
 
 immutable OAuth2 <: Authorization
-    token::String
+    token::AbstractString
 end
 
 function show(io::IO, a::OAuth2)
@@ -31,11 +31,11 @@ end
 
 # Interface -------
 
-function authenticate(user::String, password::String)
+function authenticate(user::AbstractString, password::AbstractString)
     auth = BasicAuth(user, password)
 end
 
-function authenticate(token::String)
+function authenticate(token::AbstractString)
     auth = OAuth2(token)
 
     r = get(API_ENDPOINT; query = @compat Dict("access_token" => auth.token))
