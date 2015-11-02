@@ -14,9 +14,9 @@ julia> using GitHub
 julia> my_auth = authenticate("an_access_token_for_your_account")
 GitHub Authorization (8caaff**********************************)
 
-julia> star("WestleyArgentum", "GitHub.jl"; auth = my_auth)  # :)
+julia> star("JuliaWeb", "GitHub.jl"; auth = my_auth)  # :)
 
-julia> stargazers("WestleyArgentum", "GitHub.jl")
+julia> stargazers("JuliaWeb", "GitHub.jl")
 ```
 
 ## API
