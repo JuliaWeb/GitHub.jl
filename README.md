@@ -2,7 +2,7 @@
 
 ##### A Julia package targeting the GitHub API (v3)
 
-[![Build Status](https://travis-ci.org/WestleyArgentum/GitHub.jl.png?branch=master)](https://travis-ci.org/WestleyArgentum/GitHub.jl)
+[![Build Status](https://travis-ci.org/JuliaWeb/GitHub.jl.svg?branch=master)](https://travis-ci.org/JuliaWeb/GitHub.jl)
 
 ## Quick start
 
