@@ -9,7 +9,7 @@ immutable BasicAuth <: Authorization
     password::AbstractString
 end
 
-function show(io::IO, a::BasicAuth)
+function Base.show(io::IO, a::BasicAuth)
     pw_str = repeat("*", 8)
     print(io, "GitHub Authorization ($(a.user), $pw_str))")
 end
@@ -19,7 +19,7 @@ immutable OAuth2 <: Authorization
     token::AbstractString
 end
 
-function show(io::IO, a::OAuth2)
+function Base.show(io::IO, a::OAuth2)
     token_str = a.token[1:6] * repeat("*", length(a.token) - 6)
     print(io, "GitHub Authorization ($token_str)")
 end
@@ -38,7 +38,7 @@ end
 function authenticate(token::AbstractString)
     auth = OAuth2(token)
 
-    r = get(API_ENDPOINT; query = @compat Dict("access_token" => auth.token))
+    r = Requests.get(API_ENDPOINT; query = Compat.@compat Dict("access_token" => auth.token))
     if !(200 <= r.status < 300)
         data = Requests.json(r)
         throw(AuthError(r.status, get(data, "message", ""), get(data, "documentation_url", "")))

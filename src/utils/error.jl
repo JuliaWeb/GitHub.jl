@@ -25,16 +25,16 @@ end
 
 # Utility -------
 
-function handle_error(r::Response)
-    if r.status < 400
-        return
+function handle_error(r::HttpCommon.Response)
+    if r.status >= 400
+        data = Requests.json(r)
+
+        if r.status < 600
+            message = get(data, "message", "")
+            docs_url = get(data, "documentation_url", "")
+            throw(HttpError(r.status, message, docs_url))
+        end
+
+        warn("unknown status in http response: \n", r)
     end
-
-    data = Requests.json(r)
-
-    if r.status < 600
-        throw(HttpError(r.status, get(data, "message", ""), get(data, "documentation_url", "")))
-    end
-
-    warn("unknown status in http response: \n", r)
 end

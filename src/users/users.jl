@@ -63,7 +63,7 @@ type User <: Owner
     end
 end
 
-function show(io::IO, user::User)
+function Base.show(io::IO, user::User)
     print(io, "$User - $(user.login)")
 
     if user.name != nothing && !isempty(user.name) && user.email != nothing && !isempty(user.email)
@@ -87,12 +87,7 @@ end
 
 function user(auth::Authorization, username; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/users/$username");
-            headers = headers,
-            options...)
-
+    r = get(api_uri("/users/$username"); headers = headers, options...)
     handle_error(r)
-
-    # User(Requests.json(r))
     r
 end

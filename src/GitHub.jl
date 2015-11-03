@@ -4,18 +4,17 @@ module GitHub
 # import/using #
 ################
 
-import Base.show
-
-import JSON, HttpServer, MbedTLS
-using Compat
-using HttpCommon
-using Requests
-import Requests: get, post, put, delete, options
+import HttpCommon,
+       HttpServer,
+       JSON,
+       MbedTLS,
+       Requests,
+       Compat
 
 if VERSION < v"0.4-"
-   using Dates
+   import Dates
 else
-   using Base.Dates
+   import Base.Dates
 end
 
 #############

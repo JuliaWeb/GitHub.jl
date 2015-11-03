@@ -7,11 +7,9 @@ end
 
 function stargazers(auth::Authorization, owner, repo; per_page = 30, headers = Dict(), result_limit = -1, options...)
     authenticate_headers!(headers, auth)
-    query = @compat Dict("per_page" => per_page)
-    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/stargazers"), result_limit, per_page;
-                      headers = headers,
-                      query = query,
-                      options...)
+    query = Compat.@compat Dict("per_page" => per_page)
+    uri = api_uri("/repos/$owner/$repo/stargazers")
+    pages = get_pages(uri, result_limit, per_page; headers = headers, query = query, options...)
     items = get_items_from_pages(pages)
     return User[User(i) for i in items]
 end
@@ -32,10 +30,8 @@ function starred(auth::Authorization, user; headers = Dict(),
     sort != nothing && (query["sort"] = sort)
     direction != nothing && (query["direction"] = direction)
 
-    pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/starred"), result_limit;
-                      query = query,
-                      headers = headers,
-                      options...)
+    uri = api_uri("/users/$user/starred")
+    pages = get_pages(uri, result_limit; query = query, headers = headers, options...)
     items = get_items_from_pages(pages)
     return Repo[Repo(i) for i in items]
 end
@@ -47,10 +43,8 @@ end
 
 function star(auth::Authorization, owner, repo; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-
-    r = put(URI(API_ENDPOINT; path = "/user/starred/$owner/$repo"); headers = headers,
-                                                                    data = "{}",
-                                                                    options...)
+    uri = api_uri("/user/starred/$owner/$repo")
+    r = Requests.put(uri; headers = headers, data = "{}", options...)
     handle_error(r)
 end
 
@@ -61,8 +55,7 @@ end
 
 function unstar(auth::Authorization, owner, repo; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-
-    r = delete(URI(API_ENDPOINT; path = "/user/starred/$owner/$repo"); headers = headers,
-                                                                       options...)
+    uri = api_uri("/user/starred/$owner/$repo")
+    r = Requests.delete(uri; headers = headers, options...)
     handle_error(r)
 end

@@ -43,7 +43,7 @@ const WatchEvent = EventName("watch")
 # Event Type #
 ##############
 
-immutable Event
+type Event
     name::EventName
     payload::Dict
 end

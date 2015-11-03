@@ -48,6 +48,7 @@ type File
     # add get_data method; handle base64
 end
 
+
 function contents(repo::Repo; auth = AnonymousAuth(), options...)
   contents(auth, repo.owner.login, repo.name; options...)
 end
@@ -66,17 +67,18 @@ function contents(auth::Authorization, owner::AbstractString, repo::AbstractStri
     authenticate_headers!(headers, auth)
     query = Dict()
     ref == nothing || (query["ref"] = ref)
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contents/$path");
-                    headers = headers, query = query, options...)
+    uri = api_uri("/repos/$owner/$repo/contents/$path")
+    r = Requests.get(uri; headers = headers, query = query, options...)
     handle_error(r)
     return File(Requests.json(r))
 end
+
 
 function create_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
                     path::AbstractString, message::AbstractString, content; headers = Dict(),
                     branch = nothing, author = nothing,
                     committer = nothing, options...)
-      data = @compat Dict("message" => message, "content" => content,
+      data = Compat.@compat Dict("message" => message, "content" => content,
                           "author" => author, "committer" => committer,
                           "branch" => branch)
   return upload_file(auth, owner, repo, path, data, headers)
@@ -84,45 +86,45 @@ end
 
 
 function update_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
-                    path::AbstractString, sha::AbstractString, message::AbstractString, content;
-                    author::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
-                    committer::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
-                    headers = Dict(), branch = nothing)
-    data = @compat Dict("message"=> message, "content"=> content,
+                     path::AbstractString, sha::AbstractString, message::AbstractString, content;
+                     author::User = User(Compat.@compat Dict("name"=> "NA", "email"=>"NA")),
+                     committer::User = User(Compat.@compat Dict("name"=> "NA", "email"=>"NA")),
+                     headers = Dict(), branch = nothing)
+    data = Compat.@compat Dict("message"=> message, "content"=> content,
                         "author"=> author, "committer"=> committer,
                         "sha"=> sha, "branch" => branch)
   return upload_file(auth, owner, repo, path, data, headers)
 end
 
+
 function upload_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
-                    path::AbstractString, data, headers)
+                     path::AbstractString, data, headers)
     for (k,v) in data
       v == nothing && delete!(data, k)
     end
     data["content"] = bytestring(base64encode(JSON.json(data["content"])))
     authenticate_headers!(headers, auth)
-    r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contents/$path"),
-            json=data; headers = headers)
+    uri = api_uri("/repos/$owner/$repo/contents/$path")
+    r = Requests.put(uri, json=data; headers = headers)
     handle_error(r)
     resp = Requests.json(r)
-    return @compat Dict("content" => File(get(resp, "content", nothing)),
-                        "commit" => Commit(get(resp, "commit", nothing)))
+    return Compat.@compat Dict("content" => File(get(resp, "content", nothing)),
+                               "commit" => Commit(get(resp, "commit", nothing)))
 end
 
 
 function delete_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
-                path::AbstractString, sha::AbstractString, message::AbstractString; branch = "default",
-                headers = Dict(),
-                author::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
-                committer::User = User(@compat Dict("name"=> "NA", "email"=>"NA")))
-    data = @compat Dict("message" => message, "sha" => sha)
+                     path::AbstractString, sha::AbstractString, message::AbstractString;
+                     branch = "default", headers = Dict(),
+                     author::User = User(Compat.@compat Dict("name"=> "NA", "email"=>"NA")),
+                     committer::User = User(Compat.@compat Dict("name"=> "NA", "email"=>"NA")))
+    data = Compat.@compat Dict("message" => message, "sha" => sha)
     branch == "default" || (data["branch"] = branch)
     author.name == "NA" || (data["author"] = author)
     committer.name == "NA" || (data["committer"] = committer)
     authenticate_headers!(headers, auth)
-    r = Requests.delete(URI(API_ENDPOINT;
-            path = "/repos/$owner/$repo/contents/$path"),
-            json=data, headers = headers)
+    uri = api_uri("/repos/$owner/$repo/contents/$path")
+    r = Requests.delete(uri; json=data, headers = headers)
     handle_error(r)
     return Commit(get(Requests.json(r), "commit", nothing))
 end
@@ -130,8 +132,8 @@ end
 
 function readme(auth::Authorization, owner, repo; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/readme");
-                    headers = headers)
+    uri = api_uri("/repos/$owner/$repo/readme")
+    r = Requests.get(uri; headers = headers, options...)
     handle_error(r)
     readme_file = File(Requests.json(r))
     return readme_file

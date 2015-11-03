@@ -2,20 +2,20 @@
 
 # Parses a Link header into the links it represents
 function parse_link_header(s::AbstractString)
-    results = Dict{AbstractString, URI}()
+    results = Dict{AbstractString, HttpCommon.URI}()
 
     # <url>; rel="name", <url2>; rel="name2", ...
     for m in eachmatch(r"<([^>]+)>; rel=\"(\w+)\",? ?", s)
-        results[m.captures[2]] = URI(m.captures[1])
+        results[m.captures[2]] = HttpCommon.URI(m.captures[1])
     end
 
     return results
 end
 
-# Given a URI, fetches it
+# Given a HttpCommon.URI, fetches it
 # Returns the response and the next link, if any.
-function next_page(next_link::URI, headers::Dict{AbstractString, AbstractString})
-    r = get(next_link;headers = headers)
+function next_page(next_link::HttpCommon.URI, headers::Dict{AbstractString, AbstractString})
+    r = Requests.get(next_link; headers = headers)
     handle_error(r)
 
     links = parse_link_header(r.headers["Link"])
@@ -28,13 +28,13 @@ end
 
 # To make pages iterable
 type Pager
-    initial_link::URI
+    initial_link::HttpCommon.URI
     headers::Dict{AbstractString, AbstractString}
 end
 
 Base.start(p::Pager) = p.initial_link
-Base.next(p::Pager, l::URI) = next_page(l, p.headers)
-Base.done(p::Pager, l::URI) = false
+Base.next(p::Pager, l::HttpCommon.URI) = next_page(l, p.headers)
+Base.done(p::Pager, l::HttpCommon.URI) = false
 Base.done(p::Pager, l::Void) = true
 
 # Designed to be called by functions that want paginated access
@@ -42,7 +42,7 @@ Base.done(p::Pager, l::Void) = true
 # result_limit is the desired number of results; the default (-1) indicates all results
 # per_page is the number of results to expect per page; default is 30, GitHub's default
 # Returns an Array of Responses (1 per page)
-function _get_pages(r::Response, result_limit::Int = -1, per_page::Int = 30; headers = Dict(), options...)
+function _get_pages(r::HttpCommon.Response, result_limit::Int = -1, per_page::Int = 30; headers = Dict(), options...)
     pages = [r]
     links = haskey(r.headers, "Link") ? parse_link_header(r.headers["Link"]) : nothing
 
@@ -60,8 +60,8 @@ function _get_pages(r::Response, result_limit::Int = -1, per_page::Int = 30; hea
     return pages
 end
 
-function get_pages(u::URI, result_limit::Int = -1, per_page::Int = 30; headers = Dict(), options...)
-    r = get(u; headers = headers, options...)
+function get_pages(u::HttpCommon.URI, result_limit::Int = -1, per_page::Int = 30; headers = Dict(), options...)
+    r = Requests.get(u; headers = headers, options...)
     handle_error(r)
 
     return _get_pages(r, result_limit, per_page; headers = headers, options...)

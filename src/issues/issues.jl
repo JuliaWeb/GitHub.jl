@@ -34,7 +34,7 @@ type Issue
     end
 end
 
-function show(io::IO, issue::Issue)
+function Base.show(io::IO, issue::Issue)
     print(io, "$Issue #$(issue.number)")
 
     if issue.state != nothing && !isempty(issue.state)
@@ -58,12 +58,9 @@ end
 
 function issue(auth::Authorization, owner::AbstractString, repo, num; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
-            headers = headers,
-            options...)
-
+    uri = api_uri("/repos/$owner/$repo/issues/$num")
+    r = Requests.get(uri; headers = headers, options...)
     handle_error(r)
-
     Issue(Requests.json(r))
 end
 
@@ -101,10 +98,8 @@ function issues(auth::Authorization, owner::AbstractString, repo; milestone = no
     direction != nothing && (query["direction"] = direction)
     since != nothing && (query["since"] = since)
 
-    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues"), result_limit;
-                      headers = headers,
-                      query = query,
-                      options...)
+    uri = api_uri("/repos/$owner/$repo/issues")
+    pages = get_pages(uri, result_limit; headers = headers, query = query, options...)
     items = get_items_from_pages(pages)
     return Issue[Issue(i) for i in items]
 end
@@ -133,13 +128,9 @@ function create_issue(auth::Authorization, owner::AbstractString, repo, title; b
     milestone != nothing && (json["milestone"] = milestone)
     labels != nothing && (json["labels"] = labels)
 
-    r = post(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues");
-             headers = headers,
-             json = json,
-             options...)
-
+    uri = api_uri("/repos/$owner/$repo/issues")
+    r = Requests.post(uri; headers = headers, json = json, options...)
     handle_error(r)
-
     Issue(Requests.json(r))
 end
 
@@ -170,12 +161,8 @@ function edit_issue(auth::Authorization, owner::AbstractString, repo, num; title
     milestone != nothing && (json["milestone"] = milestone)
     labels != nothing && (json["labels"] = labels)
 
-    r = patch(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
-             headers = headers,
-             json = json,
-             options...)
-
+    uri = api_uri("/repos/$owner/$repo/issues/$num")
+    r = Requests.patch(uri; headers = headers, json = json, options...)
     handle_error(r)
-
     Issue(Requests.json(r))
 end

@@ -1,7 +1,10 @@
 
-global const API_ENDPOINT = URI("https://api.github.com/")
-global const WEB_ENDPOINT = URI("https://github.com/")
 
+
+global const API_ENDPOINT = HttpCommon.URI("https://api.github.com/")
+global const WEB_ENDPOINT = HttpCommon.URI("https://github.com/")
+
+api_uri(path) = HttpCommon.URI(API_ENDPOINT, path = path)
 
 # Interface -------
 

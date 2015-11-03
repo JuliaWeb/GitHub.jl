@@ -60,7 +60,7 @@ type Organization <: Owner
     end
 end
 
-function show(io::IO, org::Organization)
+function Base.show(io::IO, org::Organization)
     print(io, "$User - $(org.login)")
 
     if org.name != nothing && !isempty(org.name) && org.blog != nothing && !isempty(org.blog)
@@ -85,12 +85,8 @@ end
 
 function org(auth::Authorization, name; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/orgs/$name");
-            headers = headers,
-            options...)
-
+    r = Requests.get(api_uri("/orgs/$name"); headers = headers, options...)
     handle_error(r)
-
     Organization(Requests.json(r))
 end
 
@@ -105,9 +101,7 @@ end
 
 function orgs(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
     authenticate_headers!(headers, auth)
-    pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/orgs"), result_limit;
-                      headers = headers,
-                      options...)
+    pages = get_pages(api_uri("/users/$user/orgs"), result_limit; headers = headers, options...)
     items = get_items_from_pages(pages)
     return Organization[Organization(i) for i in items]
 end
