@@ -46,7 +46,6 @@ function show(io::IO, issue::Issue)
     end
 end
 
-
 # Interface -------
 
 function issue(owner::AbstractString, repo, num; auth = AnonymousAuth(), options...)
@@ -180,8 +179,3 @@ function edit_issue(auth::Authorization, owner::AbstractString, repo, num; title
 
     Issue(Requests.json(r))
 end
-
-
-
-
-

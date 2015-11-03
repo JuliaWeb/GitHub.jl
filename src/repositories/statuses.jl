@@ -64,9 +64,3 @@ function post_status(owner::AbstractString, repo::AbstractString,
     Requests.post(endpoint; json=Dict(status), headers=headers)
     return status
 end
-
-function post_status(event::Event, sha::AbstractString, state::AbstractString;
-                     auth = AnonymousAuth(), headers = Dict(), options...)
-    return post_status(owner(event), repo(event), sha, state,
-                       auth = auth, headers = headers, options...)
-end

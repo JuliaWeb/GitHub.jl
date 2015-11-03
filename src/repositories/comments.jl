@@ -24,14 +24,6 @@ type Comment
     end
 end
 
-function show(io::IO, issue::Issue)
-    println(io, "$Issue #$(issue.id)")
-    for field in names(issue)
-        getfield(issue, field)==nothing || println(io, field, ": ", getfield(issue, field))
-    end
-end
-
-
 # Interface -------
 
 function comments(owner::Owner, repo, issue; auth = AnonymousAuth(), options...)
@@ -56,4 +48,3 @@ function comments(auth::Authorization, owner::AbstractString, repo, issue;
     items = get_items_from_pages(pages)
     return Comment[Comment(i) for i in items]
 end
-

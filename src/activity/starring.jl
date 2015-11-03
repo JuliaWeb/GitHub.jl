@@ -66,6 +66,3 @@ function unstar(auth::Authorization, owner, repo; headers = Dict(), options...)
                                                                        options...)
     handle_error(r)
 end
-
-
-

@@ -48,44 +48,6 @@ type File
     # add get_data method; handle base64
 end
 
-type Commit
-    _links
-    name
-    html_url
-    sha
-    git_url
-    size
-    download_url
-    url
-    path
-    committer
-    author
-    parents
-    message
-    tree
-    object_type
-
-    function Commit(data::Dict)
-        new(get(data, "_links", nothing),
-            get(data, "name", nothing),
-            get(data, "html_url", nothing),
-            get(data, "sha", nothing),
-            get(data, "git_url", nothing),
-            get(data, "size", nothing),
-            get(data, "download_url", nothing),
-            get(data, "url", nothing),
-            get(data, "path", nothing),
-            User(get(data, "committer", nothing)),
-            User(get(data, "author", nothing)),
-            get(data, "parents", nothing),
-            get(data, "message", nothing),
-            get(data, "tree", nothing),
-            get(data, "type", nothing))
-    end
-
-end
-
-
 function contents(repo::Repo; auth = AnonymousAuth(), options...)
   contents(auth, repo.owner.login, repo.name; options...)
 end
@@ -115,7 +77,7 @@ function create_file(auth::Authorization, owner::AbstractString, repo::AbstractS
                     branch = nothing, author = nothing,
                     committer = nothing, options...)
       data = @compat Dict("message" => message, "content" => content,
-                          "author" => author, "committer" => committer, 
+                          "author" => author, "committer" => committer,
                           "branch" => branch)
   return upload_file(auth, owner, repo, path, data, headers)
 end
@@ -150,7 +112,7 @@ end
 
 function delete_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
                 path::AbstractString, sha::AbstractString, message::AbstractString; branch = "default",
-                headers = Dict(), 
+                headers = Dict(),
                 author::User = User(@compat Dict("name"=> "NA", "email"=>"NA")),
                 committer::User = User(@compat Dict("name"=> "NA", "email"=>"NA")))
     data = @compat Dict("message" => message, "sha" => sha)
