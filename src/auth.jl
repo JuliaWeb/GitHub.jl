@@ -52,6 +52,7 @@ end
 
 function authenticate_headers!(headers, auth::OAuth2)
     headers["Authorization"] = "token $(auth.token)"
+    return headers
 end
 
 function authenticate_headers!(headers, auth::BasicAuth)
