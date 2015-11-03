@@ -54,7 +54,7 @@ end
 # Utility -------
 
 function attempt_stats_request(auth, owner, repo, stat, attempts; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     for a in attempts:-1:0
         r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/stats/$stat");

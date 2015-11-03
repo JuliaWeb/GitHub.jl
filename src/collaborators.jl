@@ -14,7 +14,7 @@ function collaborators(owner, repo; auth = AnonymousAuth(), options...)
 end
 
 function collaborators(auth::Authorization, owner, repo; result_limit = -1, headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators"), result_limit;
                       headers = headers,
                       options...)
@@ -28,7 +28,7 @@ function iscollaborator(owner, repo, user; auth = AnonymousAuth(), options...)
 end
 
 function iscollaborator(auth::Authorization, owner, repo, user; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators/$user");
             headers = headers,
             options...)
@@ -47,7 +47,7 @@ function add_collaborator(owner, repo, user; auth = AnonymousAuth(), options...)
 end
 
 function add_collaborator(auth::Authorization, owner, repo, user; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators/$user");
             headers = headers,
             options...)
@@ -61,7 +61,7 @@ function remove_collaborator(owner, repo, user; auth = AnonymousAuth(), options.
 end
 
 function remove_collaborator(auth::Authorization, owner, repo, user; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = delete(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators/$user");
             headers = headers,
             options...)

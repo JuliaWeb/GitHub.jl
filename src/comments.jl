@@ -47,7 +47,7 @@ function comments(auth::Authorization, owner::AbstractString, repo, issue;
                                                             query = Dict(),
                                                             result_limit = -1,
                                                             options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$issue/comments"), result_limit;
                       headers = headers,

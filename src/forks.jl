@@ -6,7 +6,7 @@ function forks(owner, repo; auth = AnonymousAuth(), options...)
 end
 
 function forks(auth, owner, repo; headers = Dict(), result_limit = -1, options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/forks"), result_limit;
                       headers = headers,
                       options...)
@@ -22,7 +22,7 @@ end
 function fork(auth, owner, repo, organization = ""; headers = Dict(),
                                                     json = Dict(),
                                                     options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     if organization != ""
         json["organization"] = organization

@@ -50,14 +50,14 @@ end
 
 # Utility -------
 
-function authenticate_headers(headers, auth::OAuth2)
+function authenticate_headers!(headers, auth::OAuth2)
     headers["Authorization"] = "token $(auth.token)"
 end
 
-function authenticate_headers(headers, auth::BasicAuth)
+function authenticate_headers!(headers, auth::BasicAuth)
     error("authentication with BasicAuth is not fully supported")
 end
 
-function authenticate_headers(headers, auth::AnonymousAuth)
+function authenticate_headers!(headers, auth::AnonymousAuth)
     headers  # nothing to be done
 end

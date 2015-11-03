@@ -77,7 +77,7 @@ function repo(owner, repo_name; auth = AnonymousAuth(), options...)
 end
 
 function repo(auth::Authorization, owner, repo_name; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo_name");
             headers = headers,
             options...)
@@ -103,7 +103,7 @@ function repos(auth::Authorization, owner; typ = nothing, # for user: all, membe
                                            data = Dict(),
                                            result_limit = -1,
                                            options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     typ == nothing || (data["type"] = typ)
     sort == nothing || (data["sort"] = sort)
@@ -125,7 +125,7 @@ function contributors(auth::Authorization, owner, repo; headers = Dict(),
                                                         include_anon = false,
                                                         result_limit = -1,
                                                         options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     include_anon && (query["anon"] = "true")
 

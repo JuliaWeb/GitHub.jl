@@ -58,7 +58,7 @@ function issue(owner::Owner, repo, num; auth = AnonymousAuth(), options...)
 end
 
 function issue(auth::Authorization, owner::AbstractString, repo, num; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$num");
             headers = headers,
             options...)
@@ -90,7 +90,7 @@ function issues(auth::Authorization, owner::AbstractString, repo; milestone = no
                                                           query = Dict(),
                                                           result_limit = -1,
                                                           options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     milestone != nothing && (query["milestone"] = milestone)
     state != nothing && (query["state"] = state)
@@ -126,7 +126,7 @@ function create_issue(auth::Authorization, owner::AbstractString, repo, title; b
                                                                        headers = Dict(),
                                                                        json = Dict(),
                                                                        options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     json["title"] = title
     body != nothing && (json["body"] = body)
@@ -162,7 +162,7 @@ function edit_issue(auth::Authorization, owner::AbstractString, repo, num; title
                                                                    headers = Dict(),
                                                                    json = Dict(),
                                                                    options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     title != nothing && (json["title"] = title)
     body != nothing && (json["body"] = body)

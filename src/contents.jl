@@ -101,7 +101,7 @@ end
 function contents(auth::Authorization, owner::AbstractString, repo::AbstractString;
                     path::AbstractString = "", headers = Dict(), ref = nothing,
                     options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     query = Dict()
     ref == nothing || (query["ref"] = ref)
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contents/$path");
@@ -138,7 +138,7 @@ function upload_file(auth::Authorization, owner::AbstractString, repo::AbstractS
       v == nothing && delete!(data, k)
     end
     data["content"] = bytestring(base64encode(JSON.json(data["content"])))
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contents/$path"),
             json=data; headers = headers)
     handle_error(r)
@@ -157,7 +157,7 @@ function delete_file(auth::Authorization, owner::AbstractString, repo::AbstractS
     branch == "default" || (data["branch"] = branch)
     author.name == "NA" || (data["author"] = author)
     committer.name == "NA" || (data["committer"] = committer)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = Requests.delete(URI(API_ENDPOINT;
             path = "/repos/$owner/$repo/contents/$path"),
             json=data, headers = headers)
@@ -167,7 +167,7 @@ end
 
 
 function readme(auth::Authorization, owner, repo; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/readme");
                     headers = headers)
     handle_error(r)
