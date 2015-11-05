@@ -39,7 +39,7 @@ function authenticate(token::AbstractString)
     auth = OAuth2(token)
 
     r = get(API_ENDPOINT; query = @compat Dict("access_token" => auth.token))
-    if r.status < 200 || r.status >= 300
+    if !(200 <= r.status < 300)
         data = Requests.json(r)
         throw(AuthError(r.status, get(data, "message", ""), get(data, "documentation_url", "")))
     end
@@ -50,14 +50,15 @@ end
 
 # Utility -------
 
-function authenticate_headers(headers, auth::OAuth2)
+function authenticate_headers!(headers, auth::OAuth2)
     headers["Authorization"] = "token $(auth.token)"
+    return headers
 end
 
-function authenticate_headers(headers, auth::BasicAuth)
+function authenticate_headers!(headers, auth::BasicAuth)
     error("authentication with BasicAuth is not fully supported")
 end
 
-function authenticate_headers(headers, auth::AnonymousAuth)
+function authenticate_headers!(headers, auth::AnonymousAuth)
     headers  # nothing to be done
 end

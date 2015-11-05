@@ -84,7 +84,7 @@ function org(name; auth = AnonymousAuth(), options...)
 end
 
 function org(auth::Authorization, name; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = get(URI(API_ENDPOINT; path = "/orgs/$name");
             headers = headers,
             options...)
@@ -104,7 +104,7 @@ function orgs(user::User; auth = AnonymousAuth(), options...)
 end
 
 function orgs(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/orgs"), result_limit;
                       headers = headers,
                       options...)

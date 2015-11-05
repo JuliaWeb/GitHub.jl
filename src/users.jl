@@ -87,7 +87,7 @@ function user(username; auth = AnonymousAuth(), options...)
 end
 
 function user(auth::Authorization, username; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = get(URI(API_ENDPOINT; path = "/users/$username");
             headers = headers,
             options...)
@@ -108,7 +108,7 @@ function followers(user::User; auth = AnonymousAuth(), options...)
 end
 
 function followers(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/followers"), result_limit;
                   headers = headers,
                   options...)
@@ -126,7 +126,7 @@ function following(user::User; auth = AnonymousAuth(), options...)
 end
 
 function following(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/following"), result_limit;
                       headers = headers,
                       options...)

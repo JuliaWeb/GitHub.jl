@@ -6,7 +6,7 @@ function stargazers(owner, repo; auth = AnonymousAuth(), options...)
 end
 
 function stargazers(auth::Authorization, owner, repo; per_page = 30, headers = Dict(), result_limit = -1, options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     query = @compat Dict("per_page" => per_page)
     pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/stargazers"), result_limit, per_page;
                       headers = headers,
@@ -27,7 +27,7 @@ function starred(auth::Authorization, user; headers = Dict(),
                                             direction = nothing,
                                             result_limit = -1,
                                             options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     sort != nothing && (query["sort"] = sort)
     direction != nothing && (query["direction"] = direction)
@@ -46,7 +46,7 @@ function star(owner, repo; auth = AnonymousAuth(), options...)
 end
 
 function star(auth::Authorization, owner, repo; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     r = put(URI(API_ENDPOINT; path = "/user/starred/$owner/$repo"); headers = headers,
                                                                     data = "{}",
@@ -60,7 +60,7 @@ function unstar(owner, repo; auth = AnonymousAuth(), options...)
 end
 
 function unstar(auth::Authorization, owner, repo; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     r = delete(URI(API_ENDPOINT; path = "/user/starred/$owner/$repo"); headers = headers,
                                                                        options...)

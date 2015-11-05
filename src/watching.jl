@@ -6,7 +6,7 @@ function watchers(owner, repo; auth = AnonymousAuth(), options...)
 end
 
 function watchers(auth::Authorization, owner, repo; headers = Dict(), result_limit = -1, options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscribers"), result_limit;
             headers = headers,
             options...)
@@ -20,7 +20,7 @@ function watched(user; auth = AnonymousAuth(), options...)
 end
 
 function watched(auth::Authorization, user; headers = Dict(), result_limit = -1, options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     pages = get_pages(URI(API_ENDPOINT; path = "/users/$user/subscriptions"), result_limit;
                       headers = headers,
                       options...)
@@ -34,7 +34,7 @@ function watching(owner, repo; auth = AnonymousAuth(), options...)
 end
 
 function watching(auth::Authorization, owner, repo; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
     r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscription");
             headers = headers,
             options...)
@@ -57,7 +57,7 @@ function watch(auth::Authorization, owner, repo; headers = Dict(),
                                                  subscribed = nothing,
                                                  ignored = nothing,
                                                  options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     subscribed != nothing && (query["subscribed"] = subscribed)
     ignored != nothing && (query["ignored"] = ignored)
@@ -75,7 +75,7 @@ function unwatch(owner, repo; auth = AnonymousAuth(), options...)
 end
 
 function unwatch(auth::Authorization, owner, repo; headers = Dict(), options...)
-    authenticate_headers(headers, auth)
+    authenticate_headers!(headers, auth)
 
     r = delete(URI(API_ENDPOINT; path = "/repos/$owner/$repo/subscription"); headers = headers,
                                                                              options...)
