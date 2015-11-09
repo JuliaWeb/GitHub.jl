@@ -3,7 +3,7 @@ module GitHub
 
 import Base.show
 
-import JSON
+import JSON, HttpServer, MbedTLS
 using Compat
 using HttpCommon
 using Requests
@@ -29,7 +29,38 @@ export User,
        Commit,
        HttpError,
        AuthError,
-       StatsError
+       StatsError,
+       Status,
+       PENDING,
+       ERROR,
+       FAILURE,
+       SUCCESS,
+       CommitCommentEvent,
+       CreateEvent,
+       DeleteEvent,
+       DeploymentEvent,
+       DeploymentStatusEvent,
+       DownloadEvent,
+       FollowEvent,
+       ForkEvent,
+       ForkApplyEvent,
+       GistEvent,
+       GollumEvent,
+       IssueCommentEvent,
+       IssuesEvent,
+       MemberEvent,
+       MembershipEvent,
+       PageBuildEvent,
+       PublicEvent,
+       PullRequestEvent,
+       PullRequestReviewCommentEvent,
+       PushEvent,
+       ReleaseEvent,
+       RepositoryEvent,
+       StatusEvent,
+       TeamAddEvent,
+       WatchEvent,
+       EventListener
 
 # methods
 export authenticate,
@@ -72,7 +103,13 @@ export authenticate,
        create_file,
        update_file,
        delete_file,
-       readme
+       readme,
+       post_status,
+       repo,
+       owner,
+       most_recent_commit,
+       payload,
+       name
 
 
 
@@ -91,6 +128,9 @@ include("statistics.jl")
 include("collaborators.jl")
 include("watching.jl")
 include("contents.jl")
+include("events.jl")
+include("statuses.jl")
+include("event_listeners.jl")
 
 
 end
