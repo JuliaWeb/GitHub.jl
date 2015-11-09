@@ -8,14 +8,7 @@ import HttpCommon,
        HttpServer,
        JSON,
        MbedTLS,
-       Requests,
-       Compat
-
-if VERSION < v"0.4-"
-   import Dates
-else
-   import Base.Dates
-end
+       Requests
 
 #############
 # Utilities #

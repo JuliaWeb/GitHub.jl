@@ -128,5 +128,5 @@ function contributors(auth::Authorization, owner, repo; headers = Dict(),
     uri = api_uri("/repos/$owner/$repo/contributors")
     pages = get_pages(uri, result_limit; query = query, headers = headers, options...)
     data = get_items_from_pages(pages)
-    [ Compat.@compat Dict("author" => User(c), "contributions" => c["contributions"]) for c in data ]
+    [Dict("author" => User(c), "contributions" => c["contributions"]) for c in data]
 end

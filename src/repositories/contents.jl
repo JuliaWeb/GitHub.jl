@@ -78,21 +78,21 @@ function create_file(auth::Authorization, owner::AbstractString, repo::AbstractS
                     path::AbstractString, message::AbstractString, content; headers = Dict(),
                     branch = nothing, author = nothing,
                     committer = nothing, options...)
-      data = Compat.@compat Dict("message" => message, "content" => content,
-                          "author" => author, "committer" => committer,
-                          "branch" => branch)
+      data = Dict("message" => message, "content" => content,
+                  "author" => author, "committer" => committer,
+                  "branch" => branch)
   return upload_file(auth, owner, repo, path, data, headers)
 end
 
 
 function update_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
                      path::AbstractString, sha::AbstractString, message::AbstractString, content;
-                     author::User = User(Compat.@compat Dict("name"=> "NA", "email"=>"NA")),
-                     committer::User = User(Compat.@compat Dict("name"=> "NA", "email"=>"NA")),
+                     author::User = User(Dict("name"=> "NA", "email"=>"NA")),
+                     committer::User = User(Dict("name"=> "NA", "email"=>"NA")),
                      headers = Dict(), branch = nothing)
-    data = Compat.@compat Dict("message"=> message, "content"=> content,
-                        "author"=> author, "committer"=> committer,
-                        "sha"=> sha, "branch" => branch)
+    data = Dict("message"=> message, "content"=> content,
+                "author"=> author, "committer"=> committer,
+                "sha"=> sha, "branch" => branch)
   return upload_file(auth, owner, repo, path, data, headers)
 end
 
@@ -108,17 +108,17 @@ function upload_file(auth::Authorization, owner::AbstractString, repo::AbstractS
     r = Requests.put(uri, json=data; headers = headers)
     handle_error(r)
     resp = Requests.json(r)
-    return Compat.@compat Dict("content" => File(get(resp, "content", nothing)),
-                               "commit" => Commit(get(resp, "commit", nothing)))
+    return Dict("content" => File(get(resp, "content", nothing)),
+                "commit" => Commit(get(resp, "commit", nothing)))
 end
 
 
 function delete_file(auth::Authorization, owner::AbstractString, repo::AbstractString,
                      path::AbstractString, sha::AbstractString, message::AbstractString;
                      branch = "default", headers = Dict(),
-                     author::User = User(Compat.@compat Dict("name"=> "NA", "email"=>"NA")),
-                     committer::User = User(Compat.@compat Dict("name"=> "NA", "email"=>"NA")))
-    data = Compat.@compat Dict("message" => message, "sha" => sha)
+                     author::User = User(Dict("name"=> "NA", "email"=>"NA")),
+                     committer::User = User(Dict("name"=> "NA", "email"=>"NA")))
+    data = Dict("message" => message, "sha" => sha)
     branch == "default" || (data["branch"] = branch)
     author.name == "NA" || (data["author"] = author)
     committer.name == "NA" || (data["committer"] = committer)

@@ -46,7 +46,7 @@ immutable Status
 end
 
 function Base.Dict(status::Status)
-    return Compat.@compat Dict(
+    return Dict(
         "state" => status.state.name,
         "target_url" => status.target_url,
         "description" => status.description,
