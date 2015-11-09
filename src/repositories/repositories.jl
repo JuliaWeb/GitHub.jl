@@ -63,7 +63,7 @@ type Repo <: GitHubType
     end
 end
 
-function show(io::IO, repo::Repo)
+function Base.show(io::IO, repo::Repo)
     print(io, "Repo - $(repo.full_name)")
     repo.homepage != nothing && !isempty(repo.homepage) && print(io, " ($(repo.homepage))")
     repo.description != nothing && !isempty(repo.description) && print(io, "\n\"$(repo.description)\"")
