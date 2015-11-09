@@ -3,7 +3,7 @@ module GitHub
 
 import Base.show
 
-import JSON, HttpServer, Nettle
+import JSON, HttpServer, MbedTLS
 using Compat
 using HttpCommon
 using Requests

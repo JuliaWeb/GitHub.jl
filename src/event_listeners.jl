@@ -126,7 +126,7 @@ sig_header(request::HttpCommon.Request) = request.headers["X-Hub-Signature"]
 function is_valid_secret(request::HttpCommon.Request, secret::AbstractString)
     if has_sig_header(request)
         payload_string = UTF8String(request.data)
-        secret_sha = "sha1="*Nettle.hexdigest("sha1", secret, payload_string)
+        secret_sha = "sha1="*MbedTLS.digest(MbedTLS.MD_SHA1, payload_string, secret)
         return sig_header(request) == secret_sha
     end
     return false
