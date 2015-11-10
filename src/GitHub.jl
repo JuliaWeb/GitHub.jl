@@ -17,19 +17,24 @@ import HttpCommon,
 # include -------
 
 include("utils/GitHubType.jl")
-include("utils/endpoints.jl")
 include("utils/error.jl")
 include("utils/pagination.jl")
 include("utils/auth.jl")
+include("utils/requests.jl")
 
 # export -------
 
-export # endpoints.jl
-       set_api_endpoint,
-       set_web_endpoint
+export # GitHubType.jl
+       name
 
 export # auth.jl
        authenticate
+
+export # requests.jl
+       github_get,
+       github_paged_get,
+       github_post,
+       github_put
 
 ##################################
 # Owners (Organizations + Users) #
