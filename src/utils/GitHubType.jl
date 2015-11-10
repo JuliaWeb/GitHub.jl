@@ -42,7 +42,10 @@ end
 # dictionary into the the type `G` with the expectation that the fieldnames of
 # `G` are keys of `data`, and the corresponding values can be converted to the
 # given types.
-@generated function extract_github_type{G<:GitHubType}(::Type{G}, data::Dict, replacements::Dict=Dict())
+
+const EMPTY_DICT = Dict()
+
+@generated function extract_github_type{G<:GitHubType}(::Type{G}, data::Dict, replacements::Dict=EMPTY_DICT)
     types = G.types
     fields = fieldnames(G)
     args = Vector{Expr}(length(fields))
