@@ -13,10 +13,24 @@ function getnullable{T}(data::Dict, key, ::Type{T})
     if haskey(data, key)
         val = data[key]
         if !(isa(val, Void))
+            if T == Dates.DateTime
+                val = chopz(val)
+            end
             return Nullable{T}(T(val))
         end
     end
     return Nullable{T}()
+end
+
+# ISO 8601 allows for a trailing 'Z' to indicate that the given time is UTC.
+# Julia's Dates.DateTime constructor doesn't support this, but GitHub's time
+# strings can contain it. This method ensures that a string's trailing 'Z',
+# if present, has been removed.
+function chopz(str::AbstractString)
+    if !(isempty(str)) && last(str) == 'Z'
+        return chop(str)
+    end
+    return str
 end
 
 # Given a type defined as:
