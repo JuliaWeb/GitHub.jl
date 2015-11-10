@@ -2,6 +2,25 @@ abstract GitHubType
 
 typealias GitHubString UTF8String
 
+function Base.(:(==))(a::GitHubType, b::GitHubType)
+    if typeof(a) != typeof(b)
+        return false
+    end
+
+    for field in fieldnames(a)
+        aval, bval = getfield(a, field), getfield(b, field)
+        if isnull(aval) == isnull(bval)
+            if !(isnull(aval)) && get(aval) != get(bval)
+                return false
+            end
+        else
+            return false
+        end
+    end
+
+    return true
+end
+
 # overloaded by various GitHubTypes to allow for more generic input to API
 # functions that require a name to construct URI paths
 name(str::AbstractString) = str
