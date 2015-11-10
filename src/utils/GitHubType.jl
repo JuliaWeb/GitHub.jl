@@ -56,9 +56,12 @@ end
 function Base.show(io::IO, obj::GitHubType)
     print(io, "$(typeof(obj)):")
     for field in fieldnames(obj)
-        println(io)
-        print(io, "  $field : $(getfield(obj, field))")
+        val = getfield(obj, field)
+        if !(isnull(val))
+            println(io)
+            print(io, "  $field : $(get(val))")
+        end
     end
 end
 
-Base.showcompact(io::IO, obj::GitHubType) = println(io, "$(typeof(obj)): $(name(obj))")
+Base.showcompact(io::IO, obj::GitHubType) = print(io, "$(typeof(obj))")
