@@ -50,7 +50,7 @@ const EMPTY_DICT = Dict()
     fields = fieldnames(G)
     args = Vector{Expr}(length(fields))
     for i in eachindex(fields)
-        k, T = keyfunc(string(fields[i])), first(types[i].parameters)
+        k, T = string(fields[i]), first(types[i].parameters)
         args[i] = :(extract_nullable(data, get(replacements, $k, $k), $T))
     end
     return :(G($(args...)))
