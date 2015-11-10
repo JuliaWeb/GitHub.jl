@@ -159,7 +159,8 @@ export # issues.jl
 
 # include -------
 
-include("activity/events.jl")
+include("activity/events/events.jl")
+include("activity/events/listeners.jl")
 include("activity/starring.jl")
 include("activity/watching.jl")
 
@@ -178,7 +179,7 @@ export # watching.jl
        watch,
        unwatch
 
-export # events.jl
+export # events/events.jl
        payload,
        name,
        repo,
@@ -209,7 +210,11 @@ export # events.jl
        RepositoryEvent,
        StatusEvent,
        TeamAddEvent,
-       WatchEvent,
-       EventListener
+       WatchEvent
+
+export # events/listeners.jl
+       EventListener,
+       CommentListener
+
 
 end # module GitHub

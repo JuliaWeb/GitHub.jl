@@ -1,90 +1,24 @@
-#############
-# EventName #
-#############
+########################
+# Validation Functions #
+########################
 
-immutable EventName
-    name::ASCIIString
-end
+has_sig_header(request::HttpCommon.Request) = haskey(request.headers, "X-Hub-Signature")
+sig_header(request::HttpCommon.Request) = request.headers["X-Hub-Signature"]
 
-has_event_header(request::HttpCommon.Request) = haskey(request.headers, "X-GitHub-Event")
-event_header(request::HttpCommon.Request) = request.headers["X-GitHub-Event"]
-
-EventName(request::HttpCommon.Request) = EventName(event_header(request))
-
-Base.(:(==))(a::EventName, b::EventName) = a.name == b.name
-
-const CommitCommentEvent = EventName("commit_comment")
-const CreateEvent = EventName("create")
-const DeleteEvent = EventName("delete")
-const DeploymentEvent = EventName("deployment")
-const DeploymentStatusEvent = EventName("deployment_status")
-const DownloadEvent = EventName("download")
-const FollowEvent = EventName("follow")
-const ForkEvent = EventName("fork")
-const ForkApplyEvent = EventName("fork_apply")
-const GistEvent = EventName("gist")
-const GollumEvent = EventName("gollum")
-const IssueCommentEvent = EventName("issue_comment")
-const IssuesEvent = EventName("issues")
-const MemberEvent = EventName("member")
-const MembershipEvent = EventName("membership")
-const PageBuildEvent = EventName("page_build")
-const PublicEvent = EventName("public")
-const PullRequestEvent = EventName("pull_request")
-const PullRequestReviewCommentEvent = EventName("pull_request_review_comment")
-const PushEvent = EventName("push")
-const ReleaseEvent = EventName("release")
-const RepositoryEvent = EventName("repository")
-const StatusEvent = EventName("status")
-const TeamAddEvent = EventName("team_add")
-const WatchEvent = EventName("watch")
-
-##############
-# Event Type #
-##############
-
-type Event
-    name::EventName
-    payload::Dict
-end
-
-Event(request::HttpCommon.Request, payload) = Event(EventName(request), payload)
-
-payload(event::Event) = event.payload
-name(event::Event) = event.name
-repo(event::Event) = event.payload["name"]
-owner(event::Event) = event.payload["owner"]["login"]
-
-"""
-    most_recent_commit(event::GitHub.Event)
-
-Get the SHA of the most recent commit associated with `event`. Applies to:
-
-- `GitHub.PushEvent` -> the commit that got pushed
-- `GitHub.PullRequestEvent` -> head commit of PR branch
-- `GitHub.CommitCommentEvent` -> commit that was commented on
-- `GitHub.PullRequestReviewCommentEvent` -> head commit of PR branch
-"""
-function most_recent_commit(event::Event)
-    event_name, event_payload = name(event), payload(event)
-    if event_name == PushEvent
-        return event_payload["after"]
-    elseif event_name == PullRequestEvent
-        return event_payload["pull_request"]["head"]["sha"]
-    elseif event_name == CommitCommentEvent
-        return event_payload["comment"]["commit_id"]
-    elseif event_name == PullRequestReviewCommentEvent
-        return event_payload["pull_request"]["head"]["sha"]
-    else
-        error("most_recent_commit(::Event) not supported for $event_name")
+function is_valid_secret(request::HttpCommon.Request, secret::AbstractString)
+    if has_sig_header(request)
+        payload_string = UTF8String(request.data)
+        secret_sha = "sha1="*MbedTLS.digest(MbedTLS.MD_SHA1, payload_string, secret)
+        return sig_header(request) == secret_sha
     end
+    return false
 end
 
-function post_status(event::Event, sha::AbstractString, state::AbstractString;
-                     auth = AnonymousAuth(), headers = Dict(), options...)
-    return post_status(owner(event), repo(event), sha, state,
-                       auth = auth, headers = headers, options...)
+function is_valid_event(request::HttpCommon.Request, events)
+    return (has_event_header(request) && in(EventName(request), events))
 end
+
+is_valid_repo(payload::Dict, repos) = in(payload["repository"]["full_name"], repos)
 
 #################
 # EventListener #
@@ -204,24 +138,66 @@ function Base.run(listener::EventListener, args...; kwargs...)
     return HttpServer.run(listener.server, args...; kwargs...)
 end
 
-########################
-# Validation Functions #
-########################
+###################
+# CommentListener #
+###################
 
-has_sig_header(request::HttpCommon.Request) = haskey(request.headers, "X-Hub-Signature")
-sig_header(request::HttpCommon.Request) = request.headers["X-Hub-Signature"]
+const COMMENT_EVENTS = [IssueCommentEvent,
+                        CommitCommentEvent,
+                        PullRequestReviewCommentEvent]
 
-function is_valid_secret(request::HttpCommon.Request, secret::AbstractString)
-    if has_sig_header(request)
-        payload_string = UTF8String(request.data)
-        secret_sha = "sha1="*MbedTLS.digest(MbedTLS.MD_SHA1, payload_string, secret)
-        return sig_header(request) == secret_sha
+immutable CommentListener
+    listener::EventListener
+    function CommentListener(handle, trigger::AbstractString;
+                             auth::Authorization = AnonymousAuth(),
+                             secret = nothing,
+                             repos = nothing,
+                             forwards = nothing)
+        listener = EventListener(auth=auth, secret=secret,
+                                 events=COMMENT_EVENTS, repos=repos,
+                                 forwards=forwards) do event, auth
+            found, extracted = extract_trigger_string(event, auth, trigger)
+            if found
+                return handle(event, auth, extracted)
+            else
+                return HttpCommon.Response(204, extracted)
+            end
+        end
+        return new(listener)
     end
-    return false
 end
 
-function is_valid_event(request::HttpCommon.Request, events)
-    return (has_event_header(request) && in(EventName(request), events))
+function Base.run(listener::CommentListener, args...; kwargs...)
+    return run(listener.listener, args...; kwargs...)
 end
 
-is_valid_repo(payload::Dict, repos) = in(payload["repository"]["full_name"], repos)
+function extract_trigger_string(event::Event,
+                                auth::Authorization,
+                                trigger::AbstractString)
+    trigger_regex = Regex("\`$trigger\(.*?\)\`")
+    event_owner, event_repo = owner(event), repo(event)
+    event_payload = payload(event)
+
+    # Step 1: extract comment from payload
+    if !(haskey(event_payload, "comment"))
+        return (false, "payload does not contain comment")
+    end
+
+    comment = event_payload["comment"]
+
+    # Step 2: check if comment is from collaborator
+    if !(iscollaborator(auth, event_owner, event_repo, comment["user"]["login"]))
+        return (false, "commenter is not collaborator")
+    end
+
+    # Step 3: check for trigger phrase
+    body = get(comment, "body", "")
+
+    trigger_match = match(trigger_regex, body)
+
+    if trigger_match == nothing
+        return (false, "trigger phrase not found")
+    end
+
+    return (true, first(trigger_match.captures))
+end
