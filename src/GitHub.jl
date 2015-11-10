@@ -1,40 +1,190 @@
-
 module GitHub
 
-import Base.show
+##########
+# import #
+##########
 
-import JSON, HttpServer, MbedTLS
-using Compat
-using HttpCommon
-using Requests
-import Requests: get, post, put, delete, options
+import HttpCommon,
+       HttpServer,
+       JSON,
+       MbedTLS,
+       Requests
 
-if VERSION < v"0.4-"
-    using Dates
-else
-    using Base.Dates
-end
+#############
+# Utilities #
+#############
+
+# misc -------
 
 abstract GitHubType
+
+function github_obj_from_type(data::Dict)
+    t = get(data, "type", nothing)
+
+    if t == "User"
+        return User(data)
+    elseif t == "Organization"
+        return Organization(data)
+    end
+end
+
+# include -------
+
+include("utils/endpoints.jl")
+include("utils/error.jl")
+include("utils/pagination.jl")
+include("utils/auth.jl")
+
+# export -------
+
+export # endpoints.jl
+       set_api_endpoint,
+       set_web_endpoint
+
+export # auth.jl
+       authenticate
+
+##################################
+# Owners (Organizations + Users) #
+##################################
+
+# misc -------
+
 abstract Owner <: GitHubType
 
+# include -------
 
-# types
-export User,
+include("users/users.jl")
+include("users/followers.jl")
+include("organizations/organizations.jl")
+
+# export -------
+
+export # users.jl
+       User,
+       user
+
+export # followers.jl
+       followers,
+       following
+
+export # organizations.jl
        Organization,
+       org,
+       orgs
+
+################
+# Repositories #
+################
+
+# include -------
+
+include("repositories/repositories.jl")
+include("repositories/forks.jl")
+include("repositories/statistics.jl")
+include("repositories/statuses.jl")
+include("repositories/collaborators.jl")
+include("repositories/contents.jl")
+include("repositories/commits.jl")
+include("repositories/comments.jl")
+
+# export -------
+
+export # repositories.jl
        Repo,
-       Issue,
-       Comment,
-       File,
-       Commit,
-       HttpError,
-       AuthError,
-       StatsError,
+       repo,
+       repos,
+       contributors
+
+export # forks.jl
+       fork,
+       forks
+
+       # statistics.jl
+export contributor_stats,
+       commit_activity,
+       code_frequency,
+       participation,
+       punch_card
+
+export # statuses.jl
        Status,
        PENDING,
        ERROR,
        FAILURE,
        SUCCESS,
+       post_status
+
+export # collaborators.jl
+       collaborators,
+       iscollaborator,
+       add_collaborator,
+       remove_collaborator
+
+export # contents.jl
+       File,
+       contents,
+       create_file,
+       update_file,
+       delete_file,
+       readme
+
+export # commits.jl
+       Commit
+
+export # comments.jl
+       Comment,
+       comments
+
+##########
+# Issues #
+##########
+
+# include -------
+
+include("issues/issues.jl")
+
+# export -------
+
+export # issues.jl
+       Issue,
+       issue,
+       issues,
+       create_issue,
+       edit_issue
+
+############
+# Activity #
+############
+
+# include -------
+
+include("activity/events.jl")
+include("activity/starring.jl")
+include("activity/watching.jl")
+
+# export -------
+
+export # starring.jl
+       star,
+       unstar,
+       stargazers,
+       starred
+
+export # watching.jl
+       watchers,
+       watched,
+       watching,
+       watch,
+       unwatch
+
+export # events.jl
+       payload,
+       name,
+       repo,
+       owner,
+       most_recent_commit,
+       post_status,
        CommitCommentEvent,
        CreateEvent,
        DeleteEvent,
@@ -62,75 +212,4 @@ export User,
        WatchEvent,
        EventListener
 
-# methods
-export authenticate,
-       set_api_endpoint,
-       set_web_endpoint,
-       user,
-       star,
-       unstar,
-       stargazers,
-       starred,
-       forks,
-       fork,
-       contributors,
-       contributor_stats,
-       commit_activity,
-       code_frequency,
-       participation,
-       punch_card,
-       collaborators,
-       iscollaborator,
-       add_collaborator,
-       remove_collaborator,
-       watchers,
-       watched,
-       watching,
-       watch,
-       unwatch,
-       followers,
-       following,
-       org,
-       orgs,
-       repo,
-       repos,
-       issue,
-       create_issue,
-       edit_issue,
-       issues,
-       comments,
-       contents,
-       create_file,
-       update_file,
-       delete_file,
-       readme,
-       post_status,
-       repo,
-       owner,
-       most_recent_commit,
-       payload,
-       name
-
-
-
-include("utils.jl")
-include("endpoint.jl")
-include("error.jl")
-include("auth.jl")
-include("users.jl")
-include("organizations.jl")
-include("repos.jl")
-include("issues.jl")
-include("comments.jl")
-include("starring.jl")
-include("forks.jl")
-include("statistics.jl")
-include("collaborators.jl")
-include("watching.jl")
-include("contents.jl")
-include("events.jl")
-include("statuses.jl")
-include("event_listeners.jl")
-
-
-end
+end # module GitHub

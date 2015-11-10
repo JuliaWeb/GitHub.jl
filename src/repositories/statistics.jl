@@ -55,19 +55,15 @@ end
 
 function attempt_stats_request(auth, owner, repo, stat, attempts; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
+    uri = api_uri("/repos/$owner/$repo/stats/$stat")
 
     for a in attempts:-1:0
-        r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/stats/$stat");
-                headers = headers,
-                options...)
-
+        r = Requests.get(uri; headers = headers, options...)
         handle_error(r)
-
         if r.status == 200
             pages = _get_pages(r; headers = headers, options...)
             return get_items_from_pages(pages)
         end
-
         sleep(2.0)
     end
 

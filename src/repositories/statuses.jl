@@ -46,7 +46,7 @@ immutable Status
 end
 
 function Base.Dict(status::Status)
-    return @compat Dict(
+    return Dict(
         "state" => status.state.name,
         "target_url" => status.target_url,
         "description" => status.description,
@@ -55,18 +55,17 @@ function Base.Dict(status::Status)
 end
 
 function post_status(owner::AbstractString, repo::AbstractString,
-                     sha::AbstractString, state::AbstractString;
-                     auth = AnonymousAuth(), headers = Dict(), options...)
+                     sha::AbstractString, status::Status;
+                     auth = AnonymousAuth(), headers = Dict())
     authenticate_headers!(headers, auth)
-    status = Status(state, options...)
-    status_path = "/repos/$owner/$repo/statuses/$sha"
-    endpoint = HttpCommon.URI(API_ENDPOINT; path=status_path)
-    Requests.post(endpoint; json=Dict(status), headers=headers)
+    uri = api_uri("/repos/$owner/$repo/statuses/$sha")
+    Requests.post(uri; json=Dict(status), headers=headers)
     return status
 end
 
-function post_status(event::Event, sha::AbstractString, state::AbstractString;
+function post_status(owner::AbstractString, repo::AbstractString,
+                     sha::AbstractString, state::AbstractString;
                      auth = AnonymousAuth(), headers = Dict(), options...)
-    return post_status(owner(event), repo(event), sha, state,
-                       auth = auth, headers = headers, options...)
+    return post_status(owner, repo, sha, Status(state, options...),
+                       auth = auth, headers = headers)
 end

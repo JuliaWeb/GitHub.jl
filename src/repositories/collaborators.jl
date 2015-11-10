@@ -15,9 +15,8 @@ end
 
 function collaborators(auth::Authorization, owner, repo; result_limit = -1, headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators"), result_limit;
-                      headers = headers,
-                      options...)
+    uri = api_uri("/repos/$owner/$repo/collaborators")
+    pages = get_pages(uri, result_limit; headers = headers, options...)
     items = get_items_from_pages(pages)
     return User[User(i) for i in items]
 end
@@ -29,15 +28,11 @@ end
 
 function iscollaborator(auth::Authorization, owner, repo, user; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators/$user");
-            headers = headers,
-            options...)
-
+    uri = api_uri("/repos/$owner/$repo/collaborators/$user")
+    r = Requests.get(uri; headers = headers, options...)
     r.status == 204 && return true
     r.status == 404 && return false
-
     handle_error(r)  # 404 is not an error in this case
-
     return false  # at this point, assume no
 end
 
@@ -48,10 +43,8 @@ end
 
 function add_collaborator(auth::Authorization, owner, repo, user; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    r = put(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators/$user");
-            headers = headers,
-            options...)
-
+    uri = api_uri("/repos/$owner/$repo/collaborators/$user")
+    r = Requests.put(uri; headers = headers, options...)
     handle_error(r)
 end
 
@@ -62,9 +55,7 @@ end
 
 function remove_collaborator(auth::Authorization, owner, repo, user; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    r = delete(URI(API_ENDPOINT; path = "/repos/$owner/$repo/collaborators/$user");
-            headers = headers,
-            options...)
-
+    uri = api_uri("/repos/$owner/$repo/collaborators/$user")
+    r = Requests.delete(uri; headers = headers, options...)
     handle_error(r)
 end

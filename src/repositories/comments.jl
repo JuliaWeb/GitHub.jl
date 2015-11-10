@@ -17,20 +17,12 @@ type Comment
             haskey(data,  "closed_at") ? Dates.DateTime(data[ "closed_at"]) : nothing,
             haskey(data, "created_at") ? Dates.DateTime(data["created_at"]) : nothing,
             haskey(data, "updated_at") ? Dates.DateTime(data["updated_at"]) : nothing,
-            haskey(data,  "html_url")  ? URI(data[ "html_url"]) : nothing,
-            haskey(data, "issue_url")  ? URI(data["issue_url"]) : nothing,
-            haskey(data,       "url")  ? URI(data[      "url"]) : nothing,
+            haskey(data,  "html_url")  ? HttpCommon.URI(data[ "html_url"]) : nothing,
+            haskey(data, "issue_url")  ? HttpCommon.URI(data["issue_url"]) : nothing,
+            haskey(data,       "url")  ? HttpCommon.URI(data[      "url"]) : nothing,
             User(get(data, "user", Dict())))
     end
 end
-
-function show(io::IO, issue::Issue)
-    println(io, "$Issue #$(issue.id)")
-    for field in names(issue)
-        getfield(issue, field)==nothing || println(io, field, ": ", getfield(issue, field))
-    end
-end
-
 
 # Interface -------
 
@@ -48,12 +40,8 @@ function comments(auth::Authorization, owner::AbstractString, repo, issue;
                                                             result_limit = -1,
                                                             options...)
     authenticate_headers!(headers, auth)
-
-    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/issues/$issue/comments"), result_limit;
-                      headers = headers,
-                      query = query,
-                      options...)
+    uri = api_uri("/repos/$owner/$repo/issues/$issue/comments")
+    pages = get_pages(uri, result_limit; headers = headers, query = query, options...)
     items = get_items_from_pages(pages)
     return Comment[Comment(i) for i in items]
 end
-

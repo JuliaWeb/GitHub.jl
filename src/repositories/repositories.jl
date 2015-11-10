@@ -63,7 +63,7 @@ type Repo <: GitHubType
     end
 end
 
-function show(io::IO, repo::Repo)
+function Base.show(io::IO, repo::Repo)
     print(io, "Repo - $(repo.full_name)")
     repo.homepage != nothing && !isempty(repo.homepage) && print(io, " ($(repo.homepage))")
     repo.description != nothing && !isempty(repo.description) && print(io, "\n\"$(repo.description)\"")
@@ -78,12 +78,8 @@ end
 
 function repo(auth::Authorization, owner, repo_name; headers = Dict(), options...)
     authenticate_headers!(headers, auth)
-    r = get(URI(API_ENDPOINT; path = "/repos/$owner/$repo_name");
-            headers = headers,
-            options...)
-
+    r = Requests.get(api_uri("/repos/$owner/$repo_name"); headers = headers, options...)
     handle_error(r)
-
     Repo(Requests.json(r))
 end
 
@@ -109,8 +105,8 @@ function repos(auth::Authorization, owner; typ = nothing, # for user: all, membe
     sort == nothing || (data["sort"] = sort)
     direction == nothing || (data["direction"] = direction)
 
-    pages = get_pages(URI(API_ENDPOINT; path = "$owner/repos"), result_limit;
-                      headers = headers, query = data, options...)
+    uri = api_uri("$owner/repos")
+    pages = get_pages(uri, result_limit; headers = headers, query = data, options...)
     items = get_items_from_pages(pages)
     return Repo[Repo(d) for d in items]
 end
@@ -129,11 +125,8 @@ function contributors(auth::Authorization, owner, repo; headers = Dict(),
 
     include_anon && (query["anon"] = "true")
 
-    pages = get_pages(URI(API_ENDPOINT; path = "/repos/$owner/$repo/contributors"), result_limit;
-                      query = query,
-                      headers = headers,
-                      options...)
-
+    uri = api_uri("/repos/$owner/$repo/contributors")
+    pages = get_pages(uri, result_limit; query = query, headers = headers, options...)
     data = get_items_from_pages(pages)
-    [ @compat Dict("author" => User(c), "contributions" => c["contributions"]) for c in data ]
+    [Dict("author" => User(c), "contributions" => c["contributions"]) for c in data]
 end
