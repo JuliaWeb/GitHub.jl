@@ -1,15 +1,12 @@
 abstract GitHubType
 
-function github_obj_from_type(data::Dict)
-    t = get(data, "type", nothing)
-    if t == "User"
-        return User(data)
-    elseif t == "Organization"
-        return Organization(data)
-    end
-end
+typealias GitHubString UTF8String
 
-function getnullable{T}(data::Dict, key, ::Type{T})
+# overloaded by various GitHubTypes to allow for more generic input to API
+# functions that require a name to construct URI paths
+name(str::AbstractString) = str
+
+function extract_nullable{T}(data::Dict, key, ::Type{T})
     if haskey(data, key)
         val = data[key]
         if !(isa(val, Void))
@@ -44,15 +41,24 @@ end
 # ...calling `extract_github_type(::Type{G}, data::Dict)` will parse the given
 # dictionary into the the type `G` with the expectation that the fieldnames of
 # `G` are keys of `data`, and the corresponding values can be converted to the
-# given types. For example, extraction of the first field above results in
-# the call `Nullable{A}(A(data["a"]))` (assuming that data["a"] exists).
-@generated function extract_github_type{G<:GitHubType}(::Type{G}, data::Dict)
+# given types.
+@generated function extract_github_type{G<:GitHubType}(::Type{G}, data::Dict, replacements::Dict=Dict())
     types = G.types
     fields = fieldnames(G)
     args = Vector{Expr}(length(fields))
     for i in eachindex(fields)
-        k, T = string(fields[i]), first(types[i].parameters)
-        args[i] = :(getnullable(data, $k, $T))
+        k, T = keyfunc(string(fields[i])), first(types[i].parameters)
+        args[i] = :(extract_nullable(data, get(replacements, $k, $k), $T))
     end
     return :(G($(args...)))
 end
+
+function Base.show(io::IO, obj::GitHubType)
+    print(io, "$(typeof(obj)):")
+    for field in fieldnames(obj)
+        println(io)
+        print(io, "  $field : $(getfield(obj, field))")
+    end
+end
+
+Base.showcompact(io::IO, obj::GitHubType) = println(io, "$(typeof(obj)): $(name(obj))")

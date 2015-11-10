@@ -14,13 +14,9 @@ import HttpCommon,
 # Utilities #
 #############
 
-# misc -------
-
-typealias GitHubString UTF8String
-
 # include -------
 
-include("utils/type_extract.jl")
+include("utils/GitHubType.jl")
 include("utils/endpoints.jl")
 include("utils/error.jl")
 include("utils/pagination.jl")
