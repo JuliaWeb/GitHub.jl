@@ -16,20 +16,11 @@ import HttpCommon,
 
 # misc -------
 
-abstract GitHubType
-
-function github_obj_from_type(data::Dict)
-    t = get(data, "type", nothing)
-
-    if t == "User"
-        return User(data)
-    elseif t == "Organization"
-        return Organization(data)
-    end
-end
+typealias GitHubString UTF8String
 
 # include -------
 
+include("utils/type_extract.jl")
 include("utils/endpoints.jl")
 include("utils/error.jl")
 include("utils/pagination.jl")
