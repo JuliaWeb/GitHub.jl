@@ -1,54 +1,38 @@
-
-# Types -------
+#######################
+# Authorization Types #
+#######################
 
 abstract Authorization
 
-
 immutable BasicAuth <: Authorization
-    user::AbstractString
-    password::AbstractString
+    user::GitHubString
+    password::GitHubString
 end
-
-function Base.show(io::IO, a::BasicAuth)
-    pw_str = repeat("*", 8)
-    print(io, "GitHub Authorization ($(a.user), $pw_str))")
-end
-
 
 immutable OAuth2 <: Authorization
-    token::AbstractString
+    token::GitHubString
 end
 
-function Base.show(io::IO, a::OAuth2)
-    token_str = a.token[1:6] * repeat("*", length(a.token) - 6)
-    print(io, "GitHub Authorization ($token_str)")
-end
+immutable AnonymousAuth <: Authorization end
 
-
-immutable AnonymousAuth <: Authorization
-end
-
-
-# Interface -------
+###############
+# API Methods #
+###############
 
 function authenticate(user::AbstractString, password::AbstractString)
-    auth = BasicAuth(user, password)
+    return BasicAuth(user, password)
 end
 
 function authenticate(token::AbstractString)
     auth = OAuth2(token)
-
-    r = Requests.get(API_ENDPOINT; query = Dict("access_token" => auth.token))
-    if !(200 <= r.status < 300)
-        data = Requests.json(r)
-        throw(AuthError(r.status, get(data, "message", ""), get(data, "documentation_url", "")))
-    end
-
-    auth
+    r = github_get(; params = Dict("access_token" => auth.token))
+    handle_response_error(r)
+    return auth
 end
 
-
-# Utility -------
+#########################
+# Header Authentication #
+#########################
 
 function authenticate_headers!(headers, auth::OAuth2)
     headers["Authorization"] = "token $(auth.token)"
@@ -60,5 +44,19 @@ function authenticate_headers!(headers, auth::BasicAuth)
 end
 
 function authenticate_headers!(headers, auth::AnonymousAuth)
-    headers  # nothing to be done
+    return headers  # nothing to be done
+end
+
+###################
+# Pretty Printing #
+###################
+
+function Base.show(io::IO, a::BasicAuth)
+    pw_str = repeat("*", 8)
+    print(io, "GitHub Authorization ($(a.user), $pw_str))")
+end
+
+function Base.show(io::IO, a::OAuth2)
+    token_str = a.token[1:6] * repeat("*", length(a.token) - 6)
+    print(io, "GitHub Authorization ($token_str)")
 end
