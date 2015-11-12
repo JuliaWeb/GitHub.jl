@@ -35,22 +35,36 @@ The `GitHub.EventListener` constructor takes in a handler function which should 
 - `events`: A `GitHub.EventName` collection that contains all whitelisted events. All events are whitelisted by default
 - `forwards`: A collection of address strings to which any incoming requests should be forwarded (after being validated by the listener)
 
-Here's an example that demonstrates how to construct and run a `GitHub.EventListener` that does some really basic benchmarking on every commit and PR (the function `run_and_log_benchmarks` used below isn't actually defined, but you get the point):
+Here's an example that demonstrates how to construct and run a `GitHub.EventListener` that does some really basic benchmarking on every commit and PR:
 
     import GitHub
 
+    # EventListener settings
     myauth = GitHub.OAuth2(ENV["GITHUB_AUTH_TOKEN"])
     mysecret = ENV["MY_SECRET"]
     myevents = [GitHub.PullRequestEvent, GitHub.PushEvent]
     myrepos = ["owner1/repo1", "owner2/repo2"]
     myforwards = ["http://myforward1.com", "http://myforward2.com"]
 
+    # Set up Status parameters
+    pending_params = Dict(
+        "state" => "pending",
+        "context" => "Benchmarker",
+        "description" => "Running benchmarks..."
+    )
+
+    success_params = Dict(
+        "state" => "success",
+        "context" => "Benchmarker",
+        "description" => "Benchmarks complete!"
+    )
+
     listener = GitHub.EventListener(auth = myauth,
                                     secret = mysecret,
                                     repos = myrepos,
                                     events = myevents,
                                     forwards = myforwards) do event, auth
-        name, payload = GitHub.name(event), GitHub.payload(event)
+        name, payload = event.name, event.payload
 
         if name == GitHub.PullRequestEvent && payload["action"] == "closed"
             return HttpCommon.Response(200)
@@ -58,19 +72,12 @@ Here's an example that demonstrates how to construct and run a `GitHub.EventList
 
         sha = GitHub.most_recent_commit(event)
 
-        GitHub.post_status(event, sha, GitHub.PENDING;
-                           auth = auth, context = "Benchmarker",
-                           description = "Running benchmarks...")
+        GitHub.create_status(event, sha; auth = auth, params = pending_params)
 
-        log = "\$(sha)-benchmarks.csv"
+        # run_and_log_benchmarks isn't actually a defined function, but you get the point
+        run_and_log_benchmarks("\$(sha)-benchmarks.csv")
 
-        print("Running and logging benchmarks to \$(log)...")
-        run_and_log_benchmarks(log)
-        println("done.")
-
-        GitHub.post_status(event, sha, GitHub.SUCCESS,
-                           auth = auth, context = "Benchmarker",
-                           description = "Benchmarks complete!")
+        GitHub.create_status(event, sha; auth = auth, params = success_params)
 
         return HttpCommon.Response(200)
     end
@@ -115,7 +122,7 @@ immutable EventListener
                     end
                 end
 
-                event = Event(request, payload)
+                event = event_from_payload!(EventName(request), payload)
 
                 return handle(event, auth)
             catch err
@@ -175,18 +182,28 @@ function extract_trigger_string(event::Event,
                                 auth::Authorization,
                                 trigger::AbstractString)
     trigger_regex = Regex("\`$trigger\(.*?\)\`")
-    event_owner, event_repo = owner(event), repo(event)
-    event_payload = payload(event)
+
+    if isnull(event.repository)
+        return (false, "event is missing repo information")
+    end
+
+    repo = get(event.repository)
+
+    if isnull(repo.owner)
+        return (false, "event repository is missing owner information")
+    end
+
+    owner = get(repo.owner)
 
     # Step 1: extract comment from payload
-    if !(haskey(event_payload, "comment"))
+    if !(haskey(event.payload, "comment"))
         return (false, "payload does not contain comment")
     end
 
-    comment = event_payload["comment"]
+    comment = event.payload["comment"]
 
     # Step 2: check if comment is from collaborator
-    if !(iscollaborator(auth, event_owner, event_repo, comment["user"]["login"]))
+    if !(iscollaborator(owner, repo, comment["user"]["login"]; auth = auth))
         return (false, "commenter is not collaborator")
     end
 

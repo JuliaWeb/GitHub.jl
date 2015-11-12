@@ -3,7 +3,7 @@
 #############
 
 immutable EventName
-    name::ASCIIString
+    name::GitHubString
 end
 
 has_event_header(request::HttpCommon.Request) = haskey(request.headers, "X-GitHub-Event")
@@ -46,14 +46,17 @@ const WatchEvent = EventName("watch")
 type Event
     name::EventName
     payload::Dict
+    repository::Nullable{Repo}
+    sender::Nullable{Owner}
 end
 
-Event(request::HttpCommon.Request, payload) = Event(EventName(request), payload)
-
-payload(event::Event) = event.payload
-name(event::Event) = event.name
-repo(event::Event) = event.payload["name"]
-owner(event::Event) = event.payload["owner"]["login"]
+function event_from_payload!(name::EventName, payload::Dict)
+    repository = extract_nullable(payload, "repository", Repo)
+    sender = extract_nullable(payload, "sender", Owner)
+    haskey("repository") && delete!(payload, "repository")
+    haskey("sender") && delete!(payload, "sender")
+    return Event(name, payload, repository, sender)
+end
 
 """
     most_recent_commit(event::GitHub.Event)
@@ -66,22 +69,21 @@ Get the SHA of the most recent commit associated with `event`. Applies to:
 - `GitHub.PullRequestReviewCommentEvent` -> head commit of PR branch
 """
 function most_recent_commit(event::Event)
-    event_name, event_payload = name(event), payload(event)
-    if event_name == PushEvent
-        return event_payload["after"]
-    elseif event_name == PullRequestEvent
-        return event_payload["pull_request"]["head"]["sha"]
-    elseif event_name == CommitCommentEvent
-        return event_payload["comment"]["commit_id"]
-    elseif event_name == PullRequestReviewCommentEvent
-        return event_payload["pull_request"]["head"]["sha"]
+    if event.name == PushEvent
+        return event.payload["after"]
+    elseif event.name == PullRequestEvent
+        return event.payload["pull_request"]["head"]["sha"]
+    elseif event.name == CommitCommentEvent
+        return event.payload["comment"]["commit_id"]
+    elseif event.name == PullRequestReviewCommentEvent
+        return event.payload["pull_request"]["head"]["sha"]
     else
-        error("most_recent_commit(::Event) not supported for $event_name")
+        error("most_recent_commit(::Event) not supported for $(event.name)")
     end
 end
 
-function post_status(event::Event, sha::AbstractString, state::AbstractString;
-                     auth = AnonymousAuth(), headers = Dict(), options...)
-    return post_status(owner(event), repo(event), sha, state,
-                       auth = auth, headers = headers, options...)
+function create_status(event::Event, sha; options...)
+    repo = get(event.repository)
+    owner = get(repo.owner)
+    return create_status(owner, repo, sha; options...)
 end

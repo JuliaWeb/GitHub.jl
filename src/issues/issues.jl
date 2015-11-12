@@ -1,168 +1,60 @@
-# Types -------
+##############
+# Issue type #
+##############
 
-type Issue
-    id
-    number
-    title
-    user
-    labels
-    state
-    assignee
-    milestone
-    comments
-    created_at
-    updated_at
-    closed_at
-    pull_request
-    body
-
-    function Issue(data::Dict)
-        new(get(data, "id", nothing),
-            get(data, "number", nothing),
-            get(data, "title", nothing),
-            User(get(data, "user", Dict())),
-            get(data, "labels", nothing),
-            get(data, "state", nothing),
-            get(data, "assignee", nothing),
-            get(data, "milestone", nothing),
-            get(data, "comments", nothing),
-            get(data, "created_at", nothing),
-            get(data, "updated_at", nothing),
-            get(data, "closed_at", nothing),
-            get(data, "pull_request", nothing),
-            get(data, "body", nothing))
-    end
+type Issue <: GitHubType
+    id::Nullable{Int}
+    number::Nullable{Int}
+    comments::Nullable{Int}
+    title::Nullable{GitHubString}
+    state::Nullable{GitHubString}
+    body::Nullable{GitHubString}
+    user::Nullable{Owner}
+    assignee::Nullable{Owner}
+    closed_by::Nullable{Owner}
+    created_at::Nullable{Dates.DateTime}
+    updated_at::Nullable{Dates.DateTime}
+    closed_at::Nullable{Dates.DateTime}
+    labels::Nullable{Dict}
+    milestone::Nullable{Dict}
+    pull_request::Nullable{Dict}
+    url::Nullable{HttpCommon.URI}
+    html_url::Nullable{HttpCommon.URI}
+    labels_url::Nullable{HttpCommon.URI}
+    comments_url::Nullable{HttpCommon.URI}
+    events_url::Nullable{HttpCommon.URI}
+    locked::Nullable{Bool}
 end
 
-function Base.show(io::IO, issue::Issue)
-    print(io, "$Issue #$(issue.number)")
+Issue(data::Dict) = json2github(Issue, data)
 
-    if issue.state != nothing && !isempty(issue.state)
-        print(io, " ($(issue.state))")
-    end
+urirepr(issue::Issue) = get(issue.number)
 
-    if issue.title != nothing && !isempty(issue.title)
-        print(io, " - \"$(issue.title)\"")
-    end
+###############
+# API Methods #
+###############
+
+function issue(owner, repo, issue; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues/$(urirepr(issue))"
+    return Issue(github_get_json(path; options...))
 end
 
-# Interface -------
-
-function issue(owner::AbstractString, repo, num; auth = AnonymousAuth(), options...)
-    issue(auth, owner, repo, num; options...)
+function issues(owner, repo; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues"
+    return map(Issues, github_paged_get(path; options...))
 end
 
-function issue(owner::Owner, repo, num; auth = AnonymousAuth(), options...)
-    issue(auth, owner.login, repo, num; options...)
+function create_issue(owner, repo; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues"
+    return Issue(github_post_json(path; options...))
 end
 
-function issue(auth::Authorization, owner::AbstractString, repo, num; headers = Dict(), options...)
-    authenticate_headers!(headers, auth)
-    uri = api_uri("/repos/$owner/$repo/issues/$num")
-    r = Requests.get(uri; headers = headers, options...)
-    handle_error(r)
-    Issue(Requests.json(r))
+function edit_issue(owner, repo, issue; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues/$(urirepr(issue))"
+    return Issue(github_patch_json(path; options...))
 end
 
-
-function issues(owner::AbstractString, repo; auth = AnonymousAuth(), options...)
-    issues(auth, owner, repo; options...)
-end
-
-function issues(owner::Owner, repo; auth = AnonymousAuth(), options...)
-    issues(auth, owner.login, repo; options...)
-end
-
-function issues(auth::Authorization, owner::AbstractString, repo; milestone = nothing,
-                                                          state = nothing,
-                                                          assignee = nothing,
-                                                          creator = nothing,
-                                                          mentioned = nothing,
-                                                          labels = nothing,
-                                                          sort = nothing,
-                                                          direction = nothing,
-                                                          since = nothing,
-                                                          headers = Dict(),
-                                                          query = Dict(),
-                                                          result_limit = -1,
-                                                          options...)
-    authenticate_headers!(headers, auth)
-
-    milestone != nothing && (query["milestone"] = milestone)
-    state != nothing && (query["state"] = state)
-    assignee != nothing && (query["assignee"] = assignee)
-    creator != nothing && (query["creator"] = creator)
-    mentioned != nothing && (query["mentioned"] = mentioned)
-    labels != nothing && (query["labels"] = labels)
-    sort != nothing && (query["sort"] = sort)
-    direction != nothing && (query["direction"] = direction)
-    since != nothing && (query["since"] = since)
-
-    uri = api_uri("/repos/$owner/$repo/issues")
-    pages = get_pages(uri, result_limit; headers = headers, query = query, options...)
-    items = get_items_from_pages(pages)
-    return Issue[Issue(i) for i in items]
-end
-
-
-function create_issue(owner::AbstractString, repo, title; auth = AnonymousAuth(), options...)
-    create_issue(auth, owner, repo, title; options...)
-end
-
-function create_issue(owner::Owner, repo, title; auth = AnonymousAuth(), options...)
-    create_issue(auth, owner.login, repo, title; options...)
-end
-
-function create_issue(auth::Authorization, owner::AbstractString, repo, title; body = nothing,
-                                                                       assignee = nothing,
-                                                                       milestone = nothing,
-                                                                       labels = nothing,
-                                                                       headers = Dict(),
-                                                                       json = Dict(),
-                                                                       options...)
-    authenticate_headers!(headers, auth)
-
-    json["title"] = title
-    body != nothing && (json["body"] = body)
-    assignee != nothing && (json["assignee"] = assignee)
-    milestone != nothing && (json["milestone"] = milestone)
-    labels != nothing && (json["labels"] = labels)
-
-    uri = api_uri("/repos/$owner/$repo/issues")
-    r = Requests.post(uri; headers = headers, json = json, options...)
-    handle_error(r)
-    Issue(Requests.json(r))
-end
-
-
-function edit_issue(owner::AbstractString, repo, num; auth = AnonymousAuth(), options...)
-    edit_issue(auth, owner, repo, num; options...)
-end
-
-function edit_issue(owner::Owner, repo, num; auth = AnonymousAuth(), options...)
-    edit_issue(auth, owner.login, repo, num; options...)
-end
-
-function edit_issue(auth::Authorization, owner::AbstractString, repo, num; title = nothing,
-                                                                   body = nothing,
-                                                                   assignee = nothing,
-                                                                   state = nothing,
-                                                                   milestone = nothing,
-                                                                   labels = nothing,
-                                                                   headers = Dict(),
-                                                                   json = Dict(),
-                                                                   options...)
-    authenticate_headers!(headers, auth)
-
-    title != nothing && (json["title"] = title)
-    body != nothing && (json["body"] = body)
-    assignee != nothing && (json["assignee"] = assignee)
-    state != nothing && (json["state"] = state)
-    milestone != nothing && (json["milestone"] = milestone)
-    labels != nothing && (json["labels"] = labels)
-
-    uri = api_uri("/repos/$owner/$repo/issues/$num")
-    r = Requests.patch(uri; headers = headers, json = json, options...)
-    handle_error(r)
-    Issue(Requests.json(r))
+function issue_comments(owner, repo, issue; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues/$(urirepr(issue))/comments"
+    return map(Comment, github_paged_get(path; options...))
 end

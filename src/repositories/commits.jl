@@ -1,36 +1,22 @@
-type Commit
-    _links
-    name
-    html_url
-    sha
-    git_url
-    size
-    download_url
-    url
-    path
-    committer
-    author
-    parents
-    message
-    tree
-    object_type
+###############
+# Commit Type #
+###############
 
-    function Commit(data::Dict)
-        new(get(data, "_links", nothing),
-            get(data, "name", nothing),
-            get(data, "html_url", nothing),
-            get(data, "sha", nothing),
-            get(data, "git_url", nothing),
-            get(data, "size", nothing),
-            get(data, "download_url", nothing),
-            get(data, "url", nothing),
-            get(data, "path", nothing),
-            User(get(data, "committer", nothing)),
-            User(get(data, "author", nothing)),
-            get(data, "parents", nothing),
-            get(data, "message", nothing),
-            get(data, "tree", nothing),
-            get(data, "type", nothing))
-    end
-
+type Commit <: GitHubType
+    sha::Nullable{GitHubString}
+    message::Nullable{GitHubString}
+    author::Nullable{Owner}
+    committer::Nullable{Owner}
+    commit::Nullable{Commit}
+    url::Nullable{HttpCommon.URI}
+    html_url::Nullable{HttpCommon.URI}
+    comments_url::Nullable{HttpCommon.URI}
+    parents::Nullable{Vector{Commit}}
+    stats::Nullable{Vector{Dict}}
+    files::Nullable{Vector{Content}}
+    comment_count::Nullable{Int}
 end
+
+Commit(data::Dict) = json2github(Commit, data)
+
+urirepr(commit::Commit) = get(commit.sha)
