@@ -1,3 +1,21 @@
+##############
+# GitHubType #
+##############
+# A `GitHubType` is a Julia type representation of a JSON object defined by the
+# GitHub API. Generally:
+#
+# - The fields of these types should correspond to keys in the JSON object. In
+#   the event the JSON object has a "type" key, the corresponding field name
+#   used should be `typ` (since `type` is a reserved word in Julia).
+#
+# - The method `urirepr` should be defined on every GitHubType. This method
+#   returns the type's identity in the form used for URI construction. For
+#   example, `urirepr` called on an `Owner` will return the owner's login, while
+#   `urirepr` called on a `Commit` will return the commit's sha.
+#
+# - A GitHubType's field types should be Nullables of either concrete types, a
+#   Vectors of concrete types, or Dicts.
+
 abstract GitHubType
 
 typealias GitHubString UTF8String
@@ -23,20 +41,29 @@ end
 
 # overloaded by various GitHubTypes to allow for more generic input to API
 # functions that require a name to construct URI paths
-name(str::AbstractString) = str
+urirepr(val) = val
+
+########################################
+# Converting JSON Dicts to GitHubTypes #
+########################################
 
 function extract_nullable{T}(data::Dict, key, ::Type{T})
     if haskey(data, key)
         val = data[key]
         if !(isa(val, Void))
-            if T == Dates.DateTime
-                val = chopz(val)
+            if T <: Vector
+                V = eltype(T)
+                return Nullable{T}(V[prune_github_value(v, V) for v in val])
+            else
+                return Nullable{T}(prune_github_value(val, T))
             end
-            return Nullable{T}(T(val))
         end
     end
     return Nullable{T}()
 end
+
+prune_github_value{T}(val, ::Type{T}) = T(val)
+prune_github_value(val, ::Type{Dates.DateTime}) = Dates.DateTime(chopz(val))
 
 # ISO 8601 allows for a trailing 'Z' to indicate that the given time is UTC.
 # Julia's Dates.DateTime constructor doesn't support this, but GitHub's time
@@ -49,36 +76,58 @@ function chopz(str::AbstractString)
     return str
 end
 
-# Given a type defined as:
-#
-# type G <: GitHubType
-#     a::Nullable{A}
-#     b::Nullable{B}
-#     ⋮
-# end
-#
-# ...calling `extract_github_type(::Type{G}, data::Dict)` will parse the given
-# dictionary into the the type `G` with the expectation that the fieldnames of
+# Calling `json2github(::Type{G<:GitHubType}, data::Dict)` will parse the given
+# dictionary into the type `G` with the expectation that the fieldnames of
 # `G` are keys of `data`, and the corresponding values can be converted to the
-# given types.
-
-const EMPTY_DICT = Dict()
-
-@generated function extract_github_type{G<:GitHubType}(::Type{G}, data::Dict, replacements::Dict=EMPTY_DICT)
+# given field types.
+@generated function json2github{G<:GitHubType}(::Type{G}, data::Dict)
     types = G.types
     fields = fieldnames(G)
     args = Vector{Expr}(length(fields))
     for i in eachindex(fields)
-        k, T = string(fields[i]), first(types[i].parameters)
-        args[i] = :(extract_nullable(data, get(replacements, $k, $k), $T))
+        field, T = fields[i], first(types[i].parameters)
+        key = field == :typ ? "type" : string(field)
+        args[i] = :(extract_nullable(data, $key, $T))
     end
     return :(G($(args...)))
 end
 
-function Base.show(io::IO, obj::GitHubType)
-    print(io, "$(typeof(obj)):")
-    for field in fieldnames(obj)
+#############################################
+# Converting GitHubType Dicts to JSON Dicts #
+#############################################
+
+github2json(val) = val
+
+github2json(v::Vector) = [github2json(i) for i in v]
+
+function github2json(g::GitHubType)
+    results = Dict()
+    for field in fieldnames(g)
         val = getfield(obj, field)
+        if !(isnull(val))
+            key = field == :typ ? "type" : string(field)
+            results[key] = github2json(get(val))
+        end
+    end
+    return results
+end
+
+function github2json(data::Dict)
+    results = Dict()
+    for (key, val) in data
+        results[key] = github2json(val)
+    end
+    return results
+end
+
+###################
+# Pretty Printing #
+###################
+
+function Base.show(io::IO, g::GitHubType)
+    print(io, "$(typeof(g)):")
+    for field in fieldnames(g)
+        val = getfield(g, field)
         if !(isnull(val))
             println(io)
             print(io, "  $field : $(get(val))")
@@ -86,4 +135,4 @@ function Base.show(io::IO, obj::GitHubType)
     end
 end
 
-Base.showcompact(io::IO, obj::GitHubType) = print(io, "$(typeof(obj))")
+Base.showcompact(io::IO, g::GitHubType) = print(io, "$(typeof(g))")
