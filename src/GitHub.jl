@@ -141,32 +141,8 @@ export # activity.jl
        unwatch
 
 export # events/events.jl
-       most_recent_commit,
-       CommitCommentEvent,
-       CreateEvent,
-       DeleteEvent,
-       DeploymentEvent,
-       DeploymentStatusEvent,
-       DownloadEvent,
-       FollowEvent,
-       ForkEvent,
-       ForkApplyEvent,
-       GistEvent,
-       GollumEvent,
-       IssueCommentEvent,
-       IssuesEvent,
-       MemberEvent,
-       MembershipEvent,
-       PageBuildEvent,
-       PublicEvent,
-       PullRequestEvent,
-       PullRequestReviewCommentEvent,
-       PushEvent,
-       ReleaseEvent,
-       RepositoryEvent,
-       StatusEvent,
-       TeamAddEvent,
-       WatchEvent
+       WebhookEvent,
+       most_recent_commit
 
 export # events/listeners.jl
        EventListener,
