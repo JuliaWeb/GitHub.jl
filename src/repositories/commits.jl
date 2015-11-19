@@ -12,7 +12,7 @@ type Commit <: GitHubType
     html_url::Nullable{HttpCommon.URI}
     comments_url::Nullable{HttpCommon.URI}
     parents::Nullable{Vector{Commit}}
-    stats::Nullable{Vector{Dict}}
+    stats::Nullable{Dict}
     files::Nullable{Vector{Content}}
     comment_count::Nullable{Int}
 end
