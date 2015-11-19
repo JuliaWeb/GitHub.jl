@@ -32,7 +32,7 @@ end
 
 Owner(data::Dict) = json2github(Owner, data)
 
-urirepr(owner::Owner) = get(owner.login)
+urifield(owner::Owner) = owner.login
 
 #############
 # Owner API #

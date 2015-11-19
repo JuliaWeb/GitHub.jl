@@ -19,4 +19,4 @@ end
 
 Commit(data::Dict) = json2github(Commit, data)
 
-urirepr(commit::Commit) = get(commit.sha)
+urifield(commit::Commit) = commit.sha

@@ -39,9 +39,10 @@ function Base.(:(==))(a::GitHubType, b::GitHubType)
     return true
 end
 
-# overloaded by various GitHubTypes to allow for more generic input to API
-# functions that require a name to construct URI paths
+# `urifield` is overloaded by various GitHubTypes to allow for more generic
+# input to AP functions that require a name to construct URI paths via `urirepr`
 urirepr(val) = val
+urirepr(g::GitHubType) = get(urifield(g))
 
 ########################################
 # Converting JSON Dicts to GitHubTypes #
@@ -125,14 +126,27 @@ end
 ###################
 
 function Base.show(io::IO, g::GitHubType)
-    print(io, "$(typeof(g)):")
+    print(io, "$(typeof(g)) (all fields are Nullable):")
     for field in fieldnames(g)
         val = getfield(g, field)
         if !(isnull(val))
+            gotval = get(val)
             println(io)
-            print(io, "  $field : $(get(val))")
+            print(io, "  $field: ")
+            if isa(gotval, Vector)
+                print(io, typeof(gotval))
+            else
+                showcompact(io, gotval)
+            end
         end
     end
 end
 
-Base.showcompact(io::IO, g::GitHubType) = print(io, "$(typeof(g))")
+function Base.showcompact(io::IO, g::GitHubType)
+    uri_id = urifield(g)
+    if isnull(uri_id)
+        print(io, typeof(g), "(…)")
+    else
+        print(io, typeof(g), "($(repr(get(uri_id))))")
+    end
+end

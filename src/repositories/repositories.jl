@@ -35,7 +35,7 @@ end
 
 Repo(data::Dict) = json2github(Repo, data)
 
-urirepr(repo::Repo) = get(repo.name)
+urifield(repo::Repo) = repo.name
 
 ###############
 # API Methods #

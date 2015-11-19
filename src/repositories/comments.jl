@@ -23,4 +23,4 @@ end
 
 Comment(data::Dict) = json2github(Comment, data)
 
-urirepr(comment::Comment) = get(comment.id)
+urifield(comment::Comment) = comment.id

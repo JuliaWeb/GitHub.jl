@@ -28,7 +28,7 @@ end
 
 Issue(data::Dict) = json2github(Issue, data)
 
-urirepr(issue::Issue) = get(issue.number)
+urifield(issue::Issue) = issue.number
 
 ###############
 # API Methods #

@@ -16,7 +16,7 @@ end
 
 Status(data::Dict) = json2github(Status, data)
 
-urirepr(status::Status) = get(status.id)
+urifield(status::Status) = status.id
 
 ###############
 # API Methods #

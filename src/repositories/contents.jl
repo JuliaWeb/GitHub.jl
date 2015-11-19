@@ -19,7 +19,7 @@ end
 
 Content(data::Dict) = json2github(Content, data)
 
-urirepr(content::Content) = get(repo.path)
+urifield(content::Content) = content.path
 
 ###############
 # API Methods #
