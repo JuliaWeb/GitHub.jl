@@ -16,7 +16,7 @@ end
 # Returns the response and the next link, if any.
 function next_page(next_link::HttpCommon.URI, headers::Dict{AbstractString, AbstractString})
     r = Requests.get(next_link; headers = headers)
-    handle_error(r)
+    handle_response_error(r)
 
     links = parse_link_header(r.headers["Link"])
     if haskey(links, "next")
@@ -62,7 +62,7 @@ end
 
 function get_pages(u::HttpCommon.URI, result_limit::Int = -1, per_page::Int = 30; headers = Dict(), options...)
     r = Requests.get(u; headers = headers, options...)
-    handle_error(r)
+    handle_response_error(r)
 
     return _get_pages(r, result_limit, per_page; headers = headers, options...)
 end

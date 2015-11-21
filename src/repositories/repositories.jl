@@ -1,132 +1,108 @@
-
-# Types -------
+#############
+# Repo Type #
+#############
 
 type Repo <: GitHubType
-    id
-    owner
-    name
-    full_name
-    description
-    private
-    fork
-    homepage
-    language
-    forks_count
-    stargazers_count
-    watchers_count
-    size
-    default_branch
-    master_branch
-    open_issues_count
-    pushed_at
-    created_at
-    updated_at
-    subscribers_count
-    organization
-    parent
-    source
-    has_issues
-    has_wiki
-    has_downloads
+    name::Nullable{GitHubString}
+    full_name::Nullable{GitHubString}
+    description::Nullable{GitHubString}
+    language::Nullable{GitHubString}
+    default_branch::Nullable{GitHubString}
+    owner::Nullable{Owner}
+    parent::Nullable{Repo}
+    source::Nullable{Repo}
+    id::Nullable{Int}
+    size::Nullable{Int}
+    subscribers_count::Nullable{Int}
+    forks_count::Nullable{Int}
+    stargazers_count::Nullable{Int}
+    watchers_count::Nullable{Int}
+    open_issues_count::Nullable{Int}
+    url::Nullable{HttpCommon.URI}
+    html_url::Nullable{HttpCommon.URI}
+    homepage::Nullable{HttpCommon.URI}
+    pushed_at::Nullable{Dates.DateTime}
+    created_at::Nullable{Dates.DateTime}
+    updated_at::Nullable{Dates.DateTime}
+    has_issues::Nullable{Bool}
+    has_wiki::Nullable{Bool}
+    has_downloads::Nullable{Bool}
+    has_pages::Nullable{Bool}
+    private::Nullable{Bool}
+    fork::Nullable{Bool}
+    permissions::Nullable{Dict}
+end
 
-    function Repo(data::Dict)
-        r = new(get(data, "id", nothing),
-                github_obj_from_type(get(data, "owner", Dict())),
-                get(data, "name", nothing),
-                get(data, "full_name", nothing),
-                get(data, "description", nothing),
-                get(data, "private", nothing),
-                get(data, "fork", nothing),
-                get(data, "homepage", nothing),
-                get(data, "language", nothing),
-                get(data, "forks_count", nothing),
-                get(data, "stargazers_count", nothing),
-                get(data, "watchers_count", nothing),
-                get(data, "size", nothing),
-                get(data, "default_branch", nothing),
-                get(data, "master_branch", nothing),
-                get(data, "open_issues_count", nothing),
-                get(data, "pushed_at", nothing),
-                get(data, "created_at", nothing),
-                get(data, "updated_at", nothing),
-                get(data, "subscribers_count", nothing),
-                github_obj_from_type(get(data, "organization", Dict())),
-                get(data, "parent", nothing),
-                get(data, "source", nothing),
-                get(data, "has_issues", nothing),
-                get(data, "has_wiki", nothing),
-                get(data, "has_downloads", nothing))
+Repo(data::Dict) = json2github(Repo, data)
 
-        r.parent != nothing && (r.parent = Repo(r.parent))
-        r.source != nothing && (r.source = Repo(r.source))
-        r
+urifield(repo::Repo) = repo.name
+
+###############
+# API Methods #
+###############
+
+# repos #
+#-------#
+
+repo(owner, repo; options...) = Repo(github_get_json("/repos/$(urirepr(owner))/$(urirepr(repo))"; options...))
+repos(owner; options...) = map(Repo, github_paged_get("$(urirepr(owner))/repos"; options...))
+
+# forks #
+#-------#
+
+function forks(owner, repo; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/forks"
+    return map(Repo, github_paged_get(path; options...))
+end
+
+function create_fork(owner, repo; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/forks"
+    return Repo(github_post_json(path; options...))
+end
+
+# contributors/collaborators #
+#----------------------------#
+
+function contributors(owner, repo; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/contributors"
+    items = github_paged_get(path; options...)
+    return [Dict("contributor" => Owner(i), "contributions" => i["contributions"]) for i in items]
+end
+
+function collaborators(owner, repo; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/collaborators"
+    return map(Owner, github_paged_get(path; options...))
+end
+
+function iscollaborator(owner, repo, user; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/collaborators/$(urirepr(user))"
+    r = github_get(path; handle_error = false, options...)
+    r.status == 204 && return true
+    r.status == 404 && return false
+    handle_response_error(r)  # 404 is not an error in this case
+    return false
+end
+
+function add_collaborator(owner, repo, user; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/collaborators/$(urirepr(user))"
+    return github_put(path; options...)
+end
+
+function remove_collaborator(owner, repo, user; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/collaborators/$(urirepr(user))"
+    return github_delete(path; options...)
+end
+
+# stats #
+#-------#
+
+function stats(owner, repo, stat, attempts = 3; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/stats/$(urirepr(stat))"
+    local r
+    for a in 1:attempts
+        r = github_get(path; handle_error = false, options...)
+        r.status == 200 && return r
+        sleep(2.0)
     end
-end
-
-function Base.show(io::IO, repo::Repo)
-    print(io, "Repo - $(repo.full_name)")
-    repo.homepage != nothing && !isempty(repo.homepage) && print(io, " ($(repo.homepage))")
-    repo.description != nothing && !isempty(repo.description) && print(io, "\n\"$(repo.description)\"")
-end
-
-
-# Interface -------
-
-function repo(owner, repo_name; auth = AnonymousAuth(), options...)
-    repo(auth, owner, repo_name; options...)
-end
-
-function repo(auth::Authorization, owner, repo_name; headers = Dict(), options...)
-    authenticate_headers!(headers, auth)
-    r = Requests.get(api_uri("/repos/$owner/$repo_name"); headers = headers, options...)
-    handle_error(r)
-    Repo(Requests.json(r))
-end
-
-function repos(owner::User; auth = AnonymousAuth(), options...)
-  repos(auth, "/users/$(owner.login)"; options...)
-end
-
-function repos(owner::Organization; auth = AnonymousAuth(), options...)
-  repos(auth, "/orgs/$(owner.login)"; options...)
-end
-
-function repos(auth::Authorization, owner; typ = nothing, # for user: all, member, [owner]
-                                                          # for org: [all], public, private, forks, sources, member
-                                           sort = nothing, # created, updated, pushed, [full_name]
-                                           direction = nothing, # asc, [desc]
-                                           headers = Dict(),
-                                           data = Dict(),
-                                           result_limit = -1,
-                                           options...)
-    authenticate_headers!(headers, auth)
-
-    typ == nothing || (data["type"] = typ)
-    sort == nothing || (data["sort"] = sort)
-    direction == nothing || (data["direction"] = direction)
-
-    uri = api_uri("$owner/repos")
-    pages = get_pages(uri, result_limit; headers = headers, query = data, options...)
-    items = get_items_from_pages(pages)
-    return Repo[Repo(d) for d in items]
-end
-
-
-function contributors(owner, repo; auth = AnonymousAuth(), options...)
-    contributors(auth, owner, repo; options...)
-end
-
-function contributors(auth::Authorization, owner, repo; headers = Dict(),
-                                                        query = Dict(),
-                                                        include_anon = false,
-                                                        result_limit = -1,
-                                                        options...)
-    authenticate_headers!(headers, auth)
-
-    include_anon && (query["anon"] = "true")
-
-    uri = api_uri("/repos/$owner/$repo/contributors")
-    pages = get_pages(uri, result_limit; query = query, headers = headers, options...)
-    data = get_items_from_pages(pages)
-    [Dict("author" => User(c), "contributions" => c["contributions"]) for c in data]
+    return r
 end
