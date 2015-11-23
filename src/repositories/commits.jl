@@ -20,3 +20,17 @@ end
 Commit(data::Dict) = json2github(Commit, data)
 
 urifield(commit::Commit) = commit.sha
+
+###############
+# API Methods #
+###############
+
+function commits(owner, repo; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/commits"
+    return map(Commit, github_paged_get(path; options...))
+end
+
+function commit(owner, repo, sha; options...)
+    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/commits/$(urirepr(sha))"
+    return Commit(github_get_json(path; options...))
+end

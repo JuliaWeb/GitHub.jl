@@ -80,7 +80,9 @@ export # repositories.jl
        stats
 
 export # commits.jl
-       Commit
+       Commit,
+       commit,
+       commits
 
 export # contents.jl
        Content,
