@@ -107,9 +107,15 @@ export # comments.jl
 
 # include -------
 
+include("issues/pull_requests.jl")
 include("issues/issues.jl")
 
 # export -------
+
+export # pull_requests.jl
+       PullRequest,
+       pull_requests,
+       pull_request
 
 export # issues.jl
        Issue,

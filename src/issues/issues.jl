@@ -17,7 +17,7 @@ type Issue <: GitHubType
     closed_at::Nullable{Dates.DateTime}
     labels::Nullable{Vector{Dict}}
     milestone::Nullable{Dict}
-    pull_request::Nullable{Dict}
+    pull_request::Nullable{PullRequest}
     url::Nullable{HttpCommon.URI}
     html_url::Nullable{HttpCommon.URI}
     labels_url::Nullable{HttpCommon.URI}
