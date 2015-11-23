@@ -279,6 +279,74 @@ status_result = GitHub.Status(
 
 @test GitHub.Status(status_json) == status_result
 
+###############
+# PullRequest #
+###############
+
+pr_json = JSON.parse(
+"""
+{
+  "url": "https://api.github.com/repos/octocat/Hello-World/pulls/1347",
+  "number": 1347,
+  "body": "Please pull these awesome changes",
+  "assignee": {
+    "login": "octocat"
+  },
+  "milestone": {
+    "id": 1002604,
+    "number": 1,
+    "state": "open",
+    "title": "v1.0"
+  },
+  "locked": false,
+  "created_at": "2011-01-26T19:01:12Z",
+  "head": {
+    "label": "new-topic",
+    "ref": "new-topic",
+    "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
+    "user": {
+      "login": "octocat"
+    },
+    "repo": {
+      "id": 1296269
+    }
+  }
+}
+"""
+)
+
+pr_result = GitHub.PullRequest(
+    Nullable{GitHub.Branch}(),
+    Nullable{GitHub.Branch}(GitHub.Branch(pr_json["head"])),
+    Nullable{Int}(Int(pr_json["number"])),
+    Nullable{Int}(),
+    Nullable{Int}(),
+    Nullable{Int}(),
+    Nullable{Int}(),
+    Nullable{Int}(),
+    Nullable{Int}(),
+    Nullable{GitHub.GitHubString}(),
+    Nullable{GitHub.GitHubString}(),
+    Nullable{GitHub.GitHubString}(GitHub.GitHubString(pr_json["body"])),
+    Nullable{GitHub.GitHubString}(),
+    Nullable{Dates.DateTime}(Dates.DateTime(chop(pr_json["created_at"]))),
+    Nullable{Dates.DateTime}(),
+    Nullable{Dates.DateTime}(),
+    Nullable{Dates.DateTime}(),
+    Nullable{HttpCommon.URI}(HttpCommon.URI(pr_json["url"])),
+    Nullable{HttpCommon.URI}(),
+    Nullable{GitHub.Owner}(GitHub.Owner(pr_json["assignee"])),
+    Nullable{GitHub.Owner}(),
+    Nullable{GitHub.Owner}(),
+    Nullable{Dict}(pr_json["milestone"]),
+    Nullable{Dict}(),
+    Nullable{Bool}(),
+    Nullable{Bool}(),
+    Nullable{Bool}(pr_json["locked"])
+)
+
+@test GitHub.PullRequest(pr_json) == pr_result
+
 #########
 # Issue #
 #########
@@ -327,13 +395,13 @@ issue_result = GitHub.Issue(
     Nullable{Dates.DateTime}(),
     Nullable{Vector{Dict}}(Vector{Dict}(issue_json["labels"])),
     Nullable{Dict}(),
-    Nullable{Dict}(issue_json["pull_request"]),
+    Nullable{GitHub.PullRequest}(GitHub.PullRequest(issue_json["pull_request"])),
     Nullable{HttpCommon.URI}(HttpCommon.URI(issue_json["url"])),
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
-    Nullable{Bool}(Bool(issue_json["locked"])) 
+    Nullable{Bool}(Bool(issue_json["locked"]))
 )
 
 @test GitHub.Issue(issue_json) == issue_result
