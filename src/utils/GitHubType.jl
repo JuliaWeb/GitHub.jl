@@ -90,7 +90,7 @@ end
         key = field == :typ ? "type" : string(field)
         args[i] = :(extract_nullable(data, $key, $T))
     end
-    return :(G($(args...)))
+    return :(G($(args...))::G)
 end
 
 #############################################
