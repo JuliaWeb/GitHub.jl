@@ -42,7 +42,7 @@ end
 
 function issues(repo; options...)
     path = "/repos/$(name(repo))/issues"
-    return map(Issues, github_paged_get(path; options...))
+    return map(Issue, github_paged_get(path; options...))
 end
 
 function create_issue(repo; options...)
