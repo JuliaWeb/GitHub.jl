@@ -30,9 +30,3 @@ function most_recent_commit(event::WebhookEvent)
         error("most_recent_commit(::Event) not supported for $(event.kind)")
     end
 end
-
-function create_status(event::WebhookEvent, sha; options...)
-    repo = get(event.repository)
-    owner = get(repo.owner)
-    return create_status(owner, repo, sha; options...)
-end
