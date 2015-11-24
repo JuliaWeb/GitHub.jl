@@ -143,7 +143,6 @@ export # activity.jl
        starred,
        watchers,
        watched,
-       watching,
        watch,
        unwatch
 
