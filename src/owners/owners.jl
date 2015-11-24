@@ -40,8 +40,8 @@ urifield(owner::Owner) = owner.login
 
 typealias ValidOwner Union{AbstractString, Owner}
 
-user(obj::ValidOwner; options...) = Owner(github_get("/users/$(urirepr(obj))"; options...))
-org(obj::ValidOwner; options...) = Owner(github_get("/orgs/$(urirepr(obj))"; options...))
+user(obj::ValidOwner; options...) = Owner(github_get_json("/users/$(urirepr(obj))"; options...))
+org(obj::ValidOwner; options...) = Owner(github_get_json("/orgs/$(urirepr(obj))"; options...))
 orgs(obj::ValidOwner; options...) = map(Owner, github_paged_get("/users/$(urirepr(obj))/orgs"; options...))
 followers(obj::ValidOwner; options...) = map(Owner, github_paged_get("/users/$(urirepr(obj))/followers"; options...))
 following(obj::ValidOwner; options...) = map(Owner, github_paged_get("/users/$(urirepr(obj))/following"; options...))
