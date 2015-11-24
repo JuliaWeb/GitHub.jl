@@ -25,7 +25,7 @@ end
 
 function authenticate(token::AbstractString)
     auth = OAuth2(token)
-    r = github_get(; params = Dict("access_token" => auth.token))
+    r = github_get("/"; params = Dict("access_token" => auth.token))
     handle_response_error(r)
     return auth
 end
