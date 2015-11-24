@@ -39,7 +39,7 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
 @test name(repo(ghjl; auth = auth)) == name(ghjl)
 @test length(forks(ghjl; auth = auth)) > 0
 @test hasghobj("jrevels", map(x->x["contributor"], contributors(ghjl; auth = auth)))
-@test stats(ghjl, "contributors"; auth = auth).status == 200
+@test stats(ghjl, "contributors"; auth = auth).status < 300
 
 @test name(commit(ghjl, testcommit; auth = auth)) == name(testcommit)
 @test hasghobj(testcommit, commits(ghjl; auth = auth))
