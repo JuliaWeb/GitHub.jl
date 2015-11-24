@@ -32,7 +32,7 @@ function watchers(repo; options...)
 end
 
 function watched(owner; options...)
-    path = "/users/$(name(user))/subscriptions"
+    path = "/users/$(name(owner))/subscriptions"
     return map(Repo, github_paged_get(path; options...))
 end
 
