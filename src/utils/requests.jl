@@ -34,7 +34,6 @@ end
 
 function handle_response_error(r::HttpCommon.Response)
     if r.status >= 400
-        println(r.status)
         data = Requests.json(r)
         message = get(data, "message", "")
         docs_url = get(data, "documentation_url", "")
