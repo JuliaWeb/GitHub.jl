@@ -11,6 +11,7 @@ type Branch <: GitHubType
 end
 
 Branch(data::Dict) = json2github(Branch, data)
+Branch(ref::AbstractString) = Branch(Dict("ref" => ref))
 
 namefield(branch::Branch) = branch.ref
 
