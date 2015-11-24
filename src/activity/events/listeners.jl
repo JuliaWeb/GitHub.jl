@@ -67,9 +67,9 @@ Here's an example that demonstrates how to construct and run a `GitHub.EventList
                                     repos = myrepos,
                                     events = myevents,
                                     forwards = myforwards) do event, auth
-        name, payload = event.name, event.payload
+        kind, payload = event.kind, event.payload
 
-        if name == "pull_request" && payload["action"] == "closed"
+        if kind == "pull_request" && payload["action"] == "closed"
             return HttpCommon.Response(200)
         end
 

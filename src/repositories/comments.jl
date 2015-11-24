@@ -22,5 +22,6 @@ type Comment <: GitHubType
 end
 
 Comment(data::Dict) = json2github(Comment, data)
+Comment(id::Real) = Comment(Dict("id" => id))
 
-urifield(comment::Comment) = comment.id
+namefield(comment::Comment) = comment.id

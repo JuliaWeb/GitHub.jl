@@ -3,7 +3,7 @@
 #####################
 
 type WebhookEvent
-    name::GitHubString
+    kind::GitHubString
     payload::Dict
     repository::Nullable{Repo}
     sender::Nullable{Owner}
@@ -18,16 +18,16 @@ function event_from_payload!(name, data::Dict)
 end
 
 function most_recent_commit(event::WebhookEvent)
-    if event.name == "push"
+    if event.kind == "push"
         return event.payload["after"]
-    elseif event.name == "pull_request"
+    elseif event.kind == "pull_request"
         return event.payload["pull_request"]["head"]["sha"]
-    elseif event.name == "commit_comment"
+    elseif event.kind == "commit_comment"
         return event.payload["comment"]["commit_id"]
-    elseif event.name == "pull_request_review_comment"
+    elseif event.kind == "pull_request_review_comment"
         return event.payload["pull_request"]["head"]["sha"]
     else
-        error("most_recent_commit(::Event) not supported for $(event.name)")
+        error("most_recent_commit(::Event) not supported for $(event.kind)")
     end
 end
 

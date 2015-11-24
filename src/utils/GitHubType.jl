@@ -8,10 +8,10 @@
 #   the event the JSON object has a "type" key, the corresponding field name
 #   used should be `typ` (since `type` is a reserved word in Julia).
 #
-# - The method `urirepr` should be defined on every GitHubType. This method
+# - The method `name` should be defined on every GitHubType. This method
 #   returns the type's identity in the form used for URI construction. For
-#   example, `urirepr` called on an `Owner` will return the owner's login, while
-#   `urirepr` called on a `Commit` will return the commit's sha.
+#   example, `name` called on an `Owner` will return the owner's login, while
+#   `name` called on a `Commit` will return the commit's sha.
 #
 # - A GitHubType's field types should be Nullables of either concrete types, a
 #   Vectors of concrete types, or Dicts.
@@ -39,10 +39,10 @@ function Base.(:(==))(a::GitHubType, b::GitHubType)
     return true
 end
 
-# `urifield` is overloaded by various GitHubTypes to allow for more generic
-# input to AP functions that require a name to construct URI paths via `urirepr`
-urirepr(val) = val
-urirepr(g::GitHubType) = get(urifield(g))
+# `namefield` is overloaded by various GitHubTypes to allow for more generic
+# input to AP functions that require a name to construct URI paths via `name`
+name(val) = val
+name(g::GitHubType) = get(namefield(g))
 
 ########################################
 # Converting JSON Dicts to GitHubTypes #
@@ -143,7 +143,7 @@ function Base.show(io::IO, g::GitHubType)
 end
 
 function Base.showcompact(io::IO, g::GitHubType)
-    uri_id = urifield(g)
+    uri_id = namefield(g)
     if isnull(uri_id)
         print(io, typeof(g), "(…)")
     else

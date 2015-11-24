@@ -18,19 +18,20 @@ type Commit <: GitHubType
 end
 
 Commit(data::Dict) = json2github(Commit, data)
+Commit(sha::AbstractString) = Commit(Dict("sha" => sha))
 
-urifield(commit::Commit) = commit.sha
+namefield(commit::Commit) = commit.sha
 
 ###############
 # API Methods #
 ###############
 
 function commits(owner, repo; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/commits"
+    path = "/repos/$(name(owner))/$(name(repo))/commits"
     return map(Commit, github_paged_get(path; options...))
 end
 
 function commit(owner, repo, sha; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/commits/$(urirepr(sha))"
+    path = "/repos/$(name(owner))/$(name(repo))/commits/$(name(sha))"
     return Commit(github_get_json(path; options...))
 end

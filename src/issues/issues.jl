@@ -27,34 +27,35 @@ type Issue <: GitHubType
 end
 
 Issue(data::Dict) = json2github(Issue, data)
+Issue(number::Real) = Issue(Dict("number" => number))
 
-urifield(issue::Issue) = issue.number
+namefield(issue::Issue) = issue.number
 
 ###############
 # API Methods #
 ###############
 
 function issue(owner, repo, issue; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues/$(urirepr(issue))"
+    path = "/repos/$(name(owner))/$(name(repo))/issues/$(name(issue))"
     return Issue(github_get_json(path; options...))
 end
 
 function issues(owner, repo; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues"
+    path = "/repos/$(name(owner))/$(name(repo))/issues"
     return map(Issues, github_paged_get(path; options...))
 end
 
 function create_issue(owner, repo; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues"
+    path = "/repos/$(name(owner))/$(name(repo))/issues"
     return Issue(github_post_json(path; options...))
 end
 
 function edit_issue(owner, repo, issue; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues/$(urirepr(issue))"
+    path = "/repos/$(name(owner))/$(name(repo))/issues/$(name(issue))"
     return Issue(github_patch_json(path; options...))
 end
 
 function issue_comments(owner, repo, issue; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/issues/$(urirepr(issue))/comments"
+    path = "/repos/$(name(owner))/$(name(repo))/issues/$(name(issue))/comments"
     return map(Comment, github_paged_get(path; options...))
 end

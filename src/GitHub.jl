@@ -46,11 +46,11 @@ include("owners/owners.jl")
 
 export # owners.jl
        Owner,
-       user,
-       org,
+       owner,
        orgs,
        followers,
-       following
+       following,
+       repos
 
 ################
 # Repositories #
@@ -69,10 +69,9 @@ include("repositories/comments.jl")
 export # repositories.jl
        Repo,
        repo,
-       repos,
        fork,
-       forks
-       contributors
+       forks,
+       contributors,
        collaborators,
        iscollaborator,
        add_collaborator,

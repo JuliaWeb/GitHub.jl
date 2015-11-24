@@ -18,8 +18,9 @@ type Content <: GitHubType
 end
 
 Content(data::Dict) = json2github(Content, data)
+Content(path::AbstractString) = Content(Dict("path" => path))
 
-urifield(content::Content) = content.path
+namefield(content::Content) = content.path
 
 ###############
 # API Methods #
@@ -44,7 +45,7 @@ function delete_file(owner, repo, path; options...)
 end
 
 function readme(owner, repo; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/readme"
+    path = "/repos/$(name(owner))/$(name(repo))/readme"
     return Content(github_get_json(path; options...))
 end
 
@@ -52,7 +53,7 @@ end
 # Content Utility Methods #
 ###########################
 
-content_uri(owner, repo, path) = "/repos/$(urirepr(owner))/$(urirepr(repo))/contents/$(urirepr(path))"
+content_uri(owner, repo, path) = "/repos/$(name(owner))/$(name(repo))/contents/$(name(path))"
 
 function build_content_response(json::Dict)
     results = Dict()

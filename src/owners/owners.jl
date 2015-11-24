@@ -31,17 +31,25 @@ type Owner <: GitHubType
 end
 
 Owner(data::Dict) = json2github(Owner, data)
+Owner(login::AbstractString, isorg = false) = Owner(Dict("login" => login, "typ" => isorg ? "User" : "Organization"))
 
-urifield(owner::Owner) = owner.login
+namefield(owner::Owner) = owner.login
+
+typprefix(isorg) = isorg ? "orgs" : "users"
 
 #############
 # Owner API #
 #############
 
-typealias ValidOwner Union{AbstractString, Owner}
+isorg(owner::Owner) = get(owner.typ, "") == "Organization"
 
-user(obj::ValidOwner; options...) = Owner(github_get_json("/users/$(urirepr(obj))"; options...))
-org(obj::ValidOwner; options...) = Owner(github_get_json("/orgs/$(urirepr(obj))"; options...))
-orgs(obj::ValidOwner; options...) = map(Owner, github_paged_get("/users/$(urirepr(obj))/orgs"; options...))
-followers(obj::ValidOwner; options...) = map(Owner, github_paged_get("/users/$(urirepr(obj))/followers"; options...))
-following(obj::ValidOwner; options...) = map(Owner, github_paged_get("/users/$(urirepr(obj))/following"; options...))
+owner(obj::Owner; options...) = owner(name(obj), isorg(obj); options...)
+owner(obj, isorg = false; options...) = Owner(github_get_json("/$(typprefix(isorg))/$(name(obj))"; options...))
+
+orgs(owner; options...) = map(Owner, github_paged_get("/users/$(name(owner))/orgs"; options...))
+
+followers(owner; options...) = map(Owner, github_paged_get("/users/$(name(owner))/followers"; options...))
+following(owner; options...) = map(Owner, github_paged_get("/users/$(name(owner))/following"; options...))
+
+repos(owner::Owner; options...) = repos(name(owner), isorg(owner); options...)
+repos(owner, isorg = false; options...) = map(Repo, github_paged_get("/$(typprefix(isorg))/$(name(owner))/repos"; options...))

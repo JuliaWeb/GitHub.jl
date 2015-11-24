@@ -12,7 +12,7 @@ end
 
 Branch(data::Dict) = json2github(Branch, data)
 
-urifield(branch::Branch) = branch.ref
+namefield(branch::Branch) = branch.ref
 
 ####################
 # PullRequest Type #
@@ -49,19 +49,20 @@ type PullRequest <: GitHubType
 end
 
 PullRequest(data::Dict) = json2github(PullRequest, data)
+PullRequest(number::Real) = PullRequest(Dict("number" => number))
 
-urifield(pr::PullRequest) = pr.number
+namefield(pr::PullRequest) = pr.number
 
 ###############
 # API Methods #
 ###############
 
 function pull_requests(owner, repo; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/pulls"
+    path = "/repos/$(name(owner))/$(name(repo))/pulls"
     return map(PullRequest, github_paged_get(path; options...))
 end
 
 function pull_request(owner, repo, pr; options...)
-    path = "/repos/$(urirepr(owner))/$(urirepr(repo))/pulls/$(urirepr(pr))"
+    path = "/repos/$(name(owner))/$(name(repo))/pulls/$(name(pr))"
     return PullRequest(github_get_json(path; options...))
 end
