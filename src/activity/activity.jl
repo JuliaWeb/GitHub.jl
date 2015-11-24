@@ -2,8 +2,8 @@
 # Starring #
 ############
 
-function stargazers(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/stargazers"
+function stargazers(repo; options...)
+    path = "/repos/$(name(repo))/stargazers"
     return map(Owner, github_paged_get(path; options...))
 end
 
