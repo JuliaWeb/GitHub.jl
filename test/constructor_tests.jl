@@ -279,6 +279,34 @@ status_result = GitHub.Status(
 
 @test GitHub.Status(status_json) == status_result
 
+##########
+# Branch #
+##########
+
+branch_json = JSON.parse(
+"""
+{
+  "ref": "new-topic",
+  "user": {
+    "login": "octocat"
+  },
+  "repo": {
+    "id": 1296269
+  }
+}
+"""
+)
+
+branch_result = GitHub.Branch(
+    Nullable{GitHub.GitHubString}(),
+    Nullable{GitHub.GitHubString}(GitHub.GitHubString(branch_json["ref"])),
+    Nullable{GitHub.GitHubString}(),
+    Nullable{GitHub.Owner}(GitHub.Owner(branch_json["user"])),
+    Nullable{GitHub.Repo}(GitHub.Repo(branch_json["repo"]))
+)
+
+@test GitHub.Branch(branch_json) == branch_result
+
 ###############
 # PullRequest #
 ###############
@@ -301,15 +329,7 @@ pr_json = JSON.parse(
   "locked": false,
   "created_at": "2011-01-26T19:01:12Z",
   "head": {
-    "label": "new-topic",
-    "ref": "new-topic",
-    "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-    "user": {
-      "login": "octocat"
-    },
-    "repo": {
-      "id": 1296269
-    }
+    "ref": "new-topic"
   }
 }
 """

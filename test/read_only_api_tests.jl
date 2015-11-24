@@ -66,6 +66,7 @@ state_param = Dict("state" => "all")
 ############
 # Activity #
 ############
+
 @test length(stargazers(ghjl; auth = auth)) > 10 # every package should fail tests if it's not popular enough :p
 @test hasghobj(ghjl, starred(testuser; auth = auth))
 @test hasghobj(testuser, watchers(ghjl; auth = auth))
