@@ -1,5 +1,5 @@
-import GitHub
 import JSON
+using GitHub, GitHub.name, GitHub.GitHubString, GitHub.Branch
 using Base.Test
 
 # This file tests various GitHubType constructors. To test for proper Nullable
@@ -26,15 +26,15 @@ owner_json = JSON.parse(
 """
 )
 
-owner_result = GitHub.Owner(
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(owner_json["login"])),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
+owner_result = Owner(
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(GitHubString(owner_json["login"])),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
     Nullable{Int}(Int(owner_json["id"])),
     Nullable{Int}(),
     Nullable{Int}(),
@@ -54,7 +54,8 @@ owner_result = GitHub.Owner(
     Nullable{Bool}()
 )
 
-@test GitHub.Owner(owner_json) == owner_result
+@test Owner(owner_json) == owner_result
+@test name(Owner(owner_json["login"])) == name(owner_result)
 
 ########
 # Repo #
@@ -70,7 +71,7 @@ repo_json = JSON.parse(
   "parent": {
     "name": "test-parent"
   },
-  "name": "Hello-World",
+  "full_name": "octocat/Hello-World",
   "private": false,
   "url": "https://api.github.com/repos/octocat/Hello-World",
   "language": null,
@@ -84,15 +85,15 @@ repo_json = JSON.parse(
 """
 )
 
-repo_result = GitHub.Repo(
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(repo_json["name"])),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.Owner}(GitHub.Owner(repo_json["owner"])),
-    Nullable{GitHub.Repo}(GitHub.Repo(repo_json["parent"])),
-    Nullable{GitHub.Repo}(),
+repo_result = Repo(
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(GitHubString(repo_json["full_name"])),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{Owner}(Owner(repo_json["owner"])),
+    Nullable{Repo}(Repo(repo_json["parent"])),
+    Nullable{Repo}(),
     Nullable{Int}(Int(repo_json["id"])),
     Nullable{Int}(),
     Nullable{Int}(),
@@ -115,7 +116,8 @@ repo_result = GitHub.Repo(
     Nullable{Dict}(repo_json["permissions"])
 )
 
-@test GitHub.Repo(repo_json) == repo_result
+@test Repo(repo_json) == repo_result
+@test name(Repo(repo_json["full_name"])) == name(repo_result)
 
 ##########
 # Commit #
@@ -157,22 +159,23 @@ commit_json = JSON.parse(
 """
 )
 
-commit_result = GitHub.Commit(
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(commit_json["sha"])), # sha
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.Owner}(GitHub.Owner(commit_json["author"])),
-    Nullable{GitHub.Owner}(),
-    Nullable{GitHub.Commit}(GitHub.Commit(commit_json["commit"])),
+commit_result = Commit(
+    Nullable{GitHubString}(GitHubString(commit_json["sha"])),
+    Nullable{GitHubString}(),
+    Nullable{Owner}(Owner(commit_json["author"])),
+    Nullable{Owner}(),
+    Nullable{Commit}(Commit(commit_json["commit"])),
     Nullable{HttpCommon.URI}(HttpCommon.URI(commit_json["url"])),
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
-    Nullable{Vector{GitHub.Commit}}(map(GitHub.Commit, commit_json["parents"])),
+    Nullable{Vector{Commit}}(map(Commit, commit_json["parents"])),
     Nullable{Dict}(commit_json["stats"]),
-    Nullable{Vector{GitHub.Content}}(map(GitHub.Content, commit_json["files"])),
+    Nullable{Vector{Content}}(map(Content, commit_json["files"])),
     Nullable{Int}()
 )
 
-@test GitHub.Commit(commit_json) == commit_result
+@test Commit(commit_json) == commit_result
+@test name(Commit(commit_json["sha"])) == name(commit_result)
 
 ###########
 # Comment #
@@ -193,12 +196,12 @@ comment_json = JSON.parse(
 """
 )
 
-comment_result = GitHub.Comment(
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(comment_json["body"])),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
+comment_result = Comment(
+    Nullable{GitHubString}(GitHubString(comment_json["body"])),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
     Nullable{Int}(Int(comment_json["id"])),
     Nullable{Int}(),
     Nullable{Int}(),
@@ -209,10 +212,11 @@ comment_result = GitHub.Comment(
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
-    Nullable{GitHub.Owner}(GitHub.Owner(comment_json["user"]))
+    Nullable{Owner}(Owner(comment_json["user"]))
 )
 
-@test GitHub.Comment(comment_json) == comment_result
+@test Comment(comment_json) == comment_result
+@test name(Comment(comment_json["id"])) == name(comment_result)
 
 ###########
 # Content #
@@ -222,6 +226,7 @@ content_json = JSON.parse(
 """
 {
   "type": "file",
+  "path": "lib/octokit.rb",
   "size": 625,
   "encoding": null,
   "url": "https://api.github.com/repos/octokit/octokit.rb/contents/lib/octokit.rb"
@@ -229,14 +234,14 @@ content_json = JSON.parse(
 """
 )
 
-content_result = GitHub.Content(
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(content_json["type"])),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
+content_result = Content(
+    Nullable{GitHubString}(GitHubString(content_json["type"])),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(GitHubString(content_json["path"])),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
     Nullable{HttpCommon.URI}(HttpCommon.URI(content_json["url"])),
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
@@ -244,7 +249,8 @@ content_result = GitHub.Content(
     Nullable{Int}(content_json["size"])
 )
 
-@test GitHub.Content(content_json) == content_result
+@test Content(content_json) == content_result
+@test name(Content(content_json["path"])) == name(content_result)
 
 ##########
 # Status #
@@ -265,19 +271,20 @@ status_json = JSON.parse(
 """
 )
 
-status_result = GitHub.Status(
+status_result = Status(
     Nullable{Int}(Int(status_json["id"])),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(status_json["description"])),
-    Nullable{GitHub.GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(GitHubString(status_json["description"])),
+    Nullable{GitHubString}(),
     Nullable{HttpCommon.URI}(HttpCommon.URI(status_json["url"])),
     Nullable{HttpCommon.URI}(),
     Nullable{Dates.DateTime}(Dates.DateTime(chop(status_json["created_at"]))),
     Nullable{Dates.DateTime}(),
-    Nullable{GitHub.Owner}(GitHub.Owner(status_json["creator"]))
+    Nullable{Owner}(Owner(status_json["creator"]))
 )
 
-@test GitHub.Status(status_json) == status_result
+@test Status(status_json) == status_result
+@test name(Status(status_json["id"])) == name(status_result)
 
 ##########
 # Branch #
@@ -297,15 +304,16 @@ branch_json = JSON.parse(
 """
 )
 
-branch_result = GitHub.Branch(
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(branch_json["ref"])),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.Owner}(GitHub.Owner(branch_json["user"])),
-    Nullable{GitHub.Repo}(GitHub.Repo(branch_json["repo"]))
+branch_result = Branch(
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(GitHubString(branch_json["ref"])),
+    Nullable{GitHubString}(),
+    Nullable{Owner}(Owner(branch_json["user"])),
+    Nullable{Repo}(Repo(branch_json["repo"]))
 )
 
-@test GitHub.Branch(branch_json) == branch_result
+@test Branch(branch_json) == branch_result
+@test name(Branch(branch_json["ref"])) == name(branch_result)
 
 ###############
 # PullRequest #
@@ -335,9 +343,9 @@ pr_json = JSON.parse(
 """
 )
 
-pr_result = GitHub.PullRequest(
-    Nullable{GitHub.Branch}(),
-    Nullable{GitHub.Branch}(GitHub.Branch(pr_json["head"])),
+pr_result = PullRequest(
+    Nullable{Branch}(),
+    Nullable{Branch}(Branch(pr_json["head"])),
     Nullable{Int}(Int(pr_json["number"])),
     Nullable{Int}(),
     Nullable{Int}(),
@@ -345,19 +353,19 @@ pr_result = GitHub.PullRequest(
     Nullable{Int}(),
     Nullable{Int}(),
     Nullable{Int}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(pr_json["body"])),
-    Nullable{GitHub.GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(GitHubString(pr_json["body"])),
+    Nullable{GitHubString}(),
     Nullable{Dates.DateTime}(Dates.DateTime(chop(pr_json["created_at"]))),
     Nullable{Dates.DateTime}(),
     Nullable{Dates.DateTime}(),
     Nullable{Dates.DateTime}(),
     Nullable{HttpCommon.URI}(HttpCommon.URI(pr_json["url"])),
     Nullable{HttpCommon.URI}(),
-    Nullable{GitHub.Owner}(GitHub.Owner(pr_json["assignee"])),
-    Nullable{GitHub.Owner}(),
-    Nullable{GitHub.Owner}(),
+    Nullable{Owner}(Owner(pr_json["assignee"])),
+    Nullable{Owner}(),
+    Nullable{Owner}(),
     Nullable{Dict}(pr_json["milestone"]),
     Nullable{Dict}(),
     Nullable{Bool}(),
@@ -365,7 +373,8 @@ pr_result = GitHub.PullRequest(
     Nullable{Bool}(pr_json["locked"])
 )
 
-@test GitHub.PullRequest(pr_json) == pr_result
+@test PullRequest(pr_json) == pr_result
+@test name(PullRequest(pr_json["number"])) == name(pr_result)
 
 #########
 # Issue #
@@ -400,22 +409,22 @@ issue_json = JSON.parse(
 """
 )
 
-issue_result = GitHub.Issue(
+issue_result = Issue(
     Nullable{Int}(),
     Nullable{Int}(Int(issue_json["number"])),
     Nullable{Int}(),
-    Nullable{GitHub.GitHubString}(GitHub.GitHubString(issue_json["title"])),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.GitHubString}(),
-    Nullable{GitHub.Owner}(GitHub.Owner(issue_json["user"])),
-    Nullable{GitHub.Owner}(),
-    Nullable{GitHub.Owner}(),
+    Nullable{GitHubString}(GitHubString(issue_json["title"])),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{Owner}(Owner(issue_json["user"])),
+    Nullable{Owner}(),
+    Nullable{Owner}(),
     Nullable{Dates.DateTime}(Dates.DateTime(chop(issue_json["created_at"]))),
     Nullable{Dates.DateTime}(),
     Nullable{Dates.DateTime}(),
     Nullable{Vector{Dict}}(Vector{Dict}(issue_json["labels"])),
     Nullable{Dict}(),
-    Nullable{GitHub.PullRequest}(GitHub.PullRequest(issue_json["pull_request"])),
+    Nullable{PullRequest}(PullRequest(issue_json["pull_request"])),
     Nullable{HttpCommon.URI}(HttpCommon.URI(issue_json["url"])),
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
@@ -424,4 +433,5 @@ issue_result = GitHub.Issue(
     Nullable{Bool}(Bool(issue_json["locked"]))
 )
 
-@test GitHub.Issue(issue_json) == issue_result
+@test Issue(issue_json) == issue_result
+@test name(Issue(issue_json["number"])) == name(issue_result)
