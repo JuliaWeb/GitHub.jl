@@ -57,12 +57,12 @@ namefield(pr::PullRequest) = pr.number
 # API Methods #
 ###############
 
-function pull_requests(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/pulls"
+function pull_requests(repo; options...)
+    path = "/repos/$(name(repo))/pulls"
     return map(PullRequest, github_paged_get(path; options...))
 end
 
-function pull_request(owner, repo, pr; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/pulls/$(name(pr))"
+function pull_request(repo, pr; options...)
+    path = "/repos/$(name(repo))/pulls/$(name(pr))"
     return PullRequest(github_get_json(path; options...))
 end

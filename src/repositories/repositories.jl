@@ -34,9 +34,9 @@ type Repo <: GitHubType
 end
 
 Repo(data::Dict) = json2github(Repo, data)
-Repo(name::AbstractString) = Repo(Dict("name" => name))
+Repo(full_name::AbstractString) = Repo(Dict("full_name" => full_name))
 
-namefield(repo::Repo) = repo.name
+namefield(repo::Repo) = repo.full_name
 
 ###############
 # API Methods #
@@ -45,37 +45,37 @@ namefield(repo::Repo) = repo.name
 # repos #
 #-------#
 
-repo(owner, repo; options...) = Repo(github_get_json("/repos/$(name(owner))/$(name(repo))"; options...))
+repo(repo; options...) = Repo(github_get_json("/repos/$(name(repo))"; options...))
 
 # forks #
 #-------#
 
-function forks(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/forks"
+function forks(repo; options...)
+    path = "/repos/$(name(repo))/forks"
     return map(Repo, github_paged_get(path; options...))
 end
 
-function create_fork(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/forks"
+function create_fork(repo; options...)
+    path = "/repos/$(name(repo))/forks"
     return Repo(github_post_json(path; options...))
 end
 
 # contributors/collaborators #
 #----------------------------#
 
-function contributors(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/contributors"
+function contributors(repo; options...)
+    path = "/repos/$(name(repo))/contributors"
     items = github_paged_get(path; options...)
     return [Dict("contributor" => Owner(i), "contributions" => i["contributions"]) for i in items]
 end
 
-function collaborators(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/collaborators"
+function collaborators(repo; options...)
+    path = "/repos/$(name(repo))/collaborators"
     return map(Owner, github_paged_get(path; options...))
 end
 
-function iscollaborator(owner, repo, user; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/collaborators/$(name(user))"
+function iscollaborator(repo, user; options...)
+    path = "/repos/$(name(repo))/collaborators/$(name(user))"
     r = github_get(path; handle_error = false, options...)
     r.status == 204 && return true
     r.status == 404 && return false
@@ -83,21 +83,21 @@ function iscollaborator(owner, repo, user; options...)
     return false
 end
 
-function add_collaborator(owner, repo, user; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/collaborators/$(name(user))"
+function add_collaborator(repo, user; options...)
+    path = "/repos/$(name(repo))/collaborators/$(name(user))"
     return github_put(path; options...)
 end
 
-function remove_collaborator(owner, repo, user; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/collaborators/$(name(user))"
+function remove_collaborator(repo, user; options...)
+    path = "/repos/$(name(repo))/collaborators/$(name(user))"
     return github_delete(path; options...)
 end
 
 # stats #
 #-------#
 
-function stats(owner, repo, stat, attempts = 3; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/stats/$(name(stat))"
+function stats(repo, stat, attempts = 3; options...)
+    path = "/repos/$(name(repo))/stats/$(name(stat))"
     local r
     for a in 1:attempts
         r = github_get(path; handle_error = false, options...)

@@ -35,27 +35,27 @@ namefield(issue::Issue) = issue.number
 # API Methods #
 ###############
 
-function issue(owner, repo, issue; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/issues/$(name(issue))"
+function issue(repo, issue; options...)
+    path = "/repos/$(name(repo))/issues/$(name(issue))"
     return Issue(github_get_json(path; options...))
 end
 
-function issues(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/issues"
+function issues(repo; options...)
+    path = "/repos/$(name(repo))/issues"
     return map(Issues, github_paged_get(path; options...))
 end
 
-function create_issue(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/issues"
+function create_issue(repo; options...)
+    path = "/repos/$(name(repo))/issues"
     return Issue(github_post_json(path; options...))
 end
 
-function edit_issue(owner, repo, issue; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/issues/$(name(issue))"
+function edit_issue(repo, issue; options...)
+    path = "/repos/$(name(repo))/issues/$(name(issue))"
     return Issue(github_patch_json(path; options...))
 end
 
-function issue_comments(owner, repo, issue; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/issues/$(name(issue))/comments"
+function issue_comments(repo, issue; options...)
+    path = "/repos/$(name(repo))/issues/$(name(issue))/comments"
     return map(Comment, github_paged_get(path; options...))
 end

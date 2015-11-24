@@ -12,13 +12,13 @@ function starred(user; options...)
     return map(Repo, github_paged_get(path; options...))
 end
 
-function star(owner, repo; options...)
-    path = "/user/starred/$(name(owner))/$(name(repo))"
+function star(repo; options...)
+    path = "/user/starred/$(name(repo))"
     return github_put(path; options...)
 end
 
-function unstar(owner, repo; options...)
-    path = "/user/starred/$(name(owner))/$(name(repo))"
+function unstar(repo; options...)
+    path = "/user/starred/$(name(repo))"
     return github_delete(path; options...)
 end
 
@@ -26,8 +26,8 @@ end
 # Watching #
 ############
 
-function watchers(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/subscribers"
+function watchers(repo; options...)
+    path = "/repos/$(name(repo))/subscribers"
     return map(Owner, github_paged_get(path; options...))
 end
 
@@ -36,8 +36,8 @@ function watched(owner; options...)
     return map(Repo, github_paged_get(path; options...))
 end
 
-function watching(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/subscription"
+function watching(repo; options...)
+    path = "/repos/$(name(repo))/subscription"
     r = github_get(path; handle_error = false, options...)
     r.status == 200 && return true
     r.status == 404 && return false
@@ -45,12 +45,12 @@ function watching(owner, repo; options...)
     return false
 end
 
-function watch(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/subscription"
+function watch(repo; options...)
+    path = "/repos/$(name(repo))/subscription"
     return github_put(path; options...)
 end
 
-function watch(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/subscription"
+function watch(repo; options...)
+    path = "/repos/$(name(repo))/subscription"
     return github_delete(path; options...)
 end

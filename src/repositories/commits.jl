@@ -26,12 +26,12 @@ namefield(commit::Commit) = commit.sha
 # API Methods #
 ###############
 
-function commits(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/commits"
+function commits(repo; options...)
+    path = "/repos/$(name(repo))/commits"
     return map(Commit, github_paged_get(path; options...))
 end
 
-function commit(owner, repo, sha; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/commits/$(name(sha))"
+function commit(repo, sha; options...)
+    path = "/repos/$(name(repo))/commits/$(name(sha))"
     return Commit(github_get_json(path; options...))
 end

@@ -26,26 +26,26 @@ namefield(content::Content) = content.path
 # API Methods #
 ###############
 
-file(owner, repo, path; options...) = Content(github_get_json(content_uri(owner, repo, path); options...))
-directory(owner, repo, path; options...) = map(Content, github_paged_get(content_uri(owner, repo, path); options...))
+file(repo, path; options...) = Content(github_get_json(content_uri(repo, path); options...))
+directory(repo, path; options...) = map(Content, github_paged_get(content_uri(repo, path); options...))
 
-function create_file(owner, repo, path; options...)
-    r = github_put_json(content_uri(owner, repo, path); options...)
+function create_file(repo, path; options...)
+    r = github_put_json(content_uri(repo, path); options...)
     return build_content_response(r)
 end
 
-function update_file(owner, repo, path; options...)
-    r = github_put_json(content_uri(owner, repo, path); options...)
+function update_file(repo, path; options...)
+    r = github_put_json(content_uri(repo, path); options...)
     return build_content_response(r)
 end
 
-function delete_file(owner, repo, path; options...)
-    r = github_delete_json(content_uri(owner, repo, path); options...)
+function delete_file(repo, path; options...)
+    r = github_delete_json(content_uri(repo, path); options...)
     return build_content_response(r)
 end
 
-function readme(owner, repo; options...)
-    path = "/repos/$(name(owner))/$(name(repo))/readme"
+function readme(repo; options...)
+    path = "/repos/$(name(repo))/readme"
     return Content(github_get_json(path; options...))
 end
 
@@ -53,7 +53,7 @@ end
 # Content Utility Methods #
 ###########################
 
-content_uri(owner, repo, path) = "/repos/$(name(owner))/$(name(repo))/contents/$(name(path))"
+content_uri(repo, path) = "/repos/$(name(repo))/contents/$(name(path))"
 
 function build_content_response(json::Dict)
     results = Dict()
