@@ -17,7 +17,7 @@ function is_valid_secret(request::HttpCommon.Request, secret)
 end
 
 function is_valid_event(request::HttpCommon.Request, events)
-    return (has_event_header(request) && in(EventName(request), events))
+    return (has_event_header(request) && in(event_header(request), events))
 end
 
 is_valid_repo(payload::Dict, repos) = in(payload["repository"]["full_name"], repos)
