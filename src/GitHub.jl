@@ -148,7 +148,7 @@ export # activity.jl
 
 export # events/events.jl
        WebhookEvent,
-       most_recent_commit
+       most_recent_commit_sha
 
 export # events/listeners.jl
        EventListener,

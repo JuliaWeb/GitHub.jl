@@ -73,7 +73,7 @@ Here's an example that demonstrates how to construct and run a `GitHub.EventList
             return HttpCommon.Response(200)
         end
 
-        sha = GitHub.most_recent_commit(event)
+        sha = GitHub.most_recent_commit_sha(event)
 
         GitHub.create_status(event, sha; auth = auth, params = pending_params)
 
