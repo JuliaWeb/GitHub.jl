@@ -8,10 +8,9 @@ event_header(request::HttpCommon.Request) = request.headers["X-GitHub-Event"]
 has_sig_header(request::HttpCommon.Request) = haskey(request.headers, "X-Hub-Signature")
 sig_header(request::HttpCommon.Request) = request.headers["X-Hub-Signature"]
 
-function is_valid_secret(request::HttpCommon.Request, secret::AbstractString)
+function is_valid_secret(request::HttpCommon.Request, secret)
     if has_sig_header(request)
-        payload_string = UTF8String(request.data)
-        secret_sha = "sha1="*MbedTLS.digest(MbedTLS.MD_SHA1, payload_string, secret)
+        secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, request.data, secret))
         return sig_header(request) == secret_sha
     end
     return false
