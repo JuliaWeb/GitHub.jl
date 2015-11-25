@@ -165,13 +165,14 @@ immutable CommentListener
     listener::EventListener
     function CommentListener(handle, trigger::AbstractString;
                              auth::Authorization = AnonymousAuth(),
+                             check_collab = true,
                              secret = nothing,
                              repos = nothing,
                              forwards = nothing)
         listener = EventListener(auth=auth, secret=secret,
                                  events=COMMENT_EVENTS, repos=repos,
                                  forwards=forwards) do event, auth
-            found, extracted = extract_trigger_string(event, auth, trigger)
+            found, extracted = extract_trigger_string(event, auth, trigger, check_collab)
             if found
                 return handle(event, auth, extracted)
             else
@@ -188,7 +189,8 @@ end
 
 function extract_trigger_string(event::WebhookEvent,
                                 auth::Authorization,
-                                trigger::AbstractString)
+                                trigger::AbstractString,
+                                check_collab::Bool)
     trigger_regex = Regex("\`$trigger\(.*?\)\`")
 
     # extract repo/owner info from event
@@ -212,7 +214,8 @@ function extract_trigger_string(event::WebhookEvent,
     comment = event.payload["comment"]
 
     # check if comment is from collaborator
-    if !(iscollaborator(owner, repo, comment["user"]["login"]; auth = auth))
+    if (check_collab &&
+        !(iscollaborator(owner, repo, comment["user"]["login"]; auth = auth)))
         return (false, "commenter is not collaborator")
     end
 
