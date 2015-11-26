@@ -8,6 +8,19 @@ using Base.Test
 # e.g. if the GitHubType has a few Nullable{Dates.DateTime} fields, at least one
 # of those fields should be present in the JSON sample.
 
+function test_show(g::GitHub.GitHubType)
+    tmpio = IOBuffer()
+    show(tmpio, g)
+
+    # basically trivial, but proves that things aren't completely broken
+    @test repr(g) == takebuf_string(tmpio)
+
+    tmpio = IOBuffer()
+    showcompact(tmpio, g)
+
+    @test "$(typeof(g))($(repr(name(g))))" == takebuf_string(tmpio)
+end
+
 #########
 # Owner #
 #########
@@ -56,6 +69,8 @@ owner_result = Owner(
 @test Owner(owner_json) == owner_result
 @test name(Owner(owner_json["login"])) == name(owner_result)
 @test setindex!(GitHub.github2json(owner_result), nothing, "email") == owner_json
+
+test_show(owner_result)
 
 ########
 # Repo #
@@ -120,6 +135,8 @@ repo_result = Repo(
 @test name(Repo(repo_json["full_name"])) == name(repo_result)
 @test setindex!(GitHub.github2json(repo_result), nothing, "language") == repo_json
 
+test_show(repo_result)
+
 ##########
 # Commit #
 ##########
@@ -179,6 +196,8 @@ commit_result = Commit(
 @test name(Commit(commit_json["sha"])) == name(commit_result)
 @test setindex!(GitHub.github2json(commit_result), nothing, "html_url") == commit_json
 
+test_show(commit_result)
+
 ###########
 # Comment #
 ###########
@@ -221,6 +240,8 @@ comment_result = Comment(
 @test name(Comment(comment_json["id"])) == name(comment_result)
 @test setindex!(GitHub.github2json(comment_result), nothing, "position") == comment_json
 
+test_show(comment_result)
+
 ###########
 # Content #
 ###########
@@ -257,6 +278,8 @@ content_result = Content(
 @test name(Content(content_json["path"])) == name(content_result)
 @test setindex!(GitHub.github2json(content_result), nothing, "encoding") == content_json
 
+test_show(content_result)
+
 ##########
 # Status #
 ##########
@@ -292,6 +315,8 @@ status_result = Status(
 @test name(Status(status_json["id"])) == name(status_result)
 @test setindex!(GitHub.github2json(status_result), nothing, "context") == status_json
 
+test_show(status_result)
+
 ##########
 # Branch #
 ##########
@@ -321,6 +346,8 @@ branch_result = Branch(
 @test Branch(branch_json) == branch_result
 @test name(Branch(branch_json["ref"])) == name(branch_result)
 @test GitHub.github2json(branch_result) == branch_json
+
+test_show(branch_result)
 
 ###############
 # PullRequest #
@@ -384,6 +411,8 @@ pr_result = PullRequest(
 @test name(PullRequest(pr_json["number"])) == name(pr_result)
 @test GitHub.github2json(pr_result) == pr_json
 
+test_show(pr_result)
+
 #########
 # Issue #
 #########
@@ -442,3 +471,5 @@ issue_result = Issue(
 @test Issue(issue_json) == issue_result
 @test name(Issue(issue_json["number"])) == name(issue_result)
 @test setindex!(GitHub.github2json(issue_result), nothing, "closed_at") == issue_json
+
+test_show(issue_result)
