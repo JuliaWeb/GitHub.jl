@@ -4,6 +4,7 @@
 
 type Content <: GitHubType
     typ::Nullable{GitHubString}
+    filename::Nullable{GitHubString}
     name::Nullable{GitHubString}
     path::Nullable{GitHubString}
     target::Nullable{GitHubString}

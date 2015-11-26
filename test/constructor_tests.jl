@@ -6,8 +6,7 @@ using Base.Test
 # handling, most fields have been removed from the JSON samples used below.
 # Sample fields were selected in order to cover the full range of type behavior,
 # e.g. if the GitHubType has a few Nullable{Dates.DateTime} fields, at least one
-# of those fields should be present in the JSON sample. In addition, at least
-# one `null`-valued field is present in each JSON sample.
+# of those fields should be present in the JSON sample.
 
 #########
 # Owner #
@@ -56,6 +55,7 @@ owner_result = Owner(
 
 @test Owner(owner_json) == owner_result
 @test name(Owner(owner_json["login"])) == name(owner_result)
+@test setindex!(GitHub.github2json(owner_result), nothing, "email") == owner_json
 
 ########
 # Repo #
@@ -118,6 +118,7 @@ repo_result = Repo(
 
 @test Repo(repo_json) == repo_result
 @test name(Repo(repo_json["full_name"])) == name(repo_result)
+@test setindex!(GitHub.github2json(repo_result), nothing, "language") == repo_json
 
 ##########
 # Commit #
@@ -176,6 +177,7 @@ commit_result = Commit(
 
 @test Commit(commit_json) == commit_result
 @test name(Commit(commit_json["sha"])) == name(commit_result)
+@test setindex!(GitHub.github2json(commit_result), nothing, "html_url") == commit_json
 
 ###########
 # Comment #
@@ -217,6 +219,7 @@ comment_result = Comment(
 
 @test Comment(comment_json) == comment_result
 @test name(Comment(comment_json["id"])) == name(comment_result)
+@test setindex!(GitHub.github2json(comment_result), nothing, "position") == comment_json
 
 ###########
 # Content #
@@ -237,6 +240,7 @@ content_json = JSON.parse(
 content_result = Content(
     Nullable{GitHubString}(GitHubString(content_json["type"])),
     Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
     Nullable{GitHubString}(GitHubString(content_json["path"])),
     Nullable{GitHubString}(),
     Nullable{GitHubString}(),
@@ -251,6 +255,7 @@ content_result = Content(
 
 @test Content(content_json) == content_result
 @test name(Content(content_json["path"])) == name(content_result)
+@test setindex!(GitHub.github2json(content_result), nothing, "encoding") == content_json
 
 ##########
 # Status #
@@ -285,6 +290,7 @@ status_result = Status(
 
 @test Status(status_json) == status_result
 @test name(Status(status_json["id"])) == name(status_result)
+@test setindex!(GitHub.github2json(status_result), nothing, "context") == status_json
 
 ##########
 # Branch #
@@ -314,6 +320,7 @@ branch_result = Branch(
 
 @test Branch(branch_json) == branch_result
 @test name(Branch(branch_json["ref"])) == name(branch_result)
+@test GitHub.github2json(branch_result) == branch_json
 
 ###############
 # PullRequest #
@@ -375,6 +382,7 @@ pr_result = PullRequest(
 
 @test PullRequest(pr_json) == pr_result
 @test name(PullRequest(pr_json["number"])) == name(pr_result)
+@test GitHub.github2json(pr_result) == pr_json
 
 #########
 # Issue #
@@ -398,9 +406,7 @@ issue_json = JSON.parse(
   ],
   "pull_request": {
     "url": "https://api.github.com/repos/octocat/Hello-World/pulls/1347",
-    "html_url": "https://github.com/octocat/Hello-World/pull/1347",
-    "diff_url": "https://github.com/octocat/Hello-World/pull/1347.diff",
-    "patch_url": "https://github.com/octocat/Hello-World/pull/1347.patch"
+    "html_url": "https://github.com/octocat/Hello-World/pull/1347"
   },
   "locked": false,
   "closed_at": null,
@@ -435,3 +441,4 @@ issue_result = Issue(
 
 @test Issue(issue_json) == issue_result
 @test name(Issue(issue_json["number"])) == name(issue_result)
+@test setindex!(GitHub.github2json(issue_result), nothing, "closed_at") == issue_json

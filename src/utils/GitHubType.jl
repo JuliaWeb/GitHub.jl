@@ -98,13 +98,14 @@ end
 #############################################
 
 github2json(val) = val
-
+github2json(uri::HttpCommon.URI) = string(uri)
+github2json(dt::Dates.DateTime) = string(dt) * "Z"
 github2json(v::Vector) = [github2json(i) for i in v]
 
 function github2json(g::GitHubType)
     results = Dict()
     for field in fieldnames(g)
-        val = getfield(obj, field)
+        val = getfield(g, field)
         if !(isnull(val))
             key = field == :typ ? "type" : string(field)
             results[key] = github2json(get(val))
@@ -113,8 +114,8 @@ function github2json(g::GitHubType)
     return results
 end
 
-function github2json(data::Dict)
-    results = Dict()
+function github2json{K}(data::Dict{K})
+    results = Dict{K,Any}()
     for (key, val) in data
         results[key] = github2json(val)
     end
