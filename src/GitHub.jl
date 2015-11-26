@@ -67,7 +67,7 @@ include("repositories/comments.jl")
 export # repositories.jl
        Repo,
        repo,
-       fork,
+       create_fork,
        forks,
        contributors,
        collaborators,

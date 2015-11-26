@@ -21,7 +21,84 @@ julia> star("JuliaWeb/GitHub.jl"; auth = my_auth)  # :)
 
 ## API
 
-### Authentication
+### Keyword Arguments
+
+The following table describes the various keyword arguments accepted by API methods that make requests to GitHub:
+
+| keyword        | type                    | default value            | description                                                                                    |
+|----------------|-------------------------|--------------------------|------------------------------------------------------------------------------------------------|
+| `auth`         | `GitHub.Authorization`  | `GitHub.AnonymousAuth()` | The request's authorization                                                                    |
+| `params`       | `Dict`                  | `Dict()`                 | The request's query parameters                                                                 |
+| `headers`      | `Dict`                  | `Dict()`                 | The request's headers                                                                          |
+| `handle_error` | `Bool`                  | `true`                   | If `true`, a Julia error will be thrown in the event that GitHub's response reports an error.  |
+| `page_limit`   | `Real`                  | `Inf`                    | The number of pages to return (only applies to paginated results, obviously)                   |
+
+### `GitHubType`s
+
+GitHub's JSON responses are parsed into types `G<:GitHub.GitHubType`. Here's some useful information about these types:
+
+- All their fields are `Nullable`.
+- Their field names generally match the corresponding field in GitHub's JSON representation (the exception is `"type"`, which has the corresponding field name `typ` to avoid the obvious language conflict).
+- These types can be passed as arguments to API methods in place of (and in combination with) regular identifying values (e.g. `create_status(repo, sha)` could be called as `create_status(::GitHub.Repo, ::AbstractString)`, or `create_status(::GitHub.Repo, ::GitHub.Commit)`, etc.)
+
+Here's a table that matches up the provided `GitHubType`s with their corresponding API documentation:
+
+| type          | link(s) to documentation                                                                                |
+|---------------|---------------------------------------------------------------------------------------------------------|
+| `Owner`       | [organizations](https://developer.github.com/v3/orgs/), [users](https://developer.github.com/v3/users/) |
+| `Repo`        | [repositories](https://developer.github.com/v3/repos/)                                                  |
+| `Commit`      | [repository commits](https://developer.github.com/v3/repos/commits/)                                    |
+| `Content`     | [repository contents](https://developer.github.com/v3/repos/contents/)                                  |
+| `Comment`     | [repository comments](https://developer.github.com/v3/repos/comments/)                                  |
+| `Status`      | [commit statuses](https://developer.github.com/v3/repos/statuses/)                                      |
+| `PullRequest` | [pull requests](https://developer.github.com/v3/pulls/)                                                 |
+| `Issue`       | [issues](https://developer.github.com/v3/issues/)                                                       |
+
+### Methods
+
+Here are the methods exported by GitHub.jl, along with their return types and links to the corresponding GitHub API requests:
+
+| signature                         | return type           | documentation                                                                                                                                   |
+|-----------------------------------|-----------------------|-------------------------------------------------------------------------------------------------------------------------------------------------|
+| `owner(login, isorg = false)`     | `Owner`               | [get a user](https://developer.github.com/v3/users/#get-a-single-user), [get an org](https://developer.github.com/v3/orgs/#get-an-organization) |
+| `orgs(owner)`                     | `Vector{Owner}`       |
+| `followers(owner)`                | `Vector{Owner}`       |
+| `following(owner)`                | `Vector{Owner}`       |
+| `repos(owner, isorg = false)`     | `Vector{Repo}`        |
+| `repo(owner)`                     | `Repo`                |
+| `create_fork(repo)`               | `Repo`                |
+| `forks(repo)`                     | `Vector{Repo}`        |
+| `contributors(repo)`              | `Vector{Owner}`       |
+| `collaborators(repo)`             | `Vector{Owner}`       |
+| `iscollaborator(repo, user)`      | `Bool`                |
+| `add_collaborator(repo, user)`    | `HttpCommon.Response` |
+| `remove_collaborator(repo, user)` | `HttpCommon.Response` |
+| `stats(repo, stat, attempts = 3)` | `HttpCommon.Response` |
+| `commit(repo, sha)`               | `Commit`              |
+| `commits(repo)`                   | `Vector{Commit}`      |
+| `file(repo, path)`                | `Content`             |
+| `directory(repo, path)`           | `Vector{Content}`     |
+| `create_file(repo, path)`         | `Dict`                |
+| `update_file(repo, path)`         | `Dict`                |
+| `delete_file(repo, path)`         | `Dict`                |
+| `readme(repo)`                    | `Content`             |
+| `create_status(repo, sha)`        | `Status`              |
+| `statuses(repo, ref)`             | `Vector{Status}`      |
+| `pull_requests(repo)`             | `Vector{PullRequest}` |
+| `pull_request(repo, pr)`          | `PullRequest`         |
+| `issue(repo, number)`             | `Issue`               |
+| `issues(repo)`                    | `Vector{Issue}`       |
+| `create_issue(repo)`              | `Issue`               |
+| `edit_issue(repo, number)`        | `Issue`               |
+| `issue_comments(repo, number)`    | `Vector{Comment}`     |
+| `star(repo)`                      | `HttpCommon.Response` |
+| `unstar(repo)`                    | `HttpCommon.Response` |
+| `stargazers(user)`                | `Vector{Owner}`       |
+| `starred(user)`                   | `Vector{Repo}`        |
+| `watchers(repo)`                  | `Vector{Owner}`       |
+| `watched(owner)`                  | `Vector{Repo}`        |
+| `watch(repo)`                     | `HttpCommon.Response` |
+| `unwatch(repo)`                   | `HttpCommon.Response` |
 
 All API methods accept a keyword `auth` of type `GitHub.Authorization`. By default, this parameter will be an instance of `AnonymousAuth`, and the API request will be made without any privileges.
 
