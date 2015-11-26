@@ -21,18 +21,6 @@ julia> star("JuliaWeb/GitHub.jl"; auth = my_auth)  # :)
 
 ## API
 
-### Keyword Arguments
-
-The following table describes the various keyword arguments accepted by API methods:
-
-| keyword   | type                    | description | which methods? |
-|-----------|-------------------------|
-| `auth`         | `GitHub.Authorization`
-| `params`       | `Dict`
-| `headers`      |
-| `handle_error` |
-| `result_limit` |
-
 ### Authentication
 
 All API methods accept a keyword `auth` of type `GitHub.Authorization`. By default, this parameter will be an instance of `AnonymousAuth`, and the API request will be made without any privileges.
