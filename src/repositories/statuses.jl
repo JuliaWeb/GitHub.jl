@@ -30,5 +30,5 @@ end
 
 function statuses(repo, ref; options...)
     path = "/repos/$(name(repo))/commits/$(name(ref))/statuses"
-    return map(Status, github_paged_get(path; options...))
+    return map(Status, github_get_json(path; options...))
 end

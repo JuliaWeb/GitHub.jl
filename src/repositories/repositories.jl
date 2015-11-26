@@ -52,7 +52,7 @@ repo(repo; options...) = Repo(github_get_json("/repos/$(name(repo))"; options...
 
 function forks(repo; options...)
     path = "/repos/$(name(repo))/forks"
-    return map(Repo, github_paged_get(path; options...))
+    return map(Repo, github_get_json(path; options...))
 end
 
 function create_fork(repo; options...)
@@ -65,13 +65,13 @@ end
 
 function contributors(repo; options...)
     path = "/repos/$(name(repo))/contributors"
-    items = github_paged_get(path; options...)
+    items = github_get_json(path; options...)
     return [Dict("contributor" => Owner(i), "contributions" => i["contributions"]) for i in items]
 end
 
 function collaborators(repo; options...)
     path = "/repos/$(name(repo))/collaborators"
-    return map(Owner, github_paged_get(path; options...))
+    return map(Owner, github_get_json(path; options...))
 end
 
 function iscollaborator(repo, user; options...)

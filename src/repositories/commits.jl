@@ -28,7 +28,7 @@ namefield(commit::Commit) = commit.sha
 
 function commits(repo; options...)
     path = "/repos/$(name(repo))/commits"
-    return map(Commit, github_paged_get(path; options...))
+    return map(Commit, github_get_json(path; options...))
 end
 
 function commit(repo, sha; options...)

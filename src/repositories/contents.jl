@@ -28,7 +28,7 @@ namefield(content::Content) = content.path
 ###############
 
 file(repo, path; options...) = Content(github_get_json(content_uri(repo, path); options...))
-directory(repo, path; options...) = map(Content, github_paged_get(content_uri(repo, path); options...))
+directory(repo, path; options...) = map(Content, github_get_json(content_uri(repo, path); options...))
 
 function create_file(repo, path; options...)
     r = github_put_json(content_uri(repo, path); options...)

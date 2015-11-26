@@ -1,7 +1,5 @@
 # GitHub.jl
 
-##### A Julia package targeting the GitHub API (v3)
-
 [![GitHub](http://pkg.julialang.org/badges/GitHub_0.4.svg)](http://pkg.julialang.org/?pkg=GitHub)
 [![GitHub](http://pkg.julialang.org/badges/GitHub_0.5.svg)](http://pkg.julialang.org/?pkg=GitHub)
 [![Build Status](https://travis-ci.org/JuliaWeb/GitHub.jl.svg?branch=master)](https://travis-ci.org/JuliaWeb/GitHub.jl)
@@ -18,16 +16,26 @@ julia> using GitHub
 julia> my_auth = authenticate("an_access_token_for_your_account")
 GitHub Authorization (8caaff**********************************)
 
-julia> star("JuliaWeb", "GitHub.jl"; auth = my_auth)  # :)
-
-julia> stargazers("JuliaWeb", "GitHub.jl")
+julia> star("JuliaWeb/GitHub.jl"; auth = my_auth)  # :)
 ```
 
 ## API
 
+### Keyword Arguments
+
+The following table describes the various keyword arguments accepted by API methods:
+
+| keyword   | type                    | description | which methods? |
+|-----------|-------------------------|
+| `auth`         | `GitHub.Authorization`
+| `params`       | `Dict`
+| `headers`      |
+| `handle_error` |
+| `result_limit` |
+
 ### Authentication
 
-All API methods accept a named parameter `auth` of type `GitHub.Authorization`. By default, this parameter will be an instance of `AnonymousAuth`, and the API request will be made without any privileges.
+All API methods accept a keyword `auth` of type `GitHub.Authorization`. By default, this parameter will be an instance of `AnonymousAuth`, and the API request will be made without any privileges.
 
 If you would like to make requests as an authorized user, you need to `authenticate`.
 

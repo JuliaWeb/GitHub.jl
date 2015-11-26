@@ -46,10 +46,10 @@ isorg(owner::Owner) = get(owner.typ, "") == "Organization"
 owner(obj::Owner; options...) = owner(name(obj), isorg(obj); options...)
 owner(obj, isorg = false; options...) = Owner(github_get_json("/$(typprefix(isorg))/$(name(obj))"; options...))
 
-orgs(owner; options...) = map(Owner, github_paged_get("/users/$(name(owner))/orgs"; options...))
+orgs(owner; options...) = map(Owner, github_get_json("/users/$(name(owner))/orgs"; options...))
 
-followers(owner; options...) = map(Owner, github_paged_get("/users/$(name(owner))/followers"; options...))
-following(owner; options...) = map(Owner, github_paged_get("/users/$(name(owner))/following"; options...))
+followers(owner; options...) = map(Owner, github_get_json("/users/$(name(owner))/followers"; options...))
+following(owner; options...) = map(Owner, github_get_json("/users/$(name(owner))/following"; options...))
 
 repos(owner::Owner; options...) = repos(name(owner), isorg(owner); options...)
-repos(owner, isorg = false; options...) = map(Repo, github_paged_get("/$(typprefix(isorg))/$(name(owner))/repos"; options...))
+repos(owner, isorg = false; options...) = map(Repo, github_get_json("/$(typprefix(isorg))/$(name(owner))/repos"; options...))

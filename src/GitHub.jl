@@ -17,7 +17,6 @@ import HttpCommon,
 # include -------
 
 include("utils/GitHubType.jl")
-include("utils/pagination.jl")
 include("utils/auth.jl")
 include("utils/requests.jl")
 
@@ -28,7 +27,6 @@ export # auth.jl
 
 export # requests.jl
        github_get,
-       github_paged_get,
        github_post,
        github_put,
        github_patch,

@@ -60,7 +60,7 @@ namefield(pr::PullRequest) = pr.number
 
 function pull_requests(repo; options...)
     path = "/repos/$(name(repo))/pulls"
-    return map(PullRequest, github_paged_get(path; options...))
+    return map(PullRequest, github_get_json(path; options...))
 end
 
 function pull_request(repo, pr; options...)
