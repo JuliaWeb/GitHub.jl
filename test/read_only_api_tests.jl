@@ -48,6 +48,7 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
 @test file(ghjl, "README.md"; auth = auth) == readme(ghjl; auth = auth)
 @test hasghobj("src/GitHub.jl", directory(ghjl, "src"; auth = auth))
 @test !(isempty(statuses(ghjl, testcommit; auth = auth)))
+@test get(status(ghjl, testcommit; auth = auth).sha) == name(testcommit)
 
 # These require `auth` to have push-access (it's currently a read-only token)
 # @test hasghobj("jrevels", collaborators(ghjl; auth = auth))

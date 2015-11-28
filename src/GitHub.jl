@@ -89,7 +89,8 @@ export # contents.jl
 export # statuses.jl
        Status,
        create_status,
-       statuses
+       statuses,
+       status
 
 export # comments.jl
        Comment
