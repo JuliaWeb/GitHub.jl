@@ -21,6 +21,8 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
                                       "fc6", "77b", '5', "9cf",
                                       "868", "033"], 3)...))
 
+@test rate_limit(; auth = auth)["rate"]["limit"] == 5000
+
 ##########
 # Owners #
 ##########

@@ -47,6 +47,12 @@ github_patch_json(endpoint = ""; options...) = jsonify(github_patch(endpoint; op
 jsonify(r::HttpCommon.Response) = Requests.json(r)
 jsonify(arr::Array) = mapreduce(jsonify, vcat, arr)
 
+#################
+# Rate Limiting #
+#################
+
+rate_limit(; options...) = github_get_json("/rate_limit"; options...)::Dict
+
 ##############
 # Pagination #
 ##############

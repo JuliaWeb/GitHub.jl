@@ -26,11 +26,7 @@ export # auth.jl
        authenticate
 
 export # requests.jl
-       github_get,
-       github_post,
-       github_put,
-       github_patch,
-       github_delete
+       rate_limit
 
 ##################################
 # Owners (organizations + users) #
