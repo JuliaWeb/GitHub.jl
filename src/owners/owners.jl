@@ -43,8 +43,8 @@ typprefix(isorg) = isorg ? "orgs" : "users"
 
 isorg(owner::Owner) = get(owner.typ, "") == "Organization"
 
-owner(obj::Owner; options...) = owner(name(obj), isorg(obj); options...)
-owner(obj, isorg = false; options...) = Owner(github_get_json("/$(typprefix(isorg))/$(name(obj))"; options...))
+owner(owner_obj::Owner; options...) = owner(name(owner_obj), isorg(owner_obj); options...)
+owner(owner_obj, isorg = false; options...) = Owner(github_get_json("/$(typprefix(isorg))/$(name(owner_obj))"; options...))
 
 orgs(owner; options...) = map(Owner, github_get_json("/users/$(name(owner))/orgs"; options...))
 

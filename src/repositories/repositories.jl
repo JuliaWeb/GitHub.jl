@@ -45,7 +45,7 @@ namefield(repo::Repo) = repo.full_name
 # repos #
 #-------#
 
-repo(repo; options...) = Repo(github_get_json("/repos/$(name(repo))"; options...))
+repo(repo_obj; options...) = Repo(github_get_json("/repos/$(name(repo_obj))"; options...))
 
 # forks #
 #-------#
