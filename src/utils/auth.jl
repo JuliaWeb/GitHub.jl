@@ -38,5 +38,5 @@ end
 
 function Base.show(io::IO, a::OAuth2)
     token_str = a.token[1:6] * repeat("*", length(a.token) - 6)
-    print(io, "GitHub Authorization ($token_str)")
+    print(io, "GitHub.OAuth2($token_str)")
 end
