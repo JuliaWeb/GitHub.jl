@@ -35,8 +35,8 @@ namefield(issue::Issue) = issue.number
 # API Methods #
 ###############
 
-function issue(repo, i; options...)
-    path = "/repos/$(name(repo))/issues/$(name(i))"
+function issue(repo, issue_obj; options...)
+    path = "/repos/$(name(repo))/issues/$(name(issue_obj))"
     return Issue(github_get_json(path; options...))
 end
 
@@ -53,9 +53,4 @@ end
 function edit_issue(repo, issue; options...)
     path = "/repos/$(name(repo))/issues/$(name(issue))"
     return Issue(github_patch_json(path; options...))
-end
-
-function issue_comments(repo, issue; options...)
-    path = "/repos/$(name(repo))/issues/$(name(issue))/comments"
-    return map(Comment, github_get_json(path; options...))
 end

@@ -27,28 +27,51 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
 # Owners #
 ##########
 
+# test GitHub.owner
 @test name(owner(testuser; auth = auth)) == name(testuser)
 @test name(owner(julweb; auth = auth)) == name(julweb)
+
+# test GitHub.orgs
 @test hasghobj("JuliaWeb", orgs("jrevels"; auth = auth))
+
+# test GitHub.followers, GitHub.following
 @test hasghobj("jrevels", followers(testuser; auth = auth))
 @test hasghobj("jrevels", following(testuser; auth = auth))
+
+# test GitHub.repos
 @test hasghobj(ghjl, repos(julweb; auth = auth))
 
 ################
 # Repositories #
 ################
 
+# test GitHub.repo
 @test name(repo(ghjl; auth = auth)) == name(ghjl)
+
+# test GitHub.forks
 @test length(forks(ghjl; auth = auth)) > 0
+
+# test GitHub.contributors
 @test hasghobj("jrevels", map(x->x["contributor"], contributors(ghjl; auth = auth)))
+
+# test GitHub.stats
 @test stats(ghjl, "contributors"; auth = auth).status < 300
 
+# test GitHub.commit, GitHub.commits
 @test name(commit(ghjl, testcommit; auth = auth)) == name(testcommit)
 @test hasghobj(testcommit, commits(ghjl; auth = auth))
+
+# test GitHub.file, GitHub.readme, GitHub.directory
 @test file(ghjl, "README.md"; auth = auth) == readme(ghjl; auth = auth)
 @test hasghobj("src/GitHub.jl", directory(ghjl, "src"; auth = auth))
-@test !(isempty(statuses(ghjl, testcommit; auth = auth)))
+
+# test GitHub.status, GitHub.statuses
 @test get(status(ghjl, testcommit; auth = auth).sha) == name(testcommit)
+@test !(isempty(statuses(ghjl, testcommit; auth = auth)))
+
+# test GitHub.comment, GitHub.comments
+@test name(comment(ghjl, 154431956; auth = auth)) == 154431956
+@test !(isempty(comments(ghjl, 40; auth = auth)))
 
 # These require `auth` to have push-access (it's currently a read-only token)
 # @test hasghobj("jrevels", collaborators(ghjl; auth = auth))
@@ -60,17 +83,22 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
 
 state_param = Dict("state" => "all")
 
+# test GitHub.pull_request, GitHub.pull_requests
 @test get(pull_request(ghjl, 37; auth = auth).title) == "Fix dep warnings"
 @test hasghobj(37, pull_requests(ghjl; auth = auth, params = state_param))
+
+# test GitHub.issue, GitHub.issues
 @test get(issue(ghjl, 40; auth = auth).title) == "Needs test"
 @test hasghobj(40, issues(ghjl; auth = auth, params = state_param))
-@test !(isempty(issue_comments(ghjl, 40; auth = auth)))
 
 ############
 # Activity #
 ############
 
+# test GitHub.stargazers, GitHub.starred
 @test length(stargazers(ghjl; auth = auth)) > 10 # every package should fail tests if it's not popular enough :p
 @test hasghobj(ghjl, starred(testuser; auth = auth))
+
+# test GitHub.watched, GitHub.watched
 @test hasghobj(testuser, watchers(ghjl; auth = auth))
 @test hasghobj(ghjl, watched(testuser; auth = auth))

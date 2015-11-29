@@ -56,7 +56,6 @@ include("repositories/repositories.jl")
 include("repositories/contents.jl")
 include("repositories/commits.jl")
 include("repositories/statuses.jl")
-include("repositories/comments.jl")
 
 # export -------
 
@@ -92,9 +91,6 @@ export # statuses.jl
        statuses,
        status
 
-export # comments.jl
-       Comment
-
 ##########
 # Issues #
 ##########
@@ -103,6 +99,7 @@ export # comments.jl
 
 include("issues/pull_requests.jl")
 include("issues/issues.jl")
+include("issues/comments.jl")
 
 # export -------
 
@@ -116,8 +113,15 @@ export # issues.jl
        issue,
        issues,
        create_issue,
-       edit_issue,
-       issue_comments
+       edit_issue
+
+export # comments.jl
+       Comment,
+       comment,
+       comments,
+       create_comment,
+       edit_comment,
+       delete_comment
 
 ############
 # Activity #
