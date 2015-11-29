@@ -14,10 +14,10 @@ immutable AnonymousAuth <: Authorization end
 # API Methods #
 ###############
 
-function authenticate(token::AbstractString)
+function authenticate(token::AbstractString; params = Dict(), options...)
     auth = OAuth2(token)
-    r = github_get("/"; params = Dict("access_token" => auth.token))
-    handle_response_error(r)
+    params["access_token"] = auth.token
+    r = github_get("/"; params = params, options...)
     return auth
 end
 
