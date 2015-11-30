@@ -5,15 +5,25 @@
 type WebhookEvent
     kind::GitHubString
     payload::Dict
-    repository::Nullable{Repo}
-    sender::Nullable{Owner}
+    repository::Repo
+    sender::Owner
 end
 
 function event_from_payload!(kind, data::Dict)
-    repository = extract_nullable(data, "repository", Repo)
-    sender = extract_nullable(data, "sender", Owner)
-    haskey(data, "repository") && delete!(data, "repository")
-    haskey(data, "sender") && delete!(data, "sender")
+    if haskey(data, "repository")
+        repository = Repo(data["repository"])
+    elseif kind == "membership"
+        repository = Repo("")
+    else
+        error("event payload is missing repository field")
+    end
+
+    if haskey(data, "sender")
+        sender = Owner(data["sender"])
+    else
+        error("event payload is missing sender")
+    end
+
     return WebhookEvent(kind, data, repository, sender)
 end
 
