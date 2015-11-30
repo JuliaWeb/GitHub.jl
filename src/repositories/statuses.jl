@@ -28,16 +28,16 @@ namefield(status::Status) = status.id
 ###############
 
 function create_status(repo, sha; options...)
-    path = "/repos/$(name(repo))/statuses/$(name(sha))"
-    return Status(github_post_json(path; options...))
+    result = gh_post_json("/repos/$(name(repo))/statuses/$(name(sha))"; options...)
+    return Status(result)
 end
 
 function statuses(repo, ref; options...)
-    path = "/repos/$(name(repo))/commits/$(name(ref))/statuses"
-    return map(Status, github_get_json(path; options...))
+    results, page_data = gh_get_paged_json("/repos/$(name(repo))/commits/$(name(ref))/statuses"; options...)
+    return map(Status, results), page_data
 end
 
 function status(repo, ref; options...)
-    path = "/repos/$(name(repo))/commits/$(name(ref))/status"
-    return Status(github_get_json(path; options...))
+    result = gh_get_json("/repos/$(name(repo))/commits/$(name(ref))/status"; options...)
+    return Status(result)
 end

@@ -34,25 +34,26 @@ commentpath(review) = review ? "pulls" : "issues"
 
 function comment(repo, comment_obj, review = false; options...)
     path = "/repos/$(name(repo))/$(commentpath(review))/comments/$(name(comment_obj))"
-    return Comment(github_get_json(path; options...))
+    return Comment(gh_get_json(path; options...))
 end
 
 function comments(repo, issue_or_pr, review = false; options...)
     path = "/repos/$(name(repo))/$(commentpath(review))/$(name(issue_or_pr))/comments"
-    return map(Comment, github_get_json(path; options...))
+    results, page_data = gh_get_paged_json(path; options...)
+    return map(Comment, results), page_data
 end
 
 function create_comment(repo, issue_or_pr, review = false; options...)
     path = "/repos/$(name(repo))/$(commentpath(review))/$(name(issue_or_pr))/comments"
-    return Comment(github_post_json(path; options...))
+    return Comment(gh_get_json(path; options...))
 end
 
 function edit_comment(repo, comment, review = false; options...)
     path = "/repos/$(name(repo))/$(commentpath(review))/comments/$(name(comment))"
-    return Comment(github_patch_json(path; options...))
+    return Comment(gh_patch_json(path; options...))
 end
 
 function delete_comment(repo, comment, review = false; options...)
     path = "/repos/$(name(repo))/$(commentpath(review))/comments/$(name(comment))"
-    return github_delete(path; options...)
+    return gh_delete(path; options...)
 end

@@ -17,7 +17,7 @@ immutable AnonymousAuth <: Authorization end
 function authenticate(token::AbstractString; params = Dict(), options...)
     auth = OAuth2(token)
     params["access_token"] = auth.token
-    r = github_get("/"; params = params, options...)
+    gh_get("/"; params = params, options...)
     return auth
 end
 

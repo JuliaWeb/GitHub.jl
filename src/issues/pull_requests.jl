@@ -59,11 +59,11 @@ namefield(pr::PullRequest) = pr.number
 ###############
 
 function pull_requests(repo; options...)
-    path = "/repos/$(name(repo))/pulls"
-    return map(PullRequest, github_get_json(path; options...))
+    results, page_data = gh_get_paged_json("/repos/$(name(repo))/pulls"; options...)
+    return map(PullRequest, results), page_data
 end
 
 function pull_request(repo, pr; options...)
-    path = "/repos/$(name(repo))/pulls/$(name(pr))"
-    return PullRequest(github_get_json(path; options...))
+    result = gh_get_json("/repos/$(name(repo))/pulls/$(name(pr))"; options...)
+    return PullRequest(result)
 end

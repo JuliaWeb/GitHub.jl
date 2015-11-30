@@ -12,59 +12,93 @@ api_uri(path) = HttpCommon.URI(API_ENDPOINT, path = path)
 
 function github_request(request_method, endpoint;
                         auth = AnonymousAuth(), handle_error = true,
-                        headers = Dict(), params = Dict(), page_limit = Inf)
+                        headers = Dict(), params = Dict())
     authenticate_headers!(headers, auth)
     query = github2json(params)
     r = request_method(api_uri(endpoint); headers = headers, query = query)
     handle_error && handle_response_error(r)
-
-    if ispaginated(r)
-        results = HttpCommon.Response[r]
-        page_count = 1
-        while has_next_page(r) && page_count < page_limit
-            r = request_next_page(r, headers)
-            push!(results, r)
-            page_count += 1
-        end
-        return results
-    end
-
     return r
 end
 
-github_get(endpoint = ""; options...) = github_request(Requests.get, endpoint; options...)
-github_post(endpoint = ""; options...) = github_request(Requests.post, endpoint; options...)
-github_put(endpoint = ""; options...) = github_request(Requests.put, endpoint; options...)
-github_delete(endpoint = ""; options...) = github_request(Requests.delete, endpoint; options...)
-github_patch(endpoint = ""; options...) = github_request(Requests.patch, endpoint; options...)
+gh_get(endpoint = ""; options...) = github_request(Requests.get, endpoint; options...)
+gh_post(endpoint = ""; options...) = github_request(Requests.post, endpoint; options...)
+gh_put(endpoint = ""; options...) = github_request(Requests.put, endpoint; options...)
+gh_delete(endpoint = ""; options...) = github_request(Requests.delete, endpoint; options...)
+gh_patch(endpoint = ""; options...) = github_request(Requests.patch, endpoint; options...)
 
-github_get_json(endpoint = ""; options...) = jsonify(github_get(endpoint; options...))
-github_post_json(endpoint = ""; options...) = jsonify(github_post(endpoint; options...))
-github_put_json(endpoint = ""; options...) = jsonify(github_put(endpoint; options...))
-github_delete_json(endpoint = ""; options...) = jsonify(github_delete(endpoint; options...))
-github_patch_json(endpoint = ""; options...) = jsonify(github_patch(endpoint; options...))
-
-jsonify(r::HttpCommon.Response) = Requests.json(r)
-jsonify(arr::Array) = mapreduce(jsonify, vcat, arr)
+gh_get_json(endpoint = ""; options...) = Requests.json(gh_get(endpoint; options...))
+gh_post_json(endpoint = ""; options...) = Requests.json(gh_post(endpoint; options...))
+gh_put_json(endpoint = ""; options...) = Requests.json(gh_put(endpoint; options...))
+gh_delete_json(endpoint = ""; options...) = Requests.json(gh_delete(endpoint; options...))
+gh_patch_json(endpoint = ""; options...) = Requests.json(gh_patch(endpoint; options...))
 
 #################
 # Rate Limiting #
 #################
 
-rate_limit(; options...) = github_get_json("/rate_limit"; options...)::Dict
+rate_limit(; options...) = gh_get_json("/rate_limit"; options...)
 
 ##############
 # Pagination #
 ##############
 
 ispaginated(r) = haskey(r.headers, "Link")
-isnextlink(s) = contains(s, "rel=\"next\"")
+
+isnextlink(str) = contains(str, "rel=\"next\"")
+islastlink(str) = contains(str, "rel=\"last\"")
+
 has_next_page(r) = isnextlink(r.headers["Link"])
+has_last_page(r) = islastlink(r.headers["Link"])
+
+split_links(r) = split(r.headers["Link"], ',')
+get_link(pred, links) = match(r"<.*?>", links[findfirst(pred, links)]).match[2:end-1]
+
+get_page_number(link) = parse(Int, first(match(r"page=(\d+)", link).captures))
+get_next_page(r) = get_page_number(get_link(isnextlink, split_links(r)))
+get_last_page(r) = get_page_number(get_link(islastlink, split_links(r)))
 
 function request_next_page(r, headers)
-    links = split(r.headers["Link"], ',')
-    nextlink = match(r"<.*?>", links[findfirst(isnextlink, links)]).match[2:end-1]
+    nextlink = get_link(isnextlink, split_links(r))
     return Requests.get(nextlink, headers = headers)
+end
+
+function github_paged_request(request_method, endpoint; page_limit = Inf,
+                              auth = AnonymousAuth(), handle_error = true,
+                              headers = Dict(), params = Dict())
+    authenticate_headers!(headers, auth)
+    query = github2json(params)
+    r = request_method(api_uri(endpoint); headers = headers, query = query)
+    handle_error && handle_response_error(r)
+
+    results = HttpCommon.Response[r]
+    init_page = get(query, "page", 1)
+    page_data = Dict{GitHubString, Int}()
+
+    if ispaginated(r)
+        last_page = has_last_page(r) ? get_last_page(r) : init_page
+        next_page = has_next_page(r) ? get_next_page(r) : -1
+        page_count = 1
+        while next_page != -1 && page_count < page_limit
+            r = request_next_page(r, headers)
+            handle_error && handle_response_error(r)
+            push!(results, r)
+            page_count += 1
+            next_page = has_next_page(r) ? get_next_page(r) : -1
+        end
+        next_page != -1 && (page_data["next"] = next_page)
+        page_data["last"] = last_page
+        page_data["left"] = last_page - (init_page + page_count - 1)
+    else
+        page_data["last"] = init_page
+        page_data["left"] = 0
+    end
+
+    return results, page_data
+end
+
+function gh_get_paged_json(endpoint = ""; options...)
+    results, page_data = github_paged_request(Requests.get, endpoint; options...)
+    return mapreduce(Requests.json, vcat, results), page_data
 end
 
 ##################

@@ -27,11 +27,11 @@ namefield(commit::Commit) = commit.sha
 ###############
 
 function commits(repo; options...)
-    path = "/repos/$(name(repo))/commits"
-    return map(Commit, github_get_json(path; options...))
+    results, page_data = gh_get_paged_json("/repos/$(name(repo))/commits"; options...)
+    return map(Commit, results), page_data
 end
 
 function commit(repo, sha; options...)
-    path = "/repos/$(name(repo))/commits/$(name(sha))"
-    return Commit(github_get_json(path; options...))
+    result = gh_get_json("/repos/$(name(repo))/commits/$(name(sha))"; options...)
+    return Commit(result)
 end

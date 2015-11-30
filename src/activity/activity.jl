@@ -3,45 +3,33 @@
 ############
 
 function stargazers(repo; options...)
-    path = "/repos/$(name(repo))/stargazers"
-    return map(Owner, github_get_json(path; options...))
+    results, page_data = gh_get_paged_json("/repos/$(name(repo))/stargazers"; options...)
+    return map(Owner, results), page_data
 end
 
 function starred(user; options...)
-    path = "/users/$(name(user))/starred"
-    return map(Repo, github_get_json(path; options...))
+    results, page_data = gh_get_paged_json("/users/$(name(user))/starred"; options...)
+    return map(Repo, results), page_data
 end
 
-function star(repo; options...)
-    path = "/user/starred/$(name(repo))"
-    return github_put(path; options...)
-end
+star(repo; options...) = gh_put("/user/starred/$(name(repo))"; options...)
 
-function unstar(repo; options...)
-    path = "/user/starred/$(name(repo))"
-    return github_delete(path; options...)
-end
+unstar(repo; options...) = gh_delete("/user/starred/$(name(repo))"; options...)
 
 ############
 # Watching #
 ############
 
 function watchers(repo; options...)
-    path = "/repos/$(name(repo))/subscribers"
-    return map(Owner, github_get_json(path; options...))
+    results, page_data = gh_get_paged_json("/repos/$(name(repo))/subscribers"; options...)
+    return map(Owner, results), page_data
 end
 
 function watched(owner; options...)
-    path = "/users/$(name(owner))/subscriptions"
-    return map(Repo, github_get_json(path; options...))
+    results, page_data = gh_get_paged_json("/users/$(name(owner))/subscriptions"; options...)
+    return map(Repo, results), page_data
 end
 
-function watch(repo; options...)
-    path = "/repos/$(name(repo))/subscription"
-    return github_put(path; options...)
-end
+watch(repo; options...) = gh_put("/repos/$(name(repo))/subscription"; options...)
 
-function watch(repo; options...)
-    path = "/repos/$(name(repo))/subscription"
-    return github_delete(path; options...)
-end
+unwatch(repo; options...) = gh_delete("/repos/$(name(repo))/subscription"; options...)

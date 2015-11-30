@@ -44,12 +44,30 @@ typprefix(isorg) = isorg ? "orgs" : "users"
 isorg(owner::Owner) = get(owner.typ, "") == "Organization"
 
 owner(owner_obj::Owner; options...) = owner(name(owner_obj), isorg(owner_obj); options...)
-owner(owner_obj, isorg = false; options...) = Owner(github_get_json("/$(typprefix(isorg))/$(name(owner_obj))"; options...))
 
-orgs(owner; options...) = map(Owner, github_get_json("/users/$(name(owner))/orgs"; options...))
+function owner(owner_obj, isorg = false; options...)
+    result = gh_get_json("/$(typprefix(isorg))/$(name(owner_obj))"; options...)
+    return Owner(result)
+end
 
-followers(owner; options...) = map(Owner, github_get_json("/users/$(name(owner))/followers"; options...))
-following(owner; options...) = map(Owner, github_get_json("/users/$(name(owner))/following"; options...))
+function orgs(owner; options...)
+    results, page_data = gh_get_paged_json("/users/$(name(owner))/orgs"; options...)
+    return map(Owner, results), page_data
+end
+
+function followers(owner; options...)
+    results, page_data = gh_get_paged_json("/users/$(name(owner))/followers"; options...)
+    return map(Owner, results), page_data
+end
+
+function following(owner; options...)
+    results, page_data = gh_get_paged_json("/users/$(name(owner))/following"; options...)
+    return map(Owner, results), page_data
+end
 
 repos(owner::Owner; options...) = repos(name(owner), isorg(owner); options...)
-repos(owner, isorg = false; options...) = map(Repo, github_get_json("/$(typprefix(isorg))/$(name(owner))/repos"; options...))
+
+function repos(owner, isorg = false; options...)
+    results, page_data = gh_get_paged_json("/$(typprefix(isorg))/$(name(owner))/repos"; options...)
+    return map(Repo, results), page_data
+end
