@@ -8,7 +8,7 @@ event_header(request::HttpCommon.Request) = request.headers["X-GitHub-Event"]
 has_sig_header(request::HttpCommon.Request) = haskey(request.headers, "X-Hub-Signature")
 sig_header(request::HttpCommon.Request) = request.headers["X-Hub-Signature"]
 
-function is_valid_secret(request::HttpCommon.Request, secret)
+function has_valid_secret(request::HttpCommon.Request, secret)
     if has_sig_header(request)
         secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, request.data, secret))
         return sig_header(request) == secret_sha
@@ -20,74 +20,14 @@ function is_valid_event(request::HttpCommon.Request, events)
     return (has_event_header(request) && in(event_header(request), events))
 end
 
-is_valid_repo(payload::Dict, repos) = in(payload["repository"]["full_name"], repos)
+function from_valid_repo(event, repos)
+    return (name(event.repository) == "" || in(name(event.repository), repos))
+end
 
 #################
 # EventListener #
 #################
 
-"""
-A `GitHub.EventListener` is a server that handles events sent from a GitHub repo (usually via a webhook). When a `GitHub.EventListener` receives an event, it performs some basic validation and wraps the event payload in a `GitHub.WebhookEvent` type (use the REPL's `help` mode for more info on `GitHub.WebhookEvent`). This `GitHub.WebhookEvent` is then fed to the server's `handle` function, which defines how the server responds to the event.
-
-The `GitHub.EventListener` constructor takes in a handler function which should take in a `GitHub.WebhookEvent` and `GitHub.Authorization` and return an `HttpCommon.Response`. It also takes the following keyword arguments:
-
-- `auth`: GitHub authorization (usually with repo-level permissions)
-- `secret`: A string used to verify the event source. If the event is from a GitHub webhook, it's the webhook's secret
-- `repos`: A collection of fully qualified names of whitelisted repostories. All repostories are whitelisted by default
-- `events`: A collection of webhook event name strings that contains all whitelisted events. All events are whitelisted by default
-- `forwards`: A collection of address strings to which any incoming requests should be forwarded (after being validated by the listener)
-
-Here's an example that demonstrates how to construct and run a `GitHub.EventListener` that does some really basic benchmarking on every commit and PR:
-
-    import GitHub
-
-    # EventListener settings
-    myauth = GitHub.OAuth2(ENV["GITHUB_AUTH_TOKEN"])
-    mysecret = ENV["MY_SECRET"]
-    myevents = ["pull_request", "push"]
-    myrepos = ["owner1/repo1", "owner2/repo2"]
-    myforwards = ["http://myforward1.com", "http://myforward2.com"]
-
-    # Set up Status parameters
-    pending_params = Dict(
-        "state" => "pending",
-        "context" => "Benchmarker",
-        "description" => "Running benchmarks..."
-    )
-
-    success_params = Dict(
-        "state" => "success",
-        "context" => "Benchmarker",
-        "description" => "Benchmarks complete!"
-    )
-
-    listener = GitHub.EventListener(auth = myauth,
-                                    secret = mysecret,
-                                    repos = myrepos,
-                                    events = myevents,
-                                    forwards = myforwards) do event, auth
-        kind, payload = event.kind, event.payload
-
-        if kind == "pull_request" && payload["action"] == "closed"
-            return HttpCommon.Response(200)
-        end
-
-        sha = GitHub.most_recent_commit_sha(event)
-
-        GitHub.create_status(event, sha; auth = auth, params = pending_params)
-
-        # run_and_log_benchmarks isn't actually a defined function, but you get the point
-        run_and_log_benchmarks("\$(sha)-benchmarks.csv")
-
-        GitHub.create_status(event, sha; auth = auth, params = success_params)
-
-        return HttpCommon.Response(200)
-    end
-
-    # Start the server on port 8000
-    GitHub.run(listener, 8000)
-
-"""
 immutable EventListener
     server::HttpServer.Server
     function EventListener(handle; auth::Authorization = AnonymousAuth(),
@@ -95,6 +35,10 @@ immutable EventListener
                            repos = nothing, forwards = nothing)
         if !(isa(forwards, Void))
             forwards = map(HttpCommon.URI, forwards)
+        end
+
+        if !(ias(repos, Void))
+            repos = map(name, repos)
         end
 
         server = HttpServer.Server() do request, response
@@ -122,7 +66,7 @@ function handle_event_request(request, handle;
                               auth::Authorization = AnonymousAuth(),
                               secret = nothing, events = nothing,
                               repos = nothing, forwards = nothing)
-    if !(isa(secret, Void)) && !(is_valid_secret(request, secret))
+    if !(isa(secret, Void)) && !(has_valid_secret(request, secret))
         return HttpCommon.Response(400, "invalid signature")
     end
 
@@ -130,21 +74,17 @@ function handle_event_request(request, handle;
         return HttpCommon.Response(400, "invalid event")
     end
 
-    payload = Requests.json(request)
+    event = event_from_payload!(event_header(request), Requests.json(request))
 
-    if !(isa(repos, Void)) && !(is_valid_repo(payload, repos))
+    if !(isa(repos, Void)) && !(from_valid_repo(event, repos))
         return HttpCommon.Response(400, "invalid repo")
     end
 
     if !(isa(forwards, Void))
         for address in forwards
-            Requests.post(address,
-                          UTF8String(request.data),
-                          headers=request.headers)
+            Requests.post(address, request)
         end
     end
-
-    event = event_from_payload!(event_header(request), payload)
 
     return handle(event, auth)
 end
@@ -165,7 +105,7 @@ immutable CommentListener
     listener::EventListener
     function CommentListener(handle, trigger::AbstractString;
                              auth::Authorization = AnonymousAuth(),
-                             check_collab = true,
+                             check_collab::Bool = true,
                              secret = nothing,
                              repos = nothing,
                              forwards = nothing)
@@ -194,11 +134,7 @@ function extract_trigger_string(event::WebhookEvent,
     trigger_regex = Regex("\`$trigger\(.*?\)\`")
 
     # extract repo/owner info from event
-    if isnull(event.repository)
-        return (false, "event is missing repo information")
-    end
-
-    repo = get(event.repository)
+    repo = event.repository
 
     if isnull(repo.owner)
         return (false, "event repository is missing owner information")

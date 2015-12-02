@@ -27,27 +27,34 @@ namefield(content::Content) = content.path
 # API Methods #
 ###############
 
-file(repo, path; options...) = Content(github_get_json(content_uri(repo, path); options...))
-directory(repo, path; options...) = map(Content, github_get_json(content_uri(repo, path); options...))
+function file(repo, path; options...)
+    result = gh_get_json(content_uri(repo, path); options...)
+    return Content(result)
+end
+
+function directory(repo, path; options...)
+    results, page_data = gh_get_paged_json(content_uri(repo, path); options...)
+    return map(Content, results), page_data
+end
 
 function create_file(repo, path; options...)
-    r = github_put_json(content_uri(repo, path); options...)
-    return build_content_response(r)
+    result = gh_put_json(content_uri(repo, path); options...)
+    return build_content_response(result)
 end
 
 function update_file(repo, path; options...)
-    r = github_put_json(content_uri(repo, path); options...)
-    return build_content_response(r)
+    result = gh_put_json(content_uri(repo, path); options...)
+    return build_content_response(result)
 end
 
 function delete_file(repo, path; options...)
-    r = github_delete_json(content_uri(repo, path); options...)
-    return build_content_response(r)
+    result = gh_delete_json(content_uri(repo, path); options...)
+    return build_content_response(result)
 end
 
 function readme(repo; options...)
-    path = "/repos/$(name(repo))/readme"
-    return Content(github_get_json(path; options...))
+    result = gh_get_json("/repos/$(name(repo))/readme"; options...)
+    return Content(result)
 end
 
 ###########################

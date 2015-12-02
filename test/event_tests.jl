@@ -9,18 +9,20 @@ event = GitHub.event_from_payload!("commit_comment", event_json)
 # WebhookEvent #
 ################
 
-@test get(get(event.repository).name) == "BenchmarkTrackers.jl"
-@test get(get(event.sender).login) == "jrevels"
+@test get(event.repository.name) == "BenchmarkTrackers.jl"
+@test get(event.sender.login) == "jrevels"
 @test most_recent_commit_sha(event) == "32d35f285777b077d8b6a2521309d1ab646d2379"
 
 #################
 # EventListener #
 #################
 
-@test !(GitHub.is_valid_secret(event_request, "wrong"))
-@test GitHub.is_valid_secret(event_request, "secret")
+@test !(GitHub.has_valid_secret(event_request, "wrong"))
+@test GitHub.has_valid_secret(event_request, "secret")
 @test !(GitHub.is_valid_event(event_request, ["wrong"]))
 @test GitHub.is_valid_event(event_request, ["commit_comment"])
+@test !(GitHub.from_valid_repo(event, ["JuliaWeb/GitHub.jl"]))
+@test GitHub.from_valid_repo(event, ["JuliaCI/BenchmarkTrackers.jl"])
 @test GitHub.handle_event_request(event_request, (args...) -> true,
                                   secret = "secret",
                                   events = ["commit_comment"],

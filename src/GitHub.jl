@@ -26,11 +26,7 @@ export # auth.jl
        authenticate
 
 export # requests.jl
-       github_get,
-       github_post,
-       github_put,
-       github_patch,
-       github_delete
+       rate_limit
 
 ##################################
 # Owners (organizations + users) #
@@ -60,14 +56,13 @@ include("repositories/repositories.jl")
 include("repositories/contents.jl")
 include("repositories/commits.jl")
 include("repositories/statuses.jl")
-include("repositories/comments.jl")
 
 # export -------
 
 export # repositories.jl
        Repo,
        repo,
-       fork,
+       create_fork,
        forks,
        contributors,
        collaborators,
@@ -93,10 +88,8 @@ export # contents.jl
 export # statuses.jl
        Status,
        create_status,
-       statuses
-
-export # comments.jl
-       Comment
+       statuses,
+       status
 
 ##########
 # Issues #
@@ -106,6 +99,7 @@ export # comments.jl
 
 include("issues/pull_requests.jl")
 include("issues/issues.jl")
+include("issues/comments.jl")
 
 # export -------
 
@@ -119,8 +113,15 @@ export # issues.jl
        issue,
        issues,
        create_issue,
-       edit_issue,
-       issue_comments
+       edit_issue
+
+export # comments.jl
+       Comment,
+       comment,
+       comments,
+       create_comment,
+       edit_comment,
+       delete_comment
 
 ############
 # Activity #

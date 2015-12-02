@@ -294,6 +294,14 @@ status_json = JSON.parse(
   "url": "https://api.github.com/repos/octocat/Hello-World/statuses/1",
   "creator": {
     "login": "octocat"
+  },
+  "statuses": [
+    {
+      "id": 366962428
+    }
+  ],
+  "repository": {
+    "full_name": "JuliaWeb/GitHub.jl"
   }
 }
 """
@@ -301,14 +309,18 @@ status_json = JSON.parse(
 
 status_result = Status(
     Nullable{Int}(Int(status_json["id"])),
+    Nullable{Int}(),
     Nullable{GitHubString}(),
     Nullable{GitHubString}(GitHubString(status_json["description"])),
+    Nullable{GitHubString}(),
     Nullable{GitHubString}(),
     Nullable{HttpCommon.URI}(HttpCommon.URI(status_json["url"])),
     Nullable{HttpCommon.URI}(),
     Nullable{Dates.DateTime}(Dates.DateTime(chop(status_json["created_at"]))),
     Nullable{Dates.DateTime}(),
-    Nullable{Owner}(Owner(status_json["creator"]))
+    Nullable{Owner}(Owner(status_json["creator"])),
+    Nullable{Repo}(Repo(status_json["repository"])),
+    Nullable{Vector{Status}}(map(Status, status_json["statuses"]))
 )
 
 @test Status(status_json) == status_result
