@@ -37,7 +37,7 @@ immutable EventListener
             forwards = map(HttpCommon.URI, forwards)
         end
 
-        if !(ias(repos, Void))
+        if !(isa(repos, Void))
             repos = map(name, repos)
         end
 
