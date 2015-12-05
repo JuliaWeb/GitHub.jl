@@ -31,25 +31,25 @@ GitHub's JSON responses are parsed and returned to the caller as types of the fo
 
 - All fields are `Nullable`.
 - Field names generally match the corresponding field in GitHub's JSON representation (the exception is `"type"`, which has the corresponding field name `typ` to avoid the obvious language conflict).
-- `GitHubType`s can be passed as arguments to API methods in place of (and in combination with) regular identifying values. For example, `create_status(repo, commit)` could be called as:
+- `GitHubType`s can be passed as arguments to API methods in place of (and in combination with) regular identifying properties. For example, `create_status(repo, commit)` could be called as:
 
    - `create_status(::GitHub.Repo, ::GitHub.Commit)`
    - `create_status(::GitHub.Repo, ::AbstractString)` where the second argument is the SHA
    - `create_status(::AbstractString, ::GitHub.Commit)` where the first argument is the full qualified repo name
    - `create_status(::AbstractString, ::AbstractString)` where the first argument is the repo name, and the second is the SHA
 
-Here's a table that matches up the provided `GitHubType`s with their corresponding API documentation:
+Here's a table that matches up the provided `GitHubType`s with their corresponding API documentation, as well as alternative identifying values:
 
-| type          | link(s) to documentation                                                                                                                                                                                      |
-|---------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `Owner`       | [organizations](https://developer.github.com/v3/orgs/), [users](https://developer.github.com/v3/users/)                                                                                                       |
-| `Repo`        | [repositories](https://developer.github.com/v3/repos/)                                                                                                                                                        |
-| `Commit`      | [repository commits](https://developer.github.com/v3/repos/commits/)                                                                                                                                          |
-| `Content`     | [repository contents](https://developer.github.com/v3/repos/contents/)                                                                                                                                        |
-| `Comment`     | [commit comments](https://developer.github.com/v3/repos/comments/), [issue comments](https://developer.github.com/v3/issues/comments/), [PR review comments](https://developer.github.com/v3/pulls/comments/) |
-| `Status`      | [commit statuses](https://developer.github.com/v3/repos/statuses/)                                                                                                                                            |
-| `PullRequest` | [pull requests](https://developer.github.com/v3/pulls/)                                                                                                                                                       |
-| `Issue`       | [issues](https://developer.github.com/v3/issues/)                                                                                                                                                             |
+| type          | alternative identifying property                       | link(s) to documentation                                                                                                                                                                                      |
+|---------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `Owner`       | login, e.g. `"octocat"`                                | [organizations](https://developer.github.com/v3/orgs/), [users](https://developer.github.com/v3/users/)                                                                                                       |
+| `Repo`        | full_name, e.g. `"JuliaWeb/GitHub.jl"`                 | [repositories](https://developer.github.com/v3/repos/)                                                                                                                                                        |
+| `Commit`      | sha, e.g. `"d069993b320c57b2ba27336406f6ec3a9ae39375"` | [repository commits](https://developer.github.com/v3/repos/commits/)                                                                                                                                          |
+| `Content`     | path, e.g. `"src/owners/owners.jl"`                    | [repository contents](https://developer.github.com/v3/repos/contents/)                                                                                                                                        |
+| `Comment`     | id, e.g. `162224613`                                   | [commit comments](https://developer.github.com/v3/repos/comments/), [issue comments](https://developer.github.com/v3/issues/comments/), [PR review comments](https://developer.github.com/v3/pulls/comments/) |
+| `Status`      | id, e.g. `366961773`                                   | [commit statuses](https://developer.github.com/v3/repos/statuses/)                                                                                                                                            |
+| `PullRequest` | number, e.g. `44`                                      | [pull requests](https://developer.github.com/v3/pulls/)                                                                                                                                                       |
+| `Issue`       | number, e.g. `31`                                      | [issues](https://developer.github.com/v3/issues/)                                                                                                                                                             |
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
 
@@ -61,7 +61,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
 |------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `owner(owner[, isorg = false])`          | `Owner`                            | [get `owner`](https://developer.github.com/v3/users/#get-a-single-user)/[get an organization](https://developer.github.com/v3/orgs/#get-an-organization)                                                    |
+| `owner(owner[, isorg = false])`          | `Owner`                            | get `owner` as a [user](https://developer.github.com/v3/users/#get-a-single-user) or [organization](https://developer.github.com/v3/orgs/#get-an-organization)                                                    |
 | `orgs(owner)`                            | `Tuple{Vector{Owner}, Dict}`       | [get the `owner`'s organizations](https://developer.github.com/v3/orgs/#list-user-organizations)                                                                                                            |
 | `followers(owner)`                       | `Tuple{Vector{Owner}, Dict}`       | [get the `owner`'s followers](https://developer.github.com/v3/users/followers/#list-followers-of-a-user)                                                                                                    |
 | `following(owner)`                       | `Tuple{Vector{Owner}, Dict}`       | [get the users followed by `owner`](https://developer.github.com/v3/users/followers/#list-users-followed-by-another-user)                                                                                   |
