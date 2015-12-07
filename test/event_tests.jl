@@ -23,13 +23,13 @@ event = GitHub.event_from_payload!("commit_comment", event_json)
 @test GitHub.is_valid_event(event_request, ["commit_comment"])
 @test !(GitHub.from_valid_repo(event, ["JuliaWeb/GitHub.jl"]))
 @test GitHub.from_valid_repo(event, ["JuliaCI/BenchmarkTrackers.jl"])
-@test GitHub.handle_event_request(event_request, (args...) -> true,
+@test GitHub.handle_event_request(event_request, x -> true,
                                   secret = "secret",
                                   events = ["commit_comment"],
                                   repos = ["JuliaCI/BenchmarkTrackers.jl"])
 
 @test begin
-    listener = EventListener((args...) -> true;
+    listener = EventListener(x -> true;
                              secret = "secret",
                              repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                              events = ["commit_comment"],
@@ -48,7 +48,7 @@ trigger_results = GitHub.extract_trigger_string(event, GitHub.AnonymousAuth(), "
 @test trigger_results == (true,"(\"binary\", \"unary\")")
 
 @test begin
-    listener = CommentListener((args...) -> true, "trigger";
+    listener = CommentListener((x, y) -> true, "trigger";
                                secret = "secret",
                                repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                                forwards = ["http://bob.com", HttpCommon.URI("http://jim.org")],

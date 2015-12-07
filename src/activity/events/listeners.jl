@@ -86,7 +86,7 @@ function handle_event_request(request, handle;
         end
     end
 
-    return handle(event, auth)
+    return handle(event)
 end
 
 function Base.run(listener::EventListener, args...; kwargs...)
@@ -114,7 +114,7 @@ immutable CommentListener
                                  forwards=forwards) do event, auth
             found, extracted = extract_trigger_string(event, auth, trigger, check_collab)
             if found
-                return handle(event, auth, extracted)
+                return handle(event, extracted)
             else
                 return HttpCommon.Response(204, extracted)
             end

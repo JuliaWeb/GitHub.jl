@@ -216,7 +216,7 @@ When an `EventListener` receives an event, it performs some basic validation and
 
 The `EventListener` constructor takes the following keyword arguments:
 
-- `auth`: GitHub authorization (usually with repo-level permissions). This is passed as the second argument to the server's handler function.
+- `auth`: GitHub authorization (usually with repo-level permissions).
 - `secret`: A string used to verify the event source. If the event is from a GitHub Webhook, it's the Webhook's secret. If a secret is not provided, the server won't validate the secret signature of incoming requests.
 - `repos`: A vector of `Repo`s (or fully qualified repository names) listing all acceptable repositories. All repositories are whitelisted by default.
 - `events`: A vector of [event names](https://developer.github.com/webhooks/#events) listing all acceptable events (e.g. ["commit_comment", "pull_request"]). All events are whitelisted by default.
@@ -258,7 +258,7 @@ listener = GitHub.EventListener(auth = myauth,
                                 secret = mysecret,
                                 repos = myrepos,
                                 events = myevents,
-                                forwards = myforwards) do event, auth
+                                forwards = myforwards) do event
     kind, payload, repo = event.kind, event.payload, event.repository
 
     if kind == "pull_request" && payload["action"] == "closed"
@@ -267,17 +267,17 @@ listener = GitHub.EventListener(auth = myauth,
 
     sha = GitHub.most_recent_commit_sha(event)
 
-    GitHub.create_status(repo, sha; auth = auth, params = pending_params)
+    GitHub.create_status(repo, sha; auth = myauth, params = pending_params)
 
     try
         # run_and_log_benchmarks isn't actually a defined function, but you get the point
         run_and_log_benchmarks(event, "\$(sha)-benchmarks.csv")
     catch err
-        GitHub.create_status(repo, sha; auth = auth, params = error_params(err))
+        GitHub.create_status(repo, sha; auth = myauth, params = error_params(err))
         return HttpCommon.Response(500)
     end
 
-    GitHub.create_status(repo, sha; auth = auth, params = success_params)
+    GitHub.create_status(repo, sha; auth = myauth, params = success_params)
 
     return HttpCommon.Response(200)
 end
@@ -314,7 +314,7 @@ Man, I really would like to be greeted today.
 `sayhello("Bob", "outgoing")`
 ```
 
-We want the `CommentLister` to reply (using the provided `auth`):
+We want the `CommentLister` to reply:
 
 ```
 Hello, Bob, you look very outgoing today!
@@ -332,7 +332,7 @@ mysecret = ENV["MY_SECRET"]
 
 # We can use Julia's `do` notation to set up the listener's handler function.
 # Note that, in our example case, argstring will equal "(\"Bob\", \"outgoing\")".
-listener = GitHub.CommentListener(trigger; auth = myauth, secret = mysecret) do event, auth, argstring
+listener = GitHub.CommentListener(trigger; auth = myauth, secret = mysecret) do event, argstring
     # In our example case, this code sets name to "Bob" and adjective to "outgoing"
     name, adjective = map(s -> strip(s)[2:(end-1)], split(argstring[2:(end-1)], ','))
     comment_params = Dict("body" => "Hello, $name, you look very $adjective today!")
@@ -356,7 +356,7 @@ listener = GitHub.CommentListener(trigger; auth = myauth, secret = mysecret) do 
     end
 
     # send the comment creation request to GitHub
-    GitHub.create_comment(event.repository, reply_to, comment_kind; auth = auth, params = comment_params)
+    GitHub.create_comment(event.repository, reply_to, comment_kind; auth = myauth, params = comment_params)
 
     return HttpCommon.Response(200)
 end
