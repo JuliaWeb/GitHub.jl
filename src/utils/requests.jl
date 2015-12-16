@@ -14,8 +14,13 @@ function github_request(request_method, endpoint;
                         auth = AnonymousAuth(), handle_error = true,
                         headers = Dict(), params = Dict())
     authenticate_headers!(headers, auth)
-    query = github2json(params)
-    r = request_method(api_uri(endpoint); headers = headers, query = query)
+    params = github2json(params)
+    api_endpoint = api_uri(endpoint)
+    if request_method == Requests.get
+        r = request_method(api_endpoint; headers = headers, query = params)
+    else
+        r = request_method(api_endpoint; headers = headers, json = params)
+    end
     handle_error && handle_response_error(r)
     return r
 end
@@ -65,15 +70,12 @@ end
 function github_paged_request(request_method, endpoint; page_limit = Inf,
                               auth = AnonymousAuth(), handle_error = true,
                               headers = Dict(), params = Dict())
-    authenticate_headers!(headers, auth)
-    query = github2json(params)
-    r = request_method(api_uri(endpoint); headers = headers, query = query)
-    handle_error && handle_response_error(r)
-
+    r = github_request(request_method, endpoint;
+                       auth = auth, handle_error = handle_error,
+                       headers = headers, params = params)
     results = HttpCommon.Response[r]
-    init_page = get(query, "page", 1)
+    init_page = get(params, "page", 1)
     page_data = Dict{GitHubString, Int}()
-
     if ispaginated(r)
         last_page = has_last_page(r) ? get_last_page(r) : init_page
         next_page = has_next_page(r) ? get_next_page(r) : -1
@@ -92,7 +94,6 @@ function github_paged_request(request_method, endpoint; page_limit = Inf,
         page_data["last"] = init_page
         page_data["left"] = 0
     end
-
     return results, page_data
 end
 
