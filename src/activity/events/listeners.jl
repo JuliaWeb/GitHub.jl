@@ -111,7 +111,7 @@ immutable CommentListener
                              forwards = nothing)
         listener = EventListener(auth=auth, secret=secret,
                                  events=COMMENT_EVENTS, repos=repos,
-                                 forwards=forwards) do event, auth
+                                 forwards=forwards) do event
             found, extracted = extract_trigger_string(event, auth, trigger, check_collab)
             if found
                 return handle(event, extracted)
