@@ -133,14 +133,8 @@ function extract_trigger_string(event::WebhookEvent,
                                 check_collab::Bool)
     trigger_regex = Regex("\`$trigger\(.*?\)\`")
 
-    # extract repo/owner info from event
+    # extract repo info from event
     repo = event.repository
-
-    if isnull(repo.owner)
-        return (false, "event repository is missing owner information")
-    end
-
-    owner = get(repo.owner)
 
     # extract comment from payload
     if !(haskey(event.payload, "comment"))
@@ -151,7 +145,7 @@ function extract_trigger_string(event::WebhookEvent,
 
     # check if comment is from collaborator
     if (check_collab &&
-        !(iscollaborator(owner, repo, comment["user"]["login"]; auth = auth)))
+        !(iscollaborator(repo, comment["user"]["login"]; auth = auth)))
         return (false, "commenter is not collaborator")
     end
 
