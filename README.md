@@ -265,7 +265,11 @@ listener = GitHub.EventListener(auth = myauth,
         return HttpCommon.Response(200)
     end
 
-    sha = GitHub.most_recent_commit_sha(event)
+    if event.kind == "push"
+        sha = event.payload["after"]
+    elseif event.kind == "pull_request"
+        sha = event.payload["pull_request"]["head"]["sha"]
+    end
 
     GitHub.create_status(repo, sha; auth = myauth, params = pending_params)
 

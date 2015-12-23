@@ -11,7 +11,6 @@ event = GitHub.event_from_payload!("commit_comment", event_json)
 
 @test get(event.repository.name) == "BenchmarkTrackers.jl"
 @test get(event.sender.login) == "jrevels"
-@test most_recent_commit_sha(event) == "32d35f285777b077d8b6a2521309d1ab646d2379"
 
 #################
 # EventListener #

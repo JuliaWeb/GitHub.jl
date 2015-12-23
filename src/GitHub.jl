@@ -129,8 +129,7 @@ export # comments.jl
 
 # include -------
 
-include("activity/events/events.jl")
-include("activity/events/listeners.jl")
+include("activity/events.jl")
 include("activity/activity.jl")
 
 # export -------
@@ -146,8 +145,7 @@ export # activity.jl
        unwatch
 
 export # events/events.jl
-       WebhookEvent,
-       most_recent_commit_sha
+       WebhookEvent
 
 export # events/listeners.jl
        EventListener,

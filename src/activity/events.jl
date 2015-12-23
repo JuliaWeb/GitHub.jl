@@ -1,3 +1,32 @@
+#####################
+# WebhookEvent Type #
+#####################
+
+type WebhookEvent
+    kind::GitHubString
+    payload::Dict
+    repository::Repo
+    sender::Owner
+end
+
+function event_from_payload!(kind, data::Dict)
+    if haskey(data, "repository")
+        repository = Repo(data["repository"])
+    elseif kind == "membership"
+        repository = Repo("")
+    else
+        error("event payload is missing repository field")
+    end
+
+    if haskey(data, "sender")
+        sender = Owner(data["sender"])
+    else
+        error("event payload is missing sender")
+    end
+
+    return WebhookEvent(kind, data, repository, sender)
+end
+
 ########################
 # Validation Functions #
 ########################
@@ -97,9 +126,11 @@ end
 # CommentListener #
 ###################
 
-const COMMENT_EVENTS = ["issue_comment",
-                        "commit_comment",
-                        "pull_request_review_comment"]
+const COMMENT_EVENTS = ["commit_comment",
+                        "pull_request",
+                        "pull_request_review_comment",
+                        "issues",
+                        "issue_comment"]
 
 immutable CommentListener
     listener::EventListener
@@ -133,26 +164,25 @@ function extract_trigger_string(event::WebhookEvent,
                                 check_collab::Bool)
     trigger_regex = Regex("\`$trigger\(.*?\)\`")
 
-    # extract repo info from event
-    repo = event.repository
+    kind, payload = event.kind, event.payload
 
-    # extract comment from payload
-    if !(haskey(event.payload, "comment"))
+    if (kind == "pull_request" || kind == "issues") && payload["action"] == "opened"
+        body_container = kind == "issues" ? payload["issue"] : payload["pull_request"]
+    elseif haskey(payload, "comment")
+        body_container = payload["comment"]
+    else
         return (false, "payload does not contain comment")
     end
 
-    comment = event.payload["comment"]
-
-    # check if comment is from collaborator
-    if (check_collab &&
-        !(iscollaborator(repo, comment["user"]["login"]; auth = auth)))
-        return (false, "commenter is not collaborator")
+    if check_collab
+        repo = event.repository
+        user = body_container["user"]["login"]
+        if !(iscollaborator(repo, user; auth = auth))
+            return (false, "commenter is not collaborator")
+        end
     end
 
-    # check for trigger phrase
-    body = get(comment, "body", "")
-
-    trigger_match = match(trigger_regex, body)
+    trigger_match = match(trigger_regex, body_container["body"])
 
     if trigger_match == nothing
         return (false, "trigger phrase not found")
