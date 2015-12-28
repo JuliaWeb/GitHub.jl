@@ -173,7 +173,7 @@ commit_json = JSON.parse(
       "filename": "file2.txt"
     }
   ]
- }
+}
 """
 )
 
@@ -197,6 +197,53 @@ commit_result = Commit(
 @test setindex!(GitHub.github2json(commit_result), nothing, "html_url") == commit_json
 
 test_show(commit_result)
+
+##########
+# Branch #
+##########
+
+branch_json = JSON.parse(
+"""
+{
+  "name": "master",
+  "sha": null,
+  "protection": {
+    "enabled": false,
+    "required_status_checks": {
+      "enforcement_level": "off",
+      "contexts": []
+    }
+  },
+  "commit": {
+    "sha": "7fd1a60b01f91b314f59955a4e4d4e80d8edf11d"
+  },
+  "user": {
+    "login": "octocat"
+  },
+  "repo": {
+    "full_name": "octocat/Hello-World"
+  }
+}
+"""
+)
+
+branch_result = Branch(
+    Nullable{GitHubString}(GitHubString(branch_json["name"])),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{GitHubString}(),
+    Nullable{Commit}(Commit(branch_json["commit"])),
+    Nullable{Owner}(Owner(branch_json["user"])),
+    Nullable{Repo}(Repo(branch_json["repo"])),
+    Nullable{Dict}(),
+    Nullable{Dict}(branch_json["protection"])
+)
+
+@test Branch(branch_json) == branch_result
+@test name(Branch(branch_json["name"])) == name(branch_result)
+@test setindex!(GitHub.github2json(branch_result), nothing, "sha") == branch_json
+
+test_show(branch_result)
 
 ###########
 # Comment #
@@ -328,38 +375,6 @@ status_result = Status(
 @test setindex!(GitHub.github2json(status_result), nothing, "context") == status_json
 
 test_show(status_result)
-
-##########
-# Branch #
-##########
-
-branch_json = JSON.parse(
-"""
-{
-  "ref": "new-topic",
-  "user": {
-    "login": "octocat"
-  },
-  "repo": {
-    "id": 1296269
-  }
-}
-"""
-)
-
-branch_result = Branch(
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(GitHubString(branch_json["ref"])),
-    Nullable{GitHubString}(),
-    Nullable{Owner}(Owner(branch_json["user"])),
-    Nullable{Repo}(Repo(branch_json["repo"]))
-)
-
-@test Branch(branch_json) == branch_result
-@test name(Branch(branch_json["ref"])) == name(branch_result)
-@test GitHub.github2json(branch_result) == branch_json
-
-test_show(branch_result)
 
 ###############
 # PullRequest #

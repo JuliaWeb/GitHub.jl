@@ -57,6 +57,10 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
 # test GitHub.stats
 @test stats(ghjl, "contributors"; auth = auth).status < 300
 
+# test GitHub.branch, GitHub.branches
+@test name(branch(ghjl, "master"; auth = auth)) == "master"
+@test hasghobj("master", first(branches(ghjl; auth = auth)))
+
 # test GitHub.commit, GitHub.commits
 @test name(commit(ghjl, testcommit; auth = auth)) == name(testcommit)
 @test hasghobj(testcommit, first(commits(ghjl; auth = auth)))

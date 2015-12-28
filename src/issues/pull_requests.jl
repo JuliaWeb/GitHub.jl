@@ -1,20 +1,3 @@
-###############
-# Branch Type #
-###############
-
-type Branch <: GitHubType
-    label::Nullable{GitHubString}
-    ref::Nullable{GitHubString}
-    sha::Nullable{GitHubString}
-    user::Nullable{Owner}
-    repo::Nullable{Repo}
-end
-
-Branch(data::Dict) = json2github(Branch, data)
-Branch(ref::AbstractString) = Branch(Dict("ref" => ref))
-
-namefield(branch::Branch) = branch.ref
-
 ####################
 # PullRequest Type #
 ####################

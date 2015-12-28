@@ -55,6 +55,7 @@ export # owners.jl
 include("repositories/repositories.jl")
 include("repositories/contents.jl")
 include("repositories/commits.jl")
+include("repositories/branches.jl")
 include("repositories/statuses.jl")
 
 # export -------
@@ -71,11 +72,6 @@ export # repositories.jl
        remove_collaborator,
        stats
 
-export # commits.jl
-       Commit,
-       commit,
-       commits
-
 export # contents.jl
        Content,
        file,
@@ -84,6 +80,16 @@ export # contents.jl
        update_file,
        delete_file,
        readme
+
+export # commits.jl
+       Commit,
+       commit,
+       commits
+
+export # branches.jl
+       Branch,
+       branch,
+       branches
 
 export # statuses.jl
        Status,
