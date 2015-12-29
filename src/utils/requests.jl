@@ -113,10 +113,12 @@ function handle_response_error(r::HttpCommon.Response)
             data = Requests.json(r)
             message = get(data, "message", "")
             docs_url = get(data, "documentation_url", "")
+            errors = get(data, "errors", "")
         end
         error("Error found in GitHub reponse:\n",
               "\tStatus Code: $(r.status)\n",
               "\tMessage: $message\n",
-              "\tDocs URL: $docs_url")
+              "\tDocs URL: $docs_url\n",
+              "\tErrors: $errors")
     end
 end
