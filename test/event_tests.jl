@@ -1,7 +1,9 @@
-using GitHub, JLD
+using GitHub
 using Base.Test
 
-event_request = JLD.load(joinpath(Pkg.dir("GitHub"), "test", "commit_comment.jld"), "r")
+event_request = open(joinpath(Pkg.dir("GitHub"), "test", "commit_comment.jls"), "r") do file
+    return Base.deserialize(file)
+end
 event_json = Requests.json(event_request)
 event = GitHub.event_from_payload!("commit_comment", event_json)
 
