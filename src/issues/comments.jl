@@ -33,7 +33,7 @@ kind_err_str(kind) = ("Error building comment request: :$kind is not a valid kin
 ###############
 
 function comment(repo, item, kind = :issue; options...)
-    if kind == :issue
+    if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/comments/$(name(item))"
     elseif kind == :review
         path = "/repos/$(name(repo))/pulls/comments/$(name(item))"
@@ -46,7 +46,7 @@ function comment(repo, item, kind = :issue; options...)
 end
 
 function comments(repo, item, kind = :issue; options...)
-    if kind == :issue
+    if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/$(name(item))/comments"
     elseif kind == :review
         path = "/repos/$(name(repo))/pulls/$(name(item))/comments"
@@ -60,7 +60,7 @@ function comments(repo, item, kind = :issue; options...)
 end
 
 function create_comment(repo, item, kind = :issue; options...)
-    if kind == :issue
+    if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/$(name(item))/comments"
     elseif kind == :review
         path = "/repos/$(name(repo))/pulls/$(name(item))/comments"
@@ -73,7 +73,7 @@ function create_comment(repo, item, kind = :issue; options...)
 end
 
 function edit_comment(repo, item, kind = :issue; options...)
-    if kind == :issue
+    if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/comments/$(name(item))"
     elseif kind == :review
         path = "/repos/$(name(repo))/pulls/comments/$(name(item))"
@@ -85,8 +85,8 @@ function edit_comment(repo, item, kind = :issue; options...)
     return Comment(gh_patch_json(path; options...))
 end
 
-function delete_comment(repo, item, isreview = false; options...)
-    if kind == :issue
+function delete_comment(repo, item, kind = :issue; options...)
+    if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/comments/$(name(item))"
     elseif kind == :review
         path = "/repos/$(name(repo))/pulls/comments/$(name(item))"
