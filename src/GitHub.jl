@@ -79,7 +79,8 @@ export # contents.jl
        create_file,
        update_file,
        delete_file,
-       readme
+       readme,
+       permalink
 
 export # commits.jl
        Commit,
