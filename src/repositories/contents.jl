@@ -57,6 +57,14 @@ function readme(repo; options...)
     return Content(result)
 end
 
+function permalink(content::Content, commit)
+    url = string(get(content.html_url))
+    prefix = get(content.typ) == "file" ? "blob" : "tree"
+    rgx = Regex(string("\/", prefix, "\/.*?\/"))
+    replacement = string("/", prefix, "/", name(commit), "/")
+    return HttpCommon.URI(replace(url, rgx, replacement))
+end
+
 ###########################
 # Content Utility Methods #
 ###########################

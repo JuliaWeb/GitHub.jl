@@ -65,9 +65,17 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
 @test name(commit(ghjl, testcommit; auth = auth)) == name(testcommit)
 @test hasghobj(testcommit, first(commits(ghjl; auth = auth)))
 
-# test GitHub.file, GitHub.readme, GitHub.directory
-@test file(ghjl, "README.md"; auth = auth) == readme(ghjl; auth = auth)
-@test hasghobj("src/GitHub.jl", first(directory(ghjl, "src"; auth = auth)))
+# test GitHub.file, GitHub.directory, GitHub.readme, GitHub.permalink
+readme_file = file(ghjl, "README.md"; auth = auth)
+src_dir = first(directory(ghjl, "src"; auth = auth))
+owners_dir = src_dir[findfirst(c -> get(c.path) == "src/owners", src_dir)]
+test_sha = "eab14e1ab7b4de848ef6390101b6d40b489d5d08"
+readme_permalink = string(permalink(readme_file, test_sha))
+owners_permalink = string(permalink(owners_dir, test_sha))
+@test readme_permalink == "https://github.com/JuliaWeb/GitHub.jl/blob/$(test_sha)/README.md"
+@test owners_permalink == "https://github.com/JuliaWeb/GitHub.jl/tree/$(test_sha)/src/owners"
+@test readme_file == readme(ghjl; auth = auth)
+@test hasghobj("src/GitHub.jl", src_dir)
 
 # test GitHub.status, GitHub.statuses
 @test get(status(ghjl, testcommit; auth = auth).sha) == name(testcommit)
