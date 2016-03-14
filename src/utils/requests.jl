@@ -58,9 +58,8 @@ has_last_page(r) = islastlink(r.headers["Link"])
 split_links(r) = split(r.headers["Link"], ',')
 get_link(pred, links) = match(r"<.*?>", links[findfirst(pred, links)]).match[2:end-1]
 
-get_page_number(link) = parse(Int, first(match(r"page=(\d+)", link).captures))
-get_next_page(r) = get_page_number(get_link(isnextlink, split_links(r)))
-get_last_page(r) = get_page_number(get_link(islastlink, split_links(r)))
+get_next_page(r) = get_link(isnextlink, split_links(r))
+get_last_page(r) = get_link(islastlink, split_links(r))
 
 function request_next_page(r, headers)
     nextlink = get_link(isnextlink, split_links(r))
@@ -75,24 +74,22 @@ function github_paged_request(request_method, endpoint; page_limit = Inf,
                        headers = headers, params = params)
     results = HttpCommon.Response[r]
     init_page = get(params, "page", 1)
-    page_data = Dict{GitHubString, Int}()
+    page_data = Dict{GitHubString, GitHubString}()
     if ispaginated(r)
-        last_page = has_last_page(r) ? get_last_page(r) : init_page
-        next_page = has_next_page(r) ? get_next_page(r) : -1
         page_count = 1
-        while next_page != -1 && page_count < page_limit
+        while has_next_page(r) && page_count < page_limit
+            next_page = get_next_page(r)
             r = request_next_page(r, headers)
             handle_error && handle_response_error(r)
             push!(results, r)
             page_count += 1
-            next_page = has_next_page(r) ? get_next_page(r) : -1
         end
-        next_page != -1 && (page_data["next"] = next_page)
-        page_data["last"] = last_page
-        page_data["left"] = last_page - (init_page + page_count - 1)
-    else
-        page_data["last"] = init_page
-        page_data["left"] = 0
+        if has_last_page(r)
+            page_data["last"] = get_last_page(r)
+        end
+        if has_next_page(r)
+            page_data["next"] = get_next_page(r)
+        end
     end
     return results, page_data
 end
