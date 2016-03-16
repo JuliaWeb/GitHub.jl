@@ -28,6 +28,16 @@ type Owner <: GitHubType
     date::Nullable{Dates.DateTime}
     hireable::Nullable{Bool}
     site_admin::Nullable{Bool}
+    avatar_url::Nullable{HttpCommon.URI}
+    followers_url::Nullable{HttpCommon.URI}
+    following_url::Nullable{HttpCommon.URI}
+    gists_url::Nullable{HttpCommon.URI}
+    starred_url::Nullable{HttpCommon.URI}
+    subscriptions_url::Nullable{HttpCommon.URI}
+    organizations_url::Nullable{HttpCommon.URI}
+    repos_url::Nullable{HttpCommon.URI}
+    events_url::Nullable{HttpCommon.URI}
+    received_events_url::Nullable{HttpCommon.URI}
 end
 
 Owner(data::Dict) = json2github(Owner, data)
