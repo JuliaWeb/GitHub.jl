@@ -60,17 +60,22 @@ end
 immutable EventListener
     server::HttpServer.Server
     function EventListener(handle; auth::Authorization = AnonymousAuth(),
-                           secret = nothing, events = nothing,
+                           secret = nothing, events = nothing, logname = nothing,
                            repos = nothing, forwards = nothing)
-        if !(isa(forwards, Void))
+        if forwards != nothing
             forwards = map(HttpCommon.URI, forwards)
         end
 
-        if !(isa(repos, Void))
+        if repos != nothing
             repos = map(name, repos)
         end
 
+        if logname != nothing
+            logfile = open(logname, "a")
+        end
+
         server = HttpServer.Server() do request, response
+            logname != nothing && println(logfile, now(), " | ", request, "; headers: ", request.headers)
             try
                 handle_event_request(request, handle; auth = auth,
                                      secret = secret, events = events,
@@ -95,21 +100,21 @@ function handle_event_request(request, handle;
                               auth::Authorization = AnonymousAuth(),
                               secret = nothing, events = nothing,
                               repos = nothing, forwards = nothing)
-    if !(isa(secret, Void)) && !(has_valid_secret(request, secret))
+    if secret != nothing && !(has_valid_secret(request, secret))
         return HttpCommon.Response(400, "invalid signature")
     end
 
-    if !(isa(events, Void)) && !(is_valid_event(request, events))
+    if events != nothing && !(is_valid_event(request, events))
         return HttpCommon.Response(400, "invalid event")
     end
 
     event = event_from_payload!(event_header(request), Requests.json(request))
 
-    if !(isa(repos, Void)) && !(from_valid_repo(event, repos))
+    if repos != nothing && !(from_valid_repo(event, repos))
         return HttpCommon.Response(400, "invalid repo")
     end
 
-    if !(isa(forwards, Void))
+    if forwards != nothing
         for address in forwards
             Requests.post(address, request)
         end
@@ -136,13 +141,10 @@ immutable CommentListener
     listener::EventListener
     function CommentListener(handle, trigger::AbstractString;
                              auth::Authorization = AnonymousAuth(),
-                             check_collab::Bool = true,
-                             secret = nothing,
-                             repos = nothing,
-                             forwards = nothing)
-        listener = EventListener(auth=auth, secret=secret,
-                                 events=COMMENT_EVENTS, repos=repos,
-                                 forwards=forwards) do event
+                             check_collab::Bool = true, events = nothing,
+                             kwargs...)
+        @assert events == nothing "CommentListener does not accept kwarg `events`"
+        listener = EventListener(auth=auth, events=COMMENT_EVENTS, kwargs...) do event
             found, extracted = extract_trigger_string(event, auth, trigger, check_collab)
             if found
                 return handle(event, extracted)
