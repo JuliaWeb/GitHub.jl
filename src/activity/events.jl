@@ -134,7 +134,7 @@ const COMMENT_EVENTS = ["commit_comment",
 
 immutable CommentListener
     listener::EventListener
-    function CommentListener(handle, trigger::AbstractString;
+    function CommentListener(handle, trigger::Regex;
                              auth::Authorization = AnonymousAuth(),
                              check_collab::Bool = true,
                              secret = nothing,
@@ -143,12 +143,7 @@ immutable CommentListener
         listener = EventListener(auth=auth, secret=secret,
                                  events=COMMENT_EVENTS, repos=repos,
                                  forwards=forwards) do event
-            found, extracted = extract_trigger_string(event, auth, trigger, check_collab)
-            if found
-                return handle(event, extracted)
-            else
-                return HttpCommon.Response(204, extracted)
-            end
+            return handle_comment(handle, event, auth, trigger, check_collab)
         end
         return new(listener)
     end
@@ -158,12 +153,8 @@ function Base.run(listener::CommentListener, args...; kwargs...)
     return run(listener.listener, args...; kwargs...)
 end
 
-function extract_trigger_string(event::WebhookEvent,
-                                auth::Authorization,
-                                trigger::AbstractString,
-                                check_collab::Bool)
-    trigger_regex = Regex("\`$trigger\(.*?\)\`")
-
+function handle_comment(handle, event::WebhookEvent, auth::Authorization,
+                        trigger::Regex, check_collab::Bool)
     kind, payload = event.kind, event.payload
 
     if (kind == "pull_request" || kind == "issues") && payload["action"] == "opened"
@@ -171,22 +162,22 @@ function extract_trigger_string(event::WebhookEvent,
     elseif haskey(payload, "comment")
         body_container = payload["comment"]
     else
-        return (false, "payload does not contain comment")
+        return HttpCommon.Response(204, "payload does not contain comment")
     end
 
     if check_collab
         repo = event.repository
         user = body_container["user"]["login"]
         if !(iscollaborator(repo, user; auth = auth))
-            return (false, "commenter is not collaborator")
+            return HttpCommon.Response(204, "commenter is not collaborator")
         end
     end
 
-    trigger_match = match(trigger_regex, body_container["body"])
+    trigger_match = match(trigger, body_container["body"])
 
     if trigger_match == nothing
-        return (false, "trigger phrase not found")
+        return HttpCommon.Response(204, "trigger match not found")
     end
 
-    return (true, first(trigger_match.captures))
+    return handle(event, trigger_match)
 end

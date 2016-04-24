@@ -35,7 +35,6 @@ event = GitHub.event_from_payload!("commit_comment", event_json)
                              repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                              events = ["commit_comment"],
                              forwards = ["http://bob.com", HttpCommon.URI("http://jim.org")])
-
     r = listener.server.http.handle(HttpCommon.Request(),HttpCommon.Response())
     r.status == 400
 end
@@ -44,17 +43,16 @@ end
 # CommentListener #
 ###################
 
-trigger_results = GitHub.extract_trigger_string(event, GitHub.AnonymousAuth(), "RunBenchmarks", false)
+result = GitHub.handle_comment((e, m) -> m, event, GitHub.AnonymousAuth(), r"`RunBenchmarks\(.*?\)`", false)
 
-@test trigger_results == (true,"(\"binary\", \"unary\")")
+@test result.match == "`RunBenchmarks(\"binary\", \"unary\")`"
 
 @test begin
-    listener = CommentListener((x, y) -> true, "trigger";
+    listener = CommentListener((x, y) -> true, r"trigger";
                                secret = "secret",
                                repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                                forwards = ["http://bob.com", HttpCommon.URI("http://jim.org")],
                                check_collab = false)
-
-    r = listener.listener.server.http.handle(HttpCommon.Request(),HttpCommon.Response())
+    r = listener.listener.server.http.handle(HttpCommon.Request(), HttpCommon.Response())
     r.status == 400
 end

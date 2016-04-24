@@ -303,13 +303,7 @@ GitHub.run(listener, host=IPv4(127,0,0,1), port=8000)
 
 A `CommentListener` is a special kind of `EventListener` that allows users to pass data to the listener's handler function via commenting. This is useful for triggering events on repositories that require configuration settings.
 
-A `CommentListener` automatically filters out all non-comment events, and then checks each comment event it receives for a specific, user-defined "trigger phrase". The trigger phrase has the following structure:
-
-```
-`$trigger(args...)`
-```
-
-...where `args` can be anything. If the trigger phrase is found in a comment, then the `CommentListener` calls its handler function, passing it the event, the provided authentication, and `"(args...)"`.
+A `CommentListener` automatically filters out all non-comment events, and then checks the body of each comment event against a trigger `Regex` supplied by the user. If a match is found in the comment, then the `CommentListener` calls its handler function, passing it the event and the corresponding `RegexMatch`.
 
 The `CommentListener` constructor takes the following keyword arguments:
 
@@ -339,15 +333,15 @@ Here's the code that will make this happen:
 import GitHub
 
 # CommentListener settings
-trigger = "sayhello"
+trigger = r"`sayhello\(.*?\)`"
 myauth = GitHub.authenticate(ENV["GITHUB_AUTH"])
 mysecret = ENV["MY_SECRET"]
 
 # We can use Julia's `do` notation to set up the listener's handler function.
-# Note that, in our example case, argstring will equal "(\"Bob\", \"outgoing\")".
-listener = GitHub.CommentListener(trigger; auth = myauth, secret = mysecret) do event, argstring
+# Note that, in our example case, `phrase` will be "`sayhello(\"Bob\", \"outgoing\")`"
+listener = GitHub.CommentListener(trigger; auth = myauth, secret = mysecret) do event, phrase
     # In our example case, this code sets name to "Bob" and adjective to "outgoing"
-    name, adjective = map(s -> strip(s)[2:(end-1)], split(argstring[2:(end-1)], ','))
+    name, adjective = matchall(r"\".*?\"", phrase)
     comment_params = Dict("body" => "Hello, $name, you look very $adjective today!")
 
     # Parse the original comment event for all the necessary reply info
