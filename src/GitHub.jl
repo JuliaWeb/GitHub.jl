@@ -42,6 +42,7 @@ export # owners.jl
        Owner,
        owner,
        orgs,
+       users,
        followers,
        following,
        repos

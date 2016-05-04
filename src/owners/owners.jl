@@ -50,6 +50,11 @@ function owner(owner_obj, isorg = false; options...)
     return Owner(result)
 end
 
+function users(; options...)
+    results, page_data = gh_get_paged_json("/users"; options...)
+    return map(Owner, results), page_data
+end
+
 function orgs(owner; options...)
     results, page_data = gh_get_paged_json("/users/$(name(owner))/orgs"; options...)
     return map(Owner, results), page_data
