@@ -1,5 +1,7 @@
 module GitHub
 
+using Compat
+
 ##########
 # import #
 ##########
