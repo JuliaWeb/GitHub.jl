@@ -47,55 +47,55 @@ rate_limit(; options...) = gh_get_json("/rate_limit"; options...)
 # Pagination #
 ##############
 
-ispaginated(r) = haskey(r.headers, "Link")
+has_page_links(r) = haskey(r.headers, "Link")
+get_page_links(r) = split(r.headers["Link"], ',')
 
-isnextlink(str) = contains(str, "rel=\"next\"")
-islastlink(str) = contains(str, "rel=\"last\"")
-
-has_next_page(r) = isnextlink(r.headers["Link"])
-has_last_page(r) = islastlink(r.headers["Link"])
-
-split_links(r) = split(r.headers["Link"], ',')
-get_link(pred, links) = match(r"<.*?>", links[findfirst(pred, links)]).match[2:end-1]
-
-get_next_page(r) = get_link(isnextlink, split_links(r))
-get_last_page(r) = get_link(islastlink, split_links(r))
-
-function request_next_page(r, headers)
-    nextlink = get_link(isnextlink, split_links(r))
-    return Requests.get(nextlink, headers = headers)
+function find_page_link(links, rel)
+    relstr = "rel=\"$(rel)\""
+    for i in 1:length(links)
+        if contains(links[i], relstr)
+            return i
+        end
+    end
+    return 0
 end
 
-function github_paged_request(request_method, endpoint; page_limit = Inf,
-                              auth = AnonymousAuth(), handle_error = true,
-                              headers = Dict(), params = Dict())
-    r = github_request(request_method, endpoint;
-                       auth = auth, handle_error = handle_error,
-                       headers = headers, params = params)
+extract_page_url(link) = match(r"<.*?>", link).match[2:end-1]
+
+function github_paged_get(endpoint; page_limit = Inf, start_page = "", handle_error = true,
+                          headers = Dict(), params = Dict(), options...)
+    if isempty(start_page)
+        r = gh_get(endpoint; handle_error = handle_error, headers = headers, params = params, options...)
+    else
+        @assert isempty(params) "`start_page` kwarg is incompatible with `params` kwarg"
+        r = Requests.get(start_page, headers = headers)
+    end
     results = HttpCommon.Response[r]
-    init_page = get(params, "page", 1)
     page_data = Dict{GitHubString, GitHubString}()
-    if ispaginated(r)
+    if has_page_links(r)
         page_count = 1
-        while has_next_page(r) && page_count < page_limit
-            next_page = get_next_page(r)
-            r = request_next_page(r, headers)
+        while page_count < page_limit
+            links = get_page_links(r)
+            next_index = find_page_link(links, "next")
+            next_index == 0 && break
+            r = Requests.get(extract_page_url(links[next_index]), headers = headers)
             handle_error && handle_response_error(r)
             push!(results, r)
             page_count += 1
         end
-        if has_last_page(r)
-            page_data["last"] = get_last_page(r)
-        end
-        if has_next_page(r)
-            page_data["next"] = get_next_page(r)
+        links = get_page_links(r)
+        for page in ("next", "last", "first", "prev")
+            page_index = find_page_link(links, page)
+            if page_index != 0
+                page_data[page] = extract_page_url(links[page_index])
+            end
         end
     end
     return results, page_data
 end
 
 function gh_get_paged_json(endpoint = ""; options...)
-    results, page_data = github_paged_request(Requests.get, endpoint; options...)
+    results, page_data = github_paged_get(endpoint; options...)
     return mapreduce(Requests.json, vcat, results), page_data
 end
 

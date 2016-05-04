@@ -187,33 +187,54 @@ Paginated methods return both the response values, and some pagination metadata.
 For example, let's request a couple pages of GitHub.jl's PRs, and configure our result pagination to see how it works:
 
 ```julia
-julia> myparams = Dict("state" => "all", "per_page" => 3, "page" => 2); # show all PRs (both open and closed), and give me 3 items per page starting at page 2
+# show all PRs (both open and closed), and give me 3 items per page starting at page 2
+julia> myparams = Dict("state" => "all", "per_page" => 3, "page" => 2);
 
 julia> prs, page_data = pull_requests("JuliaWeb/GitHub.jl"; params = myparams, page_limit = 2);
 
 julia> prs # 3 items per page * 2 page limit == 6 items, as expected
 6-element Array{GitHub.PullRequest,1}:
+ GitHub.PullRequest(44)
+ GitHub.PullRequest(43)
+ GitHub.PullRequest(42)
+ GitHub.PullRequest(41)
  GitHub.PullRequest(39)
  GitHub.PullRequest(38)
- GitHub.PullRequest(37)
- GitHub.PullRequest(34)
- GitHub.PullRequest(32)
- GitHub.PullRequest(30)
 
 julia> page_data
-Dict{UTF8String,Int64} with 3 entries:
-  "last"  => 5
-  "left"  => 2
-  "next"  => 4
+Dict{UTF8String,UTF8String} with 4 entries:
+  "prev"  => "https://api.github.com/repositories/16635105/pulls?page=2&per_page=3&state=all"
+  "next"  => "https://api.github.com/repositories/16635105/pulls?page=4&per_page=3&state=all"
+  "first" => "https://api.github.com/repositories/16635105/pulls?page=1&per_page=3&state=all"
+  "last"  => "https://api.github.com/repositories/16635105/pulls?page=7&per_page=3&state=all"
 ```
 
 In the above, `prs` contains the results from page 2 and 3. We know this because we specified page 2 as our starting page (`"page" => 2`), and limited the response to 2 pages max (`page_limit = 2`). In addition, we know that exactly 2 pages were actually retrieved, since there are 6 items and we said each page should only contain 3 items (`"per_page" => 3`).
 
-The values provided by `page_data` are calculated by assuming the same `per_page` value given in the original request. Here's a description of each key in `page_data`:
+The values provided by `page_data` are the same values that are included in the [Link header](https://developer.github.com/v3/#link-header) of the last requested item. You can continue paginating by starting a new paginated request at one of these links using the `start_page` keyword argument:
 
-- `page_data["last"]`: The last page of results available to be queried. In our example, the final page we could query for is page 5.
-- `page_data["left"]`: The number of pages left between the final page delivered in our result and `page_data["last"]`. Our final page was page 3, and the last page is page 5, so we have 2 pages of results left to retrieve.
-- `page_data["next"]`: The index of the next page after the final page delivered in our result. In the example, our final page was page 3, so the next page will be 4.
+```julia
+# Continue paging, starting with `page_data["next"]`.
+# Note that the `params` kwarg can't be used here because
+# the link passed to `start_page` has its own parameters
+julia> prs2, page_data2 = pull_requests("JuliaWeb/GitHub.jl"; page_limit = 2, start_page = page_data["next"]);
+
+julia> prs2
+6-element Array{GitHub.PullRequest,1}:
+ GitHub.PullRequest(37)
+ GitHub.PullRequest(34)
+ GitHub.PullRequest(32)
+ GitHub.PullRequest(30)
+ GitHub.PullRequest(24)
+ GitHub.PullRequest(22)
+
+julia> page_data2
+Dict{UTF8String,UTF8String} with 4 entries:
+  "prev"  => "https://api.github.com/repositories/16635105/pulls?page=4&per_page=3&state=all"
+  "next"  => "https://api.github.com/repositories/16635105/pulls?page=6&per_page=3&state=all"
+  "first" => "https://api.github.com/repositories/16635105/pulls?page=1&per_page=3&state=all"
+  "last"  => "https://api.github.com/repositories/16635105/pulls?page=7&per_page=3&state=all"
+```
 
 ## Handling Webhook Events
 
