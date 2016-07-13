@@ -18,9 +18,9 @@
 
 abstract GitHubType
 
-typealias GitHubString UTF8String
+typealias GitHubString Compat.UTF8String
 
-function Base.(:(==))(a::GitHubType, b::GitHubType)
+function @compat(Base.:(==))(a::GitHubType, b::GitHubType)
     if typeof(a) != typeof(b)
         return false
     end
