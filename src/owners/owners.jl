@@ -55,6 +55,25 @@ function users(; options...)
     return map(Owner, results), page_data
 end
 
+function check_membership(org, user; public_only = false, options...)
+    scope = public_only ? "public_members" : "members"
+    resp = gh_get("/orgs/$(name(org))/$scope/$(name(user))"; handle_error = false, allow_redirects = false,  options...)
+    if resp.status == 204
+        return true
+    elseif resp.status == 404
+        return false
+    elseif resp.status == 302
+        # For convenience, still check public membership. Otherwise, we don't know, so error
+        @assert !public_only
+        is_public_member = check_membership(org, user; public_only = true, options...)
+        is_public_member && return true
+        error("Enquiring about an Organization to which you do not have access.\n"*
+              "Set `public_only=true` or provide authentication.")
+    else
+        handle_response_error(resp)
+    end
+end
+
 function orgs(owner; options...)
     results, page_data = gh_get_paged_json("/users/$(name(owner))/orgs"; options...)
     return map(Owner, results), page_data
@@ -68,6 +87,11 @@ end
 function following(owner; options...)
     results, page_data = gh_get_paged_json("/users/$(name(owner))/following"; options...)
     return map(Owner, results), page_data
+end
+
+function pubkeys(owner; options...)
+    results, page_data = gh_get_paged_json("/users/$(name(owner))/keys"; options...)
+    return Dict((key["id"] => key["key"]) for key in results), page_data
 end
 
 repos(owner::Owner; options...) = repos(name(owner), isorg(owner); options...)
