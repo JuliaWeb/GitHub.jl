@@ -12,14 +12,14 @@ api_uri(path) = HttpCommon.URI(API_ENDPOINT, path = path)
 
 function github_request(request_method, endpoint;
                         auth = AnonymousAuth(), handle_error = true,
-                        headers = Dict(), params = Dict())
+                        headers = Dict(), params = Dict(), allow_redirects = true)
     authenticate_headers!(headers, auth)
     params = github2json(params)
     api_endpoint = api_uri(endpoint)
     if request_method == Requests.get
-        r = request_method(api_endpoint; headers = headers, query = params)
+        r = request_method(api_endpoint; headers = headers, query = params, allow_redirects = allow_redirects)
     else
-        r = request_method(api_endpoint; headers = headers, json = params)
+        r = request_method(api_endpoint; headers = headers, json = params, allow_redirects = allow_redirects)
     end
     handle_error && handle_response_error(r)
     return r

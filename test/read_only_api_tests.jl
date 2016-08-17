@@ -8,6 +8,12 @@ testuser = Owner("julia-github-test-bot")
 julweb = Owner("JuliaWeb", true)
 ghjl = Repo("JuliaWeb/GitHub.jl")
 testcommit = Commit("3a90e7d64d6184b877f800570155c502b1119c15")
+testuser_pubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVDBxFza4BmQTCTFeTyK"*
+    "3xT+T98dmiMWXC2lM/esw3MCRHg7cynLWr/jUgjs72DO2nqlCTKI88yd2gcbW5/pBP6NVumc"*
+    "pM7eJzZJ3TKKwdGUD49nahncg5imHZUQbCqtQbAYEj+uFfqa9QNm6NkZdAdPdB6dJG2+QEuk"*
+    "rIGWKsmihP7vGzRLdebGwng2aNUfdAyVwq5Af4g5qfyRT9MtOXXM/7tDAVfC/g4QjkQ52giG"*
+    "3FRqehMHOfl4iw9cYggJ3owr+T/RhwBHhE9G+sIaq4cEjRxogf65xzJfRtxxM2RBYDM9GMyX"*
+    "6s2dFghew6MMc2x7OJM30W+OedhtZuk3Xp"
 
 hasghobj(obj, items) = any(x -> name(x) == name(obj), items)
 
@@ -40,6 +46,13 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
 
 # test GitHub.repos
 @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
+
+# test pubkey retrieval
+@test first(values(GitHub.pubkeys(testuser; auth = auth)[1])) == testuser_pubkey
+
+# test membership queries
+@test GitHub.check_membership(julweb, testuser; auth = auth)
+@test !GitHub.check_membership("JuliaLang", testuser; auth = auth, public_only=true)
 
 ################
 # Repositories #
