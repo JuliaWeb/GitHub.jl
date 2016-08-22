@@ -91,7 +91,8 @@ end
 
 function pubkeys(owner; options...)
     results, page_data = gh_get_paged_json("/users/$(name(owner))/keys"; options...)
-    return Dict((key["id"] => key["key"]) for key in results), page_data
+    output = Dict{Int,GitHubString}([(key["id"], key["key"]) for key in results])
+    return output, page_data
 end
 
 repos(owner::Owner; options...) = repos(name(owner), isorg(owner); options...)
