@@ -500,3 +500,32 @@ issue_result = Issue(
 @test setindex!(GitHub.github2json(issue_result), nothing, "closed_at") == issue_json
 
 test_show(issue_result)
+
+########
+# Team #
+########
+
+team_json = JSON.parse("""
+  {
+    "id": 1,
+    "url": "https://api.github.com/teams/1",
+    "name": "Justice League",
+    "slug": "justice-league",
+    "description": "A great team.",
+    "privacy": "closed",
+    "permission": "admin",
+    "members_url": "https://api.github.com/teams/1/members{/member}",
+    "repositories_url": "https://api.github.com/teams/1/repos"
+  }
+""")
+
+team_result = Team(
+     Nullable{GitHubString}(team_json["name"]),
+     Nullable{GitHubString}(team_json["description"]),
+     Nullable{GitHubString}(team_json["privacy"]),
+     Nullable{GitHubString}(team_json["permission"]),
+     Nullable{GitHubString}(team_json["slug"]),
+     Nullable{Int}(Int(team_json["id"])))
+
+@test name(team_result) == Int(team_json["id"])
+test_show(team_result)

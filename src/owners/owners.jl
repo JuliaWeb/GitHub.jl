@@ -101,3 +101,10 @@ function repos(owner, isorg = false; options...)
     results, page_data = gh_get_paged_json("/$(typprefix(isorg))/$(name(owner))/repos"; options...)
     return map(Repo, results), page_data
 end
+
+function teams(owner; options...)
+    results, page_data = gh_get_paged_json("/orgs/$(name(owner))/teams"; options...)
+    return map(Team, results), page_data
+end
+
+
