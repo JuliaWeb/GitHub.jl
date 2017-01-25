@@ -49,6 +49,20 @@ export # owners.jl
        following,
        repos
 
+##################################
+# Teams                          #
+##################################
+
+# include -------
+
+include("owners/teams.jl")
+
+# export -------
+
+export # teams.jl
+       Team,
+       members
+
 ################
 # Repositories #
 ################

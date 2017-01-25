@@ -51,6 +51,8 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Status`      | id, e.g. `366961773`                                   | [commit statuses](https://developer.github.com/v3/repos/statuses/)                                                                                                                                            |
 | `PullRequest` | number, e.g. `44`                                      | [pull requests](https://developer.github.com/v3/pulls/)                                                                                                                                                       |
 | `Issue`       | number, e.g. `31`                                      | [issues](https://developer.github.com/v3/issues/)                                                                                                                                                             |
+| `Team`        | id, e.g. `1`                                       | [teams](https://developer.github.com/v3/orgs/teams)                                                                                                                                                             |
+
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
 
@@ -67,6 +69,14 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `followers(owner)`                       | `Tuple{Vector{Owner}, Dict}`       | [get the `owner`'s followers](https://developer.github.com/v3/users/followers/#list-followers-of-a-user)                                                                                                    |
 | `following(owner)`                       | `Tuple{Vector{Owner}, Dict}`       | [get the users followed by `owner`](https://developer.github.com/v3/users/followers/#list-users-followed-by-another-user)                                                                                   |
 | `repos(owner[, isorg = false])`          | `Tuple{Vector{Repo}, Dict}`        | [get the `owner`'s repositories](https://developer.github.com/v3/repos/#list-user-repositories)/[get an organization's repositories](https://developer.github.com/v3/repos/#list-organization-repositories) |
+| `teams(owner)`          | `Tuple{Vector{Team}, Dict}`        | [get the `organizations`'s teams repositories](https://developer.github.com/v3/orgs/teams/#list-teams) |
+
+
+#### Teams
+| method                                   | return type                        | documentation                                                                                                                                                                                               |
+|------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `members(team)`          | `Tuple{Vector{Owner}, Dict}`                            | get team members as [users](https://developer.github.com/v3/orgs/teams/#get-team-membership)                                                   |
+
 
 #### Repositories
 
