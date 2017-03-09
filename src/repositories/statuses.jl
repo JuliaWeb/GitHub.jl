@@ -38,6 +38,8 @@ end
 
 Webhook(data::Dict) = json2github(Webhook, data)
 
+namefield(hook::Webhook) = hook.id
+
 ###############
 # API Methods #
 ###############
