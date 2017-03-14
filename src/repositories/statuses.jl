@@ -37,7 +37,7 @@ type Webhook <: GitHubType
 end
 
 Webhook(data::Dict) = json2github(Webhook, data)
-
+Webhook(id::Real) = Webhook(Dict("id" => id))
 namefield(hook::Webhook) = hook.id
 
 ###############
