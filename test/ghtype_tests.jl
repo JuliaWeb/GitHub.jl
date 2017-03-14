@@ -537,7 +537,7 @@ hook_json = JSON.parse("""
     "config": {
       "content_type": "json",
       "secret": "********",
-      "url": "http://webhhook.com:1234/",
+      "url": "http://webhook.com:1234/",
       "insecure_ssl": "0"
     },
     "updated_at": "2017-03-14T14:03:16Z",
