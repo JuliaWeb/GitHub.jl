@@ -23,31 +23,9 @@ Status(id::Real) = Status(Dict("id" => id))
 
 namefield(status::Status) = status.id
 
-type Webhook <: GitHubType
-    id::Nullable{Int}
-    url::Nullable{HttpCommon.URI}
-    test_url::Nullable{HttpCommon.URI}
-    ping_url::Nullable{HttpCommon.URI}
-    name::Nullable{GitHubString}
-    events::Nullable{Array{GitHubString}}
-    active::Nullable{Bool}
-    config::Nullable{Dict{GitHubString, GitHubString}}
-    updated_at::Nullable{Dates.DateTime}
-    created_at::Nullable{Dates.DateTime}
-end
-
-Webhook(data::Dict) = json2github(Webhook, data)
-Webhook(id::Real) = Webhook(Dict("id" => id))
-namefield(hook::Webhook) = hook.id
-
 ###############
 # API Methods #
 ###############
-
-function create_webhook(owner, repo; options...)
-    result = gh_post_json("/repos/$(name(owner))/$(name(repo))/hooks"; options...)
-    return Webhook(result)
-end
 
 function create_status(repo, sha; options...)
     result = gh_post_json("/repos/$(name(repo))/statuses/$(name(sha))"; options...)
