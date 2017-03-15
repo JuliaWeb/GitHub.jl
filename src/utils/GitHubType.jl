@@ -64,7 +64,7 @@ function extract_nullable{T}(data::Dict, key, ::Type{T})
 end
 
 prune_github_value{T}(val, ::Type{T}) = T(val)
-prune_github_value(val, ::Type{Dates.DateTime}) = Dates.DateTime(chopz(val))
+prune_github_value(val::AbstractString, ::Type{Dates.DateTime}) = Dates.DateTime(chopz(val))
 
 # ISO 8601 allows for a trailing 'Z' to indicate that the given time is UTC.
 # Julia's Dates.DateTime constructor doesn't support this, but GitHub's time
