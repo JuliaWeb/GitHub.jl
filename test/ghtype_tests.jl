@@ -534,12 +534,6 @@ hook_json = JSON.parse("""
     "name": "web",
     "events": ["push", "pull_request"],
     "active": true,
-    "config": {
-      "content_type": "json",
-      "secret": "********",
-      "url": "http://webhook.com:1234/",
-      "insecure_ssl": "0"
-    },
     "updated_at": "2017-03-14T14:03:16Z",
     "created_at": "2017-03-14T14:03:16Z"
   }
@@ -551,9 +545,9 @@ hook_result = Webhook(
     Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["test_url"])),
     Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["ping_url"])),
     Nullable{GitHubString}(hook_json["name"]),
-    Nullable{Array{GitHubString}}(hook_json["events"]),
+    Nullable{Array{GitHubString}}(map(GitHubString, hook_json["events"])),
     Nullable{Bool}(hook_json["active"]),
-    Nullable{Dict{GitHubString, GitHubString}}(hook_json["config"]),
+    Nullable{Dict{GitHubString, GitHubString}}(),
     Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))),
     Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))))
 
