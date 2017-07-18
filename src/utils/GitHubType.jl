@@ -16,9 +16,9 @@
 # - A GitHubType's field types should be Nullables of either concrete types, a
 #   Vectors of concrete types, or Dicts.
 
-abstract GitHubType
+@compat abstract type GitHubType end
 
-typealias GitHubString Compat.UTF8String
+const GitHubString = Compat.UTF8String
 
 function @compat(Base.:(==))(a::GitHubType, b::GitHubType)
     if typeof(a) != typeof(b)

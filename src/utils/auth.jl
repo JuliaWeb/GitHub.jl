@@ -2,7 +2,7 @@
 # Authorization Types #
 #######################
 
-abstract Authorization
+@compat abstract type Authorization end
 
 immutable OAuth2 <: Authorization
     token::GitHubString

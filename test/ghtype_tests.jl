@@ -13,12 +13,12 @@ function test_show(g::GitHub.GitHubType)
     show(tmpio, g)
 
     # basically trivial, but proves that things aren't completely broken
-    @test repr(g) == takebuf_string(tmpio)
+    @test repr(g) == String(take!(tmpio))
 
     tmpio = IOBuffer()
     showcompact(tmpio, g)
 
-    @test "$(typeof(g))($(repr(name(g))))" == takebuf_string(tmpio)
+    @test "$(typeof(g))($(repr(name(g))))" == String(take!(tmpio))
 end
 
 #########
