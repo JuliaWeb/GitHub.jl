@@ -3,14 +3,14 @@
 ################
 
 type Content <: GitHubType
-    typ::Nullable{GitHubString}
-    filename::Nullable{GitHubString}
-    name::Nullable{GitHubString}
-    path::Nullable{GitHubString}
-    target::Nullable{GitHubString}
-    encoding::Nullable{GitHubString}
-    content::Nullable{GitHubString}
-    sha::Nullable{GitHubString}
+    typ::Nullable{String}
+    filename::Nullable{String}
+    name::Nullable{String}
+    path::Nullable{String}
+    target::Nullable{String}
+    encoding::Nullable{String}
+    content::Nullable{String}
+    sha::Nullable{String}
     url::Nullable{HttpCommon.URI}
     git_url::Nullable{HttpCommon.URI}
     html_url::Nullable{HttpCommon.URI}

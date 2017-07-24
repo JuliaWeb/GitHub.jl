@@ -12,10 +12,10 @@ type PullRequest <: GitHubType
     additions::Nullable{Int}
     deletions::Nullable{Int}
     changed_files::Nullable{Int}
-    state::Nullable{GitHubString}
-    title::Nullable{GitHubString}
-    body::Nullable{GitHubString}
-    merge_commit_sha::Nullable{GitHubString}
+    state::Nullable{String}
+    title::Nullable{String}
+    body::Nullable{String}
+    merge_commit_sha::Nullable{String}
     created_at::Nullable{Dates.DateTime}
     updated_at::Nullable{Dates.DateTime}
     closed_at::Nullable{Dates.DateTime}

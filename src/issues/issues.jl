@@ -6,9 +6,9 @@ type Issue <: GitHubType
     id::Nullable{Int}
     number::Nullable{Int}
     comments::Nullable{Int}
-    title::Nullable{GitHubString}
-    state::Nullable{GitHubString}
-    body::Nullable{GitHubString}
+    title::Nullable{String}
+    state::Nullable{String}
+    body::Nullable{String}
     user::Nullable{Owner}
     assignee::Nullable{Owner}
     closed_by::Nullable{Owner}

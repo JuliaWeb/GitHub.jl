@@ -5,10 +5,10 @@
 type Status <: GitHubType
     id::Nullable{Int}
     total_count::Nullable{Int}
-    state::Nullable{GitHubString}
-    description::Nullable{GitHubString}
-    context::Nullable{GitHubString}
-    sha::Nullable{GitHubString}
+    state::Nullable{String}
+    description::Nullable{String}
+    context::Nullable{String}
+    sha::Nullable{String}
     url::Nullable{HttpCommon.URI}
     target_url::Nullable{HttpCommon.URI}
     created_at::Nullable{Dates.DateTime}

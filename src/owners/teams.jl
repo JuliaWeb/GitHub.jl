@@ -1,9 +1,9 @@
 type Team <: GitHubType
-    name::Nullable{GitHubString}
-    description::Nullable{GitHubString}
-    privacy::Nullable{GitHubString}
-    permission::Nullable{GitHubString}
-    slug::Nullable{GitHubString}
+    name::Nullable{String}
+    description::Nullable{String}
+    privacy::Nullable{String}
+    permission::Nullable{String}
+    slug::Nullable{String}
     id::Nullable{Int}
 end
 

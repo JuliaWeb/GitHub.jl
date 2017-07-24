@@ -3,11 +3,11 @@
 #############
 
 type Repo <: GitHubType
-    name::Nullable{GitHubString}
-    full_name::Nullable{GitHubString}
-    description::Nullable{GitHubString}
-    language::Nullable{GitHubString}
-    default_branch::Nullable{GitHubString}
+    name::Nullable{String}
+    full_name::Nullable{String}
+    description::Nullable{String}
+    language::Nullable{String}
+    default_branch::Nullable{String}
     owner::Nullable{Owner}
     parent::Nullable{Repo}
     source::Nullable{Repo}

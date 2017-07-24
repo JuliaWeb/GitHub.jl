@@ -1,5 +1,5 @@
 import JSON
-using GitHub, GitHub.name, GitHub.GitHubString, GitHub.Branch
+using GitHub, GitHub.name, GitHub.Branch
 using Base.Test
 
 # This file tests various GitHubType constructors. To test for proper Nullable
@@ -39,14 +39,14 @@ owner_json = JSON.parse(
 )
 
 owner_result = Owner(
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(GitHubString(owner_json["login"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(String(owner_json["login"])),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
     Nullable{Int}(Int(owner_json["id"])),
     Nullable{Int}(),
     Nullable{Int}(),
@@ -101,11 +101,11 @@ repo_json = JSON.parse(
 )
 
 repo_result = Repo(
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(GitHubString(repo_json["full_name"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
+    Nullable{String}(),
+    Nullable{String}(String(repo_json["full_name"])),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
     Nullable{Owner}(Owner(repo_json["owner"])),
     Nullable{Repo}(Repo(repo_json["parent"])),
     Nullable{Repo}(),
@@ -178,8 +178,8 @@ commit_json = JSON.parse(
 )
 
 commit_result = Commit(
-    Nullable{GitHubString}(GitHubString(commit_json["sha"])),
-    Nullable{GitHubString}(),
+    Nullable{String}(String(commit_json["sha"])),
+    Nullable{String}(),
     Nullable{Owner}(Owner(commit_json["author"])),
     Nullable{Owner}(),
     Nullable{Commit}(Commit(commit_json["commit"])),
@@ -228,10 +228,10 @@ branch_json = JSON.parse(
 )
 
 branch_result = Branch(
-    Nullable{GitHubString}(GitHubString(branch_json["name"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
+    Nullable{String}(String(branch_json["name"])),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
     Nullable{Commit}(Commit(branch_json["commit"])),
     Nullable{Owner}(Owner(branch_json["user"])),
     Nullable{Repo}(Repo(branch_json["repo"])),
@@ -265,11 +265,11 @@ comment_json = JSON.parse(
 )
 
 comment_result = Comment(
-    Nullable{GitHubString}(GitHubString(comment_json["body"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
+    Nullable{String}(String(comment_json["body"])),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
     Nullable{Int}(Int(comment_json["id"])),
     Nullable{Int}(),
     Nullable{Int}(),
@@ -306,14 +306,14 @@ content_json = JSON.parse(
 )
 
 content_result = Content(
-    Nullable{GitHubString}(GitHubString(content_json["type"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(GitHubString(content_json["path"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
+    Nullable{String}(String(content_json["type"])),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(String(content_json["path"])),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(),
     Nullable{HttpCommon.URI}(HttpCommon.URI(content_json["url"])),
     Nullable{HttpCommon.URI}(),
     Nullable{HttpCommon.URI}(),
@@ -357,10 +357,10 @@ status_json = JSON.parse(
 status_result = Status(
     Nullable{Int}(Int(status_json["id"])),
     Nullable{Int}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(GitHubString(status_json["description"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
+    Nullable{String}(),
+    Nullable{String}(String(status_json["description"])),
+    Nullable{String}(),
+    Nullable{String}(),
     Nullable{HttpCommon.URI}(HttpCommon.URI(status_json["url"])),
     Nullable{HttpCommon.URI}(),
     Nullable{Dates.DateTime}(Dates.DateTime(chop(status_json["created_at"]))),
@@ -414,10 +414,10 @@ pr_result = PullRequest(
     Nullable{Int}(),
     Nullable{Int}(),
     Nullable{Int}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(GitHubString(pr_json["body"])),
-    Nullable{GitHubString}(),
+    Nullable{String}(),
+    Nullable{String}(),
+    Nullable{String}(String(pr_json["body"])),
+    Nullable{String}(),
     Nullable{Dates.DateTime}(Dates.DateTime(chop(pr_json["created_at"]))),
     Nullable{Dates.DateTime}(),
     Nullable{Dates.DateTime}(),
@@ -475,9 +475,9 @@ issue_result = Issue(
     Nullable{Int}(),
     Nullable{Int}(Int(issue_json["number"])),
     Nullable{Int}(),
-    Nullable{GitHubString}(GitHubString(issue_json["title"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
+    Nullable{String}(String(issue_json["title"])),
+    Nullable{String}(),
+    Nullable{String}(),
     Nullable{Owner}(Owner(issue_json["user"])),
     Nullable{Owner}(),
     Nullable{Owner}(),
@@ -520,11 +520,11 @@ team_json = JSON.parse("""
 """)
 
 team_result = Team(
-     Nullable{GitHubString}(team_json["name"]),
-     Nullable{GitHubString}(team_json["description"]),
-     Nullable{GitHubString}(team_json["privacy"]),
-     Nullable{GitHubString}(team_json["permission"]),
-     Nullable{GitHubString}(team_json["slug"]),
+     Nullable{String}(team_json["name"]),
+     Nullable{String}(team_json["description"]),
+     Nullable{String}(team_json["privacy"]),
+     Nullable{String}(team_json["permission"]),
+     Nullable{String}(team_json["slug"]),
      Nullable{Int}(Int(team_json["id"])))
 
 @test name(team_result) == Int(team_json["id"])

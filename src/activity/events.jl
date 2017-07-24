@@ -3,7 +3,7 @@
 #####################
 
 type WebhookEvent
-    kind::GitHubString
+    kind::String
     payload::Dict
     repository::Repo
     sender::Owner

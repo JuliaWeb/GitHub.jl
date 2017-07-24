@@ -3,11 +3,11 @@
 ################
 
 type Comment <: GitHubType
-    body::Nullable{GitHubString}
-    path::Nullable{GitHubString}
-    diff_hunk::Nullable{GitHubString}
-    original_commit_id::Nullable{GitHubString}
-    commit_id::Nullable{GitHubString}
+    body::Nullable{String}
+    path::Nullable{String}
+    diff_hunk::Nullable{String}
+    original_commit_id::Nullable{String}
+    commit_id::Nullable{String}
     id::Nullable{Int}
     original_position::Nullable{Int}
     position::Nullable{Int}

@@ -3,14 +3,14 @@
 ##############
 
 type Owner <: GitHubType
-    typ::Nullable{GitHubString}
-    email::Nullable{GitHubString}
-    name::Nullable{GitHubString}
-    login::Nullable{GitHubString}
-    bio::Nullable{GitHubString}
-    company::Nullable{GitHubString}
-    location::Nullable{GitHubString}
-    gravatar_id::Nullable{GitHubString}
+    typ::Nullable{String}
+    email::Nullable{String}
+    name::Nullable{String}
+    login::Nullable{String}
+    bio::Nullable{String}
+    company::Nullable{String}
+    location::Nullable{String}
+    gravatar_id::Nullable{String}
     id::Nullable{Int}
     public_repos::Nullable{Int}
     owned_private_repos::Nullable{Int}
@@ -91,7 +91,7 @@ end
 
 function pubkeys(owner; options...)
     results, page_data = gh_get_paged_json("/users/$(name(owner))/keys"; options...)
-    output = Dict{Int,GitHubString}([(key["id"], key["key"]) for key in results])
+    output = Dict{Int,String}([(key["id"], key["key"]) for key in results])
     return output, page_data
 end
 
