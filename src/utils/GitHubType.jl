@@ -18,8 +18,6 @@
 
 @compat abstract type GitHubType end
 
-const GitHubString = Compat.UTF8String
-
 function @compat(Base.:(==))(a::GitHubType, b::GitHubType)
     if typeof(a) != typeof(b)
         return false

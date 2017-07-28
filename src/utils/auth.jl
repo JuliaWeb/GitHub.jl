@@ -5,7 +5,7 @@
 @compat abstract type Authorization end
 
 immutable OAuth2 <: Authorization
-    token::GitHubString
+    token::String
 end
 
 immutable AnonymousAuth <: Authorization end

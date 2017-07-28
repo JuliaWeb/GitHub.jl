@@ -3,8 +3,8 @@
 ###############
 
 type Commit <: GitHubType
-    sha::Nullable{GitHubString}
-    message::Nullable{GitHubString}
+    sha::Nullable{String}
+    message::Nullable{String}
     author::Nullable{Owner}
     committer::Nullable{Owner}
     commit::Nullable{Commit}

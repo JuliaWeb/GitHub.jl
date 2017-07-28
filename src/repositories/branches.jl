@@ -3,10 +3,10 @@
 ###############
 
 type Branch <: GitHubType
-    name::Nullable{GitHubString}
-    label::Nullable{GitHubString}
-    ref::Nullable{GitHubString}
-    sha::Nullable{GitHubString}
+    name::Nullable{String}
+    label::Nullable{String}
+    ref::Nullable{String}
+    sha::Nullable{String}
     commit::Nullable{Commit}
     user::Nullable{Owner}
     repo::Nullable{Repo}
