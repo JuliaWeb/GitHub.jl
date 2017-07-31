@@ -130,7 +130,8 @@ include("issues/comments.jl")
 export # pull_requests.jl
        PullRequest,
        pull_requests,
-       pull_request
+       pull_request,
+       create_pull_request
 
 export # issues.jl
        Issue,
@@ -174,5 +175,19 @@ export # events/events.jl
 export # events/listeners.jl
        EventListener,
        CommentListener
+
+############
+# Apps     #
+############
+
+# include -------
+
+include("apps/installations.jl")
+
+# export -------
+
+export # installations.jl
+       Installation,
+       create_access_token
 
 end # module GitHub
