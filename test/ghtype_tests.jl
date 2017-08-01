@@ -450,76 +450,66 @@ end
       "closed_at": null,
       "created_at": "2011-04-22T13:33:48Z"
     }
-  ],
-  "pull_request": {
-    "url": "https://api.github.com/repos/octocat/Hello-World/pulls/1347",
-    "html_url": "https://github.com/octocat/Hello-World/pull/1347"
-  },
-  "locked": false,
-  "closed_at": null,
-  "created_at": "2011-04-22T13:33:48Z"
-}
-"""
-)
+    """
+    )
 
-issue_result = Issue(
-    Nullable{Int}(),
-    Nullable{Int}(Int(issue_json["number"])),
-    Nullable{Int}(),
-    Nullable{GitHubString}(GitHubString(issue_json["title"])),
-    Nullable{GitHubString}(),
-    Nullable{GitHubString}(),
-    Nullable{Owner}(Owner(issue_json["user"])),
-    Nullable{Owner}(),
-    Nullable{Owner}(),
-    Nullable{Dates.DateTime}(Dates.DateTime(chop(issue_json["created_at"]))),
-    Nullable{Dates.DateTime}(),
-    Nullable{Dates.DateTime}(),
-    Nullable{Vector{Dict}}(Vector{Dict}(issue_json["labels"])),
-    Nullable{Dict}(),
-    Nullable{PullRequest}(PullRequest(issue_json["pull_request"])),
-    Nullable{HttpCommon.URI}(HttpCommon.URI(issue_json["url"])),
-    Nullable{HttpCommon.URI}(),
-    Nullable{HttpCommon.URI}(),
-    Nullable{HttpCommon.URI}(),
-    Nullable{HttpCommon.URI}(),
-    Nullable{Bool}(Bool(issue_json["locked"]))
-)
+    issue_result = Issue(
+        Nullable{Int}(),
+        Nullable{Int}(Int(issue_json["number"])),
+        Nullable{Int}(),
+        Nullable{String}(String(issue_json["title"])),
+        Nullable{String}(),
+        Nullable{String}(),
+        Nullable{Owner}(Owner(issue_json["user"])),
+        Nullable{Owner}(),
+        Nullable{Owner}(),
+        Nullable{Dates.DateTime}(Dates.DateTime(chop(issue_json["created_at"]))),
+        Nullable{Dates.DateTime}(),
+        Nullable{Dates.DateTime}(),
+        Nullable{Vector{Dict}}(Vector{Dict}(issue_json["labels"])),
+        Nullable{Dict}(),
+        Nullable{PullRequest}(PullRequest(issue_json["pull_request"])),
+        Nullable{HttpCommon.URI}(HttpCommon.URI(issue_json["url"])),
+        Nullable{HttpCommon.URI}(),
+        Nullable{HttpCommon.URI}(),
+        Nullable{HttpCommon.URI}(),
+        Nullable{HttpCommon.URI}(),
+        Nullable{Bool}(Bool(issue_json["locked"]))
+    )
 
-@test Issue(issue_json) == issue_result
-@test name(Issue(issue_json["number"])) == name(issue_result)
-@test setindex!(GitHub.github2json(issue_result), nothing, "closed_at") == issue_json
+    @test Issue(issue_json) == issue_result
+    @test name(Issue(issue_json["number"])) == name(issue_result)
+    @test setindex!(GitHub.github2json(issue_result), nothing, "closed_at") == issue_json
 
-test_show(issue_result)
+    test_show(issue_result)
+end
 
-########
-# Team #
-########
+@testset "Team" begin
+    team_json = JSON.parse("""
+      {
+        "id": 1,
+        "url": "https://api.github.com/teams/1",
+        "name": "Justice League",
+        "slug": "justice-league",
+        "description": "A great team.",
+        "privacy": "closed",
+        "permission": "admin",
+        "members_url": "https://api.github.com/teams/1/members{/member}",
+        "repositories_url": "https://api.github.com/teams/1/repos"
+      }
+    """)
 
-team_json = JSON.parse("""
-  {
-    "id": 1,
-    "url": "https://api.github.com/teams/1",
-    "name": "Justice League",
-    "slug": "justice-league",
-    "description": "A great team.",
-    "privacy": "closed",
-    "permission": "admin",
-    "members_url": "https://api.github.com/teams/1/members{/member}",
-    "repositories_url": "https://api.github.com/teams/1/repos"
-  }
-""")
+    team_result = Team(
+        Nullable{String}(team_json["name"]),
+        Nullable{String}(team_json["description"]),
+        Nullable{String}(team_json["privacy"]),
+        Nullable{String}(team_json["permission"]),
+        Nullable{String}(team_json["slug"]),
+        Nullable{Int}(Int(team_json["id"])))
 
-team_result = Team(
-     Nullable{GitHubString}(team_json["name"]),
-     Nullable{GitHubString}(team_json["description"]),
-     Nullable{GitHubString}(team_json["privacy"]),
-     Nullable{GitHubString}(team_json["permission"]),
-     Nullable{GitHubString}(team_json["slug"]),
-     Nullable{Int}(Int(team_json["id"])))
-
-@test name(team_result) == Int(team_json["id"])
-test_show(team_result)
+    @test name(team_result) == Int(team_json["id"])
+    test_show(team_result)
+end
 
 ###########
 # Webhook #
