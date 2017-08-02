@@ -229,7 +229,7 @@ julia> prs # 3 items per page * 2 page limit == 6 items, as expected
  GitHub.PullRequest(38)
 
 julia> page_data
-Dict{UTF8String,UTF8String} with 4 entries:
+Dict{String,String} with 4 entries:
   "prev"  => "https://api.github.com/repositories/16635105/pulls?page=2&per_page=3&state=all"
   "next"  => "https://api.github.com/repositories/16635105/pulls?page=4&per_page=3&state=all"
   "first" => "https://api.github.com/repositories/16635105/pulls?page=1&per_page=3&state=all"
@@ -256,7 +256,7 @@ julia> prs2
  GitHub.PullRequest(22)
 
 julia> page_data2
-Dict{UTF8String,UTF8String} with 4 entries:
+Dict{String,String} with 4 entries:
   "prev"  => "https://api.github.com/repositories/16635105/pulls?page=4&per_page=3&state=all"
   "next"  => "https://api.github.com/repositories/16635105/pulls?page=6&per_page=3&state=all"
   "first" => "https://api.github.com/repositories/16635105/pulls?page=1&per_page=3&state=all"
