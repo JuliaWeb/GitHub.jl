@@ -22,14 +22,14 @@ function base64_to_base64url(string)
     replace(replace(replace(string, "=", ""), '+', '-'), '/', '_')
 end
 
-function JWTAuth(app_id::Int, priv_key::String; exp_mins = 1)
+function JWTAuth(app_id::Int, priv_key::String; iat = now(Dates.UTC), exp_mins = 1)
     algo = base64_to_base64url(base64encode(JSON.json(Dict(
         "alg" => "RS256",
         "typ" => "JWT"
     ))))
     data = base64_to_base64url(base64encode(JSON.json(Dict(
-        "iat" => trunc(Int64, Dates.datetime2unix(now(Dates.UTC))),
-        "exp" => trunc(Int64, Dates.datetime2unix(now(Dates.UTC)))+exp_mins*60,
+        "iat" => trunc(Int64, Dates.datetime2unix(iat)),
+        "exp" => trunc(Int64, Dates.datetime2unix(iat+Dates.Minute(exp_mins))),
         "iss" => app_id
     ))))
     entropy = MbedTLS.Entropy()
