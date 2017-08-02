@@ -205,6 +205,41 @@ As you can see, you can propagate the identity/permissions of the `myauth` token
 
 Note that if authentication is not provided, they'll be subject to the restrictions GitHub imposes on unauthenticated requests (such as [stricter rate limiting](https://developer.github.com/v3/#rate-limiting))
 
+### Authenticating as a GitHub app
+
+GitHub apps (formerly called integrations) have [their own authentication format](https://developer.github.com/apps/building-integrations/setting-up-and-registering-github-apps/about-authentication-options-for-github-apps/)
+based on [JSON Web Tokens](jwt.io). When creating a GitHub app, you will be
+prompted to download your app's private key. You can use this private key to
+authenticate as a Github App using the `JWTAuth` type:
+```
+appauth = JWTAuth(1234, "privkey.pem") # Replace with your app id/privkey file
+```
+
+The following shows a complete example that opens an issue on every repository
+on which your application gets installed:
+
+```
+listener = GitHub.EventListener() do event
+    # On installation, open an issue on every repository we got installed in
+    if event.kind == "installation"
+        # Authenticate as the application
+        appauth = GitHub.JWTAuth(1234, "privkey.pem")
+        # Now, get permissions for this particular installation
+        installation = Installation(event.payload["installation"])
+        auth = create_access_token(installation, appauth)
+        for repo in event.payload["repositories"]
+            create_issue(GitHub.Repo(repo), auth=auth,
+                params = Dict(
+                    :title => "Hello World",
+                    :body => "Thank you for installing me - I needed that"
+            ))
+        end
+    end
+    return HttpCommon.Response(200)
+end
+GitHub.run(listener, host=IPv4(0,0,0,0), port=8888)
+```
+
 ## Pagination
 
 GitHub will often [paginate](https://developer.github.com/v3/#pagination) results for requests that return multiple items. On the GitHub.jl side of things, it's pretty easy to see which methods return paginated results by referring to the [REST Methods documentation](#rest-methods); if a method returns a `Tuple{Vector{T}, Dict}`, that means its results are paginated.
