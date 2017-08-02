@@ -50,3 +50,8 @@ function pull_request(repo, pr; options...)
     result = gh_get_json("/repos/$(name(repo))/pulls/$(name(pr))"; options...)
     return PullRequest(result)
 end
+
+function create_pull_request(repo; options...)
+    result = gh_post_json("/repos/$(name(repo))/pulls"; options...)
+    return PullRequest(result)
+end
