@@ -12,7 +12,9 @@ end
 function event_from_payload!(kind, data::Dict)
     if haskey(data, "repository")
         repository = Repo(data["repository"])
-    elseif kind == "membership"
+    elseif kind == "membership" ||
+           kind == "integration_installation" ||
+           kind == "installation"
         repository = Repo("")
     else
         error("event payload is missing repository field")
@@ -76,7 +78,9 @@ immutable EventListener
                                      secret = secret, events = events,
                                      repos = repos, forwards = forwards)
             catch err
-                println("SERVER ERROR: $err")
+                bt = catch_backtrace()
+                print(STDERR, "SERVER ERROR: ")
+                Base.showerror(STDERR, err, bt)
                 return HttpCommon.Response(500)
             end
         end

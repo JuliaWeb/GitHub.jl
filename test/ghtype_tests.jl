@@ -510,3 +510,56 @@ end
     @test name(team_result) == Int(team_json["id"])
     test_show(team_result)
 end
+
+@testset "Installation" begin
+    # This is the format of an installation in the "installation event"
+    installation_json = JSON.parse("""
+      {
+        "id": 42926,
+        "account": {
+          "login": "Keno",
+          "id": 1291671,
+          "avatar_url": "https://avatars1.githubusercontent.com/u/1291671?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/Keno",
+          "html_url": "https://github.com/Keno",
+          "followers_url": "https://api.github.com/users/Keno/followers",
+          "following_url": "https://api.github.com/users/Keno/following{/other_user}",
+          "gists_url": "https://api.github.com/users/Keno/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/Keno/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/Keno/subscriptions",
+          "organizations_url": "https://api.github.com/users/Keno/orgs",
+          "repos_url": "https://api.github.com/users/Keno/repos",
+          "events_url": "https://api.github.com/users/Keno/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/Keno/received_events",
+          "type": "User",
+          "site_admin": false
+        },
+        "repository_selection": "selected",
+        "access_tokens_url": "https://api.github.com/installations/42926/access_tokens",
+        "repositories_url": "https://api.github.com/installation/repositories",
+        "html_url": "https://github.com/settings/installations/42926",
+        "app_id": 4123,
+        "target_id": 1291671,
+        "target_type": "User",
+        "permissions": {
+          "contents": "read",
+          "metadata": "read",
+          "pull_requests": "read"
+        },
+        "events": [
+          "commit_comment",
+          "pull_request",
+          "push",
+          "release"
+        ],
+        "created_at": 1501449845,
+        "updated_at": 1501449845,
+        "single_file_name": null
+      }
+    """)
+
+    installation_result = Installation(installation_json)
+
+    @test name(installation_result) == Int(installation_json["id"])
+end
