@@ -148,6 +148,30 @@ export # comments.jl
        edit_comment,
        delete_comment
 
+
+#########
+# Gists #
+#########
+
+# include -------
+
+include("gists/gist.jl")
+
+# export --------
+
+export # gist.jl
+       Gist,
+       gist,
+       gists,
+       create_gist,
+       edit_gist,
+       delete_gist,
+       star_gist,
+       unstar_gist,
+       starred_gists,
+       create_gist_fork,
+       gist_forks
+
 ############
 # Activity #
 ############

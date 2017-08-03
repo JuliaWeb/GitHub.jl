@@ -51,8 +51,8 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Status`      | id, e.g. `366961773`                                   | [commit statuses](https://developer.github.com/v3/repos/statuses/)                                                                                                                                            |
 | `PullRequest` | number, e.g. `44`                                      | [pull requests](https://developer.github.com/v3/pulls/)                                                                                                                                                       |
 | `Issue`       | number, e.g. `31`                                      | [issues](https://developer.github.com/v3/issues/)                                                                                                                                                             |
-| `Team`        | id, e.g. `1`                                       | [teams](https://developer.github.com/v3/orgs/teams)                                                                                                                                                             |
-
+| `Team`        | id, e.g. `1`                                           | [teams](https://developer.github.com/v3/orgs/teams)                                                                                                                                                           |
+| `Gist`        | id, e.g. `0bace7cc774df4b3a4b0ee9aaa271ef6`            | [gists](https://developer.github.com/v3/gists)                                                                                                                                                                |
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
 
@@ -155,6 +155,23 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `watch(repo)`                            | `HttpCommon.Response`              | [watch `repo`](https://developer.github.com/v3/activity/watching/#set-a-repository-subscription)                                                                                                            |
 | `unwatch(repo)`                          | `HttpCommon.Response`              | [unwatch `repo`](https://developer.github.com/v3/activity/watching/#delete-a-repository-subscription)                                                                                                       |
 
+#### Gists
+
+| method                                   | return type                        | documentation                                                                                                                                                                                               |
+|------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `gist(id)`                               | `Gist`                             | [get the gist specified by `id`](https://developer.github.com/v3/gists/#get-a-single-gist)                                                                                                                  |
+| `gist(id, revision)`                     | `Gist`                             | [get the gist specified by `id` and `revision`](https://developer.github.com/v3/gists/#get-a-specific-revision-of-a-gist)                                                                                   |
+| `gists()`                                | `Tuple{Vector{Gist}, Dict}`        | [get all public gists](https://developer.github.com/v3/gists/#list-all-public-gists)                                                                                                                        |
+| `gists(owner)`                           | `Tuple{Vector{Gist}, Dict}`        | [get all gists for `owner`](https://developer.github.com/v3/gists/#list-a-users-gists)                                                                                                                      |
+| `create_gist()`                          | `Gist`                             | [create a gist](https://developer.github.com/v3/gists/#create-a-gist)                                                                                                                                       |
+| `edit_gist(gist)`                        | `Gist`                             | [edit a gist](https://developer.github.com/v3/gists/#edit-a-gist)                                                                                                                                           |
+| `delete_gist(gist)`                      | `HttpCommon.Response`              | [delete a gist](https://developer.github.com/v3/gists/#delete-a-gist)                                                                                                                                       |
+| `create_gist_fork(gist)`                 | `Gist`                             | [fork a gist](https://developer.github.com/v3/gists/#fork-a-gist)                                                                                                                                           |
+| `gist_forks(gist)`                       | `Tuple{Vector{Gist}, Dict}`        | [list the forks of a gist](https://developer.github.com/v3/gists/#list-gist-forks)                                                                                                                          |
+| `star_gist(gist)`                        | `HttpCommon.Response`              | [star `gist`](https://developer.github.com/v3/gists/#star-a-gist)                                                                                                                                           |
+| `starred_gists()`                        | `Tuple{Vector{Gist}, Dict}`        | [get the starred `gist`s](https://developer.github.com/v3/gists/#list-starred-gists)                                                                                                                        |
+| `unstar_gist(gist)`                      | `HttpCommon.Response`              | [unstar `gist`](https://developer.github.com/v3/gists/#unstar-a-gist)                                                                                                                                       |
+
 #### Miscellaneous
 
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
@@ -247,7 +264,7 @@ julia> prs # 3 items per page * 2 page limit == 6 items, as expected
  GitHub.PullRequest(38)
 
 julia> page_data
-Dict{UTF8String,UTF8String} with 4 entries:
+Dict{String,String} with 4 entries:
   "prev"  => "https://api.github.com/repositories/16635105/pulls?page=2&per_page=3&state=all"
   "next"  => "https://api.github.com/repositories/16635105/pulls?page=4&per_page=3&state=all"
   "first" => "https://api.github.com/repositories/16635105/pulls?page=1&per_page=3&state=all"
@@ -274,7 +291,7 @@ julia> prs2
  GitHub.PullRequest(22)
 
 julia> page_data2
-Dict{UTF8String,UTF8String} with 4 entries:
+Dict{String,String} with 4 entries:
   "prev"  => "https://api.github.com/repositories/16635105/pulls?page=4&per_page=3&state=all"
   "next"  => "https://api.github.com/repositories/16635105/pulls?page=6&per_page=3&state=all"
   "first" => "https://api.github.com/repositories/16635105/pulls?page=1&per_page=3&state=all"
