@@ -124,6 +124,7 @@ export # statuses.jl
 include("issues/pull_requests.jl")
 include("issues/issues.jl")
 include("issues/comments.jl")
+include("issues/reviews.jl")
 
 # export -------
 
@@ -131,7 +132,8 @@ export # pull_requests.jl
        PullRequest,
        pull_requests,
        pull_request,
-       create_pull_request
+       create_pull_request,
+       Review
 
 export # issues.jl
        Issue,
@@ -147,6 +149,12 @@ export # comments.jl
        create_comment,
        edit_comment,
        delete_comment
+       
+export # reviews.jl
+       Review,
+       reviews,
+       reply_to,
+       dismiss_review
 
 
 #########

@@ -14,7 +14,9 @@ function event_from_payload!(kind, data::Dict)
         repository = Repo(data["repository"])
     elseif kind == "membership" ||
            kind == "integration_installation" ||
-           kind == "installation"
+           kind == "installation" ||
+           kind == "installation_repositories" ||
+           kind == "integration_installation_repositories"
         repository = Repo("")
     else
         error("event payload is missing repository field")
