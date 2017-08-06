@@ -678,3 +678,33 @@ end
 
     @test name(installation_result) == Int(installation_json["id"])
 end
+
+@testset "Apps" begin
+    app_json = JSON.parse("""
+      {
+        "id": 1,
+        "owner": {
+          "login": "github",
+          "id": 1,
+          "url": "https://api.github.com/orgs/github",
+          "repos_url": "https://api.github.com/orgs/github/repos",
+          "events_url": "https://api.github.com/orgs/github/events",
+          "hooks_url": "https://api.github.com/orgs/github/hooks",
+          "issues_url": "https://api.github.com/orgs/github/issues",
+          "members_url": "https://api.github.com/orgs/github/members{/member}",
+          "public_members_url": "https://api.github.com/orgs/github/public_members{/member}",
+          "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+          "description": "A great organization"
+        },
+        "name": "Super CI",
+        "description": "",
+        "external_url": "https://example.com",
+        "html_url": "https://github.com/apps/super-ci",
+        "created_at": "2017-07-08T16:18:44",
+        "updated_at": "2017-07-08T16:18:44"
+      }
+    """)
+    
+    app_result = App(app_json)
+    @test name(app_result) == Int(app_json["id"])
+end

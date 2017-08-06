@@ -130,3 +130,8 @@ end
     @test hasghobj(testuser, first(watchers(ghjl; auth = auth)))
     @test hasghobj(ghjl, first(watched(testuser; auth = auth)))
 end
+
+@testset "Apps" begin
+    @test get(app(4123).name) == "femtocleaner"
+    @test get(app("femtocleaner").name) == "femtocleaner"
+end

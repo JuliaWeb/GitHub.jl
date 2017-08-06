@@ -172,6 +172,14 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `starred_gists()`                        | `Tuple{Vector{Gist}, Dict}`        | [get the starred `gist`s](https://developer.github.com/v3/gists/#list-starred-gists)                                                                                                                        |
 | `unstar_gist(gist)`                      | `HttpCommon.Response`              | [unstar `gist`](https://developer.github.com/v3/gists/#unstar-a-gist)                                                                                                                                       |
 
+#### GitHub Apps
+
+| method                                   | return type                        | documentation                                                                                                                                                                                               |
+|------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `app(id)`                               | `App`                             | [get the GitHub app with the specified `id`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
+| `app(slug)`                               | `App`                             | [get the GitHub app with the specified `slug`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
+| `app(;auth=auth)`                               | `App`                     | [get the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#get-the-authenticated-github-app)   |
+
 #### Miscellaneous
 
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
