@@ -206,9 +206,14 @@ export # events/listeners.jl
 
 # include -------
 
+include("apps/apps.jl")
 include("apps/installations.jl")
 
 # export -------
+
+export # apps.jl
+       App,
+       app
 
 export # installations.jl
        Installation,
