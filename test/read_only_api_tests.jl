@@ -132,6 +132,6 @@ end
 end
 
 @testset "Apps" begin
-    @test get(app(4123).name) == "femtocleaner"
-    @test get(app("femtocleaner").name) == "femtocleaner"
+    @test get(app(4123; auth=auth).name) == "femtocleaner"
+    @test get(app("femtocleaner"; auth=auth).name) == "femtocleaner"
 end
