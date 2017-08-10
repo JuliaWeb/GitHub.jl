@@ -27,7 +27,6 @@ function comments(repo, rev::Review; options...)
 end
 
 function reply_to(repo, r::Review, c::Comment, body; options...)
-    @show (repo, r, c)
     create_comment(repo, get(r.pr), :review; params = Dict(
         :body => body,
         :in_reply_to => get(c.id)
