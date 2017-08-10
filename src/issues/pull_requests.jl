@@ -41,23 +41,23 @@ namefield(pr::PullRequest) = pr.number
 # API Methods #
 ###############
 
-function pull_requests(repo; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/pulls"; options...)
+@api_default function pull_requests(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/pulls"; options...)
     return map(PullRequest, results), page_data
 end
 
-function pull_request(repo, pr; options...)
-    result = gh_get_json("/repos/$(name(repo))/pulls/$(name(pr))"; options...)
+@api_default function pull_request(api::GitHubAPI, repo, pr; options...)
+    result = gh_get_json(api, "/repos/$(name(repo))/pulls/$(name(pr))"; options...)
     return PullRequest(result)
 end
 
-function create_pull_request(repo; options...)
-    result = gh_post_json("/repos/$(name(repo))/pulls"; options...)
+@api_default function create_pull_request(api::GitHubAPI, repo; options...)
+    result = gh_post_json(api, "/repos/$(name(repo))/pulls"; options...)
     return PullRequest(result)
 end
 
-function create_comment(repo, pr::PullRequest, body::AbstractString; options...)
-    create_comment(repo, pr, :pr; params = Dict(
+@api_default function create_comment(api::GitHubAPI, repo, pr::PullRequest, body::AbstractString; options...)
+    create_comment(api, repo, pr, :pr; params = Dict(
         :body => body
     ), options...)
 end

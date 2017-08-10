@@ -32,48 +32,48 @@ namefield(gist::Gist) = gist.id
 # creating #
 #----------#
 
-gist(gist_obj::Gist; options...) = gist(name(gist_obj); options...)
+@api_default gist(gist_obj::Gist; options...) = gist(api::GitHubAPI, name(gist_obj); options...)
 
-function gist(gist_obj, sha = ""; options...)
+@api_default function gist(api::GitHubAPI, gist_obj, sha = ""; options...)
     !isempty(sha) && (sha = "/" * sha)
-    result = gh_get_json("/gists/$(name(gist_obj))$sha"; options...)
+    result = gh_get_json(api, "/gists/$(name(gist_obj))$sha"; options...)
     g = Gist(result)
 end
 
-function gists(owner; options...)
-    results, page_data = gh_get_paged_json("/users/$(name(owner))/gists"; options...)
+@api_default function gists(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/gists"; options...)
     map(Gist, results), page_data
 end
 
-function gists(; options...) 
-    results, page_data = gh_get_paged_json("/gists/public"; options...)
+@api_default function gists(api::GitHubAPI; options...)
+    results, page_data = gh_get_paged_json(api, "/gists/public"; options...)
     return map(Gist, results), page_data
 end
 
 # modifying #
 #-----------#
 
-create_gist(; options...) = Gist(gh_post_json("/gists"; options...))
-edit_gist(gist; options...) = Gist(gh_patch_json("/gists/$(name(gist))"; options...))
-delete_gist(gist; options...) = gh_delete("/gists/$(name(gist))"; options...)
+@api_default create_gist(; options...) = Gist(gh_post_json(api, "/gists"; options...))
+@api_default edit_gist(api::GitHubAPI, gist; options...) = Gist(gh_patch_json(api, "/gists/$(name(gist))"; options...))
+@api_default delete_gist(api::GitHubAPI, gist; options...) = gh_delete(api, "/gists/$(name(gist))"; options...)
 
 # stars #
 #------#
 
-star_gist(gist; options...) = gh_put("/gists/$(name(gist))/star"; options...)
-unstar_gist(gist; options...) = gh_delete("/gists/$(name(gist))/star"; options...)
+@api_default star_gist(api::GitHubAPI, gist; options...) = gh_put(api, "/gists/$(name(gist))/star"; options...)
+@api_default unstar_gist(api::GitHubAPI, gist; options...) = gh_delete(api, "/gists/$(name(gist))/star"; options...)
 
-function starred_gists(; options...)
-    results, page_data = gh_get_paged_json("/gists/starred"; options...)
+@api_default function starred_gists(api::GitHubAPI; options...)
+    results, page_data = gh_get_paged_json(api, "/gists/starred"; options...)
     return map(Gist, results), page_data
 end
 
 # forks #
 #-------#
 
-create_gist_fork(gist::Gist; options...) = Gist(gh_post_json("/gists/$(name(gist))/forks"; options...))
+@api_default create_gist_fork(api::GitHubAPI, gist::Gist; options...) = Gist(gh_post_json(api, "/gists/$(name(gist))/forks"; options...))
 
-function gist_forks(gist; options...)
-    results, page_data = gh_get_paged_json("/gists/$(name(gist))/forks"; options...)
+@api_default function gist_forks(api::GitHubAPI, gist; options...)
+    results, page_data = gh_get_paged_json(api, "/gists/$(name(gist))/forks"; options...)
     return map(Gist, results), page_data
 end

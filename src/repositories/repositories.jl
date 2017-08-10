@@ -45,65 +45,65 @@ namefield(repo::Repo) = repo.full_name
 # repos #
 #-------#
 
-function repo(repo_obj; options...)
-    result = gh_get_json("/repos/$(name(repo_obj))"; options...)
+@api_default function repo(api::GitHubAPI, repo_obj; options...)
+    result = gh_get_json(api, "/repos/$(name(repo_obj))"; options...)
     return Repo(result)
 end
 
 # forks #
 #-------#
 
-function forks(repo; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/forks"; options...)
+@api_default function forks(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/forks"; options...)
     return map(Repo, results), page_data
 end
 
-function create_fork(repo; options...)
-    result = gh_post_json("/repos/$(name(repo))/forks"; options...)
+@api_default function create_fork(api::GitHubAPI, repo; options...)
+    result = gh_post_json(api, "/repos/$(name(repo))/forks"; options...)
     return Repo(result)
 end
 
 # contributors/collaborators #
 #----------------------------#
 
-function contributors(repo; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/contributors"; options...)
+@api_default function contributors(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/contributors"; options...)
     results = [Dict("contributor" => Owner(i), "contributions" => i["contributions"]) for i in results]
     return results, page_data
 end
 
-function collaborators(repo; options...)
-    results, page_data = gh_get_json("/repos/$(name(repo))/collaborators"; options...)
+@api_default function collaborators(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_json(api, "/repos/$(name(repo))/collaborators"; options...)
     return map(Owner, results), page_data
 end
 
-function iscollaborator(repo, user; options...)
+@api_default function iscollaborator(api::GitHubAPI, repo, user; options...)
     path = "/repos/$(name(repo))/collaborators/$(name(user))"
-    r = gh_get(path; handle_error = false, options...)
+    r = gh_get(api, path; handle_error = false, options...)
     r.status == 204 && return true
     r.status == 404 && return false
     handle_response_error(r)  # 404 is not an error in this case
     return false
 end
 
-function add_collaborator(repo, user; options...)
+@api_default function add_collaborator(api::GitHubAPI, repo, user; options...)
     path = "/repos/$(name(repo))/collaborators/$(name(user))"
-    return gh_put(path; options...)
+    return gh_put(api, path; options...)
 end
 
-function remove_collaborator(repo, user; options...)
+@api_default function remove_collaborator(api::GitHubAPI, repo, user; options...)
     path = "/repos/$(name(repo))/collaborators/$(name(user))"
-    return gh_delete(path; options...)
+    return gh_delete(api, path; options...)
 end
 
 # stats #
 #-------#
 
-function stats(repo, stat, attempts = 3; options...)
+@api_default function stats(api::GitHubAPI, repo, stat, attempts = 3; options...)
     path = "/repos/$(name(repo))/stats/$(name(stat))"
     local r
     for a in 1:attempts
-        r = gh_get(path; handle_error = false, options...)
+        r = gh_get(api, path; handle_error = false, options...)
         r.status == 200 && return r
         sleep(2.0)
     end

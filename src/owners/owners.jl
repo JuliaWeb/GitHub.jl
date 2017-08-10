@@ -43,21 +43,21 @@ typprefix(isorg) = isorg ? "orgs" : "users"
 
 isorg(owner::Owner) = get(owner.typ, "") == "Organization"
 
-owner(owner_obj::Owner; options...) = owner(name(owner_obj), isorg(owner_obj); options...)
+@api_default owner(api::GitHubAPI, owner_obj::Owner; options...) = owner(api, name(owner_obj), isorg(owner_obj); options...)
 
-function owner(owner_obj, isorg = false; options...)
-    result = gh_get_json("/$(typprefix(isorg))/$(name(owner_obj))"; options...)
+@api_default function owner(api::GitHubAPI, owner_obj, isorg = false; options...)
+    result = gh_get_json(api, "/$(typprefix(isorg))/$(name(owner_obj))"; options...)
     return Owner(result)
 end
 
-function users(; options...)
-    results, page_data = gh_get_paged_json("/users"; options...)
+@api_default function users(api::GitHubAPI; options...)
+    results, page_data = gh_get_paged_json(api, "/users"; options...)
     return map(Owner, results), page_data
 end
 
-function check_membership(org, user; public_only = false, options...)
+@api_default function check_membership(api::GitHubAPI, org, user; public_only = false, options...)
     scope = public_only ? "public_members" : "members"
-    resp = gh_get("/orgs/$(name(org))/$scope/$(name(user))"; handle_error = false, allow_redirects = false,  options...)
+    resp = gh_get(api, "/orgs/$(name(org))/$scope/$(name(user))"; handle_error = false, allow_redirects = false,  options...)
     if resp.status == 204
         return true
     elseif resp.status == 404
@@ -74,36 +74,36 @@ function check_membership(org, user; public_only = false, options...)
     end
 end
 
-function orgs(owner; options...)
-    results, page_data = gh_get_paged_json("/users/$(name(owner))/orgs"; options...)
+@api_default function orgs(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/orgs"; options...)
     return map(Owner, results), page_data
 end
 
-function followers(owner; options...)
-    results, page_data = gh_get_paged_json("/users/$(name(owner))/followers"; options...)
+@api_default function followers(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/followers"; options...)
     return map(Owner, results), page_data
 end
 
-function following(owner; options...)
-    results, page_data = gh_get_paged_json("/users/$(name(owner))/following"; options...)
+@api_default function following(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/following"; options...)
     return map(Owner, results), page_data
 end
 
-function pubkeys(owner; options...)
-    results, page_data = gh_get_paged_json("/users/$(name(owner))/keys"; options...)
+@api_default function pubkeys(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/keys"; options...)
     output = Dict{Int,String}([(key["id"], key["key"]) for key in results])
     return output, page_data
 end
 
-repos(owner::Owner; options...) = repos(name(owner), isorg(owner); options...)
+repos(api::GitHubAPI, owner::Owner; options...) = repos(api, name(owner), isorg(owner); options...)
 
-function repos(owner, isorg = false; options...)
-    results, page_data = gh_get_paged_json("/$(typprefix(isorg))/$(name(owner))/repos"; options...)
+@api_default function repos(api::GitHubAPI, owner, isorg = false; options...)
+    results, page_data = gh_get_paged_json(api, "/$(typprefix(isorg))/$(name(owner))/repos"; options...)
     return map(Repo, results), page_data
 end
 
-function teams(owner; options...)
-    results, page_data = gh_get_paged_json("/orgs/$(name(owner))/teams"; options...)
+@api_default function teams(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/orgs/$(name(owner))/teams"; options...)
     return map(Team, results), page_data
 end
 

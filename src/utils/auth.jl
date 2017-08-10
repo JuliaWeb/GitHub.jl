@@ -48,10 +48,10 @@ end
 # API Methods #
 ###############
 
-function authenticate(token::AbstractString; params = Dict(), options...)
+@api_default function authenticate(api::GitHubAPI, token::AbstractString; params = Dict(), options...)
     auth = OAuth2(token)
     params["access_token"] = auth.token
-    gh_get("/"; params = params, options...)
+    gh_get(api, "/"; params = params, options...)
     return auth
 end
 

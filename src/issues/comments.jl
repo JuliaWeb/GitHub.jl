@@ -32,7 +32,7 @@ kind_err_str(kind) = ("Error building comment request: :$kind is not a valid kin
 # API Methods #
 ###############
 
-function comment(repo, item, kind = :issue; options...)
+@api_default function comment(api::GitHubAPI, repo, item, kind = :issue; options...)
     if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/comments/$(name(item))"
     elseif kind == :review
@@ -42,10 +42,10 @@ function comment(repo, item, kind = :issue; options...)
     else
         error(kind_err_str(kind))
     end
-    return Comment(gh_get_json(path; options...))
+    return Comment(gh_get_json(api, path; options...))
 end
 
-function comments(repo, item, kind = :issue; options...)
+@api_default function comments(api::GitHubAPI, repo, item, kind = :issue; options...)
     if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/$(name(item))/comments"
     elseif kind == :review
@@ -55,11 +55,11 @@ function comments(repo, item, kind = :issue; options...)
     else
         error(kind_err_str(kind))
     end
-    results, page_data = gh_get_paged_json(path; options...)
+    results, page_data = gh_get_paged_json(api, path; options...)
     return map(Comment, results), page_data
 end
 
-function create_comment(repo, item, kind = :issue; options...)
+@api_default function create_comment(api::GitHubAPI, repo, item, kind = :issue; options...)
     if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/$(name(item))/comments"
     elseif kind == :review
@@ -69,10 +69,10 @@ function create_comment(repo, item, kind = :issue; options...)
     else
         error(kind_err_str(kind))
     end
-    return Comment(gh_post_json(path; options...))
+    return Comment(gh_post_json(api, path; options...))
 end
 
-function edit_comment(repo, item, kind = :issue; options...)
+@api_default function edit_comment(api::GitHubAPI, repo, item, kind = :issue; options...)
     if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/comments/$(name(item))"
     elseif kind == :review
@@ -82,10 +82,10 @@ function edit_comment(repo, item, kind = :issue; options...)
     else
         error(kind_err_str(kind))
     end
-    return Comment(gh_patch_json(path; options...))
+    return Comment(gh_patch_json(api, path; options...))
 end
 
-function delete_comment(repo, item, kind = :issue; options...)
+@api_default function delete_comment(api::GitHubAPI, repo, item, kind = :issue; options...)
     if (kind == :issue) || (kind == :pr)
         path = "/repos/$(name(repo))/issues/comments/$(name(item))"
     elseif kind == :review
@@ -95,5 +95,5 @@ function delete_comment(repo, item, kind = :issue; options...)
     else
         error(kind_err_str(kind))
     end
-    return gh_delete(path; options...)
+    return gh_delete(api, path; options...)
 end

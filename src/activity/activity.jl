@@ -2,34 +2,34 @@
 # Starring #
 ############
 
-function stargazers(repo; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/stargazers"; options...)
+@api_default function stargazers(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/stargazers"; options...)
     return map(Owner, results), page_data
 end
 
-function starred(user; options...)
-    results, page_data = gh_get_paged_json("/users/$(name(user))/starred"; options...)
+@api_default function starred(api::GitHubAPI, user; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(user))/starred"; options...)
     return map(Repo, results), page_data
 end
 
-star(repo; options...) = gh_put("/user/starred/$(name(repo))"; options...)
+@api_default star(api::GitHubAPI, repo; options...) = gh_put(api, "/user/starred/$(name(repo))"; options...)
 
-unstar(repo; options...) = gh_delete("/user/starred/$(name(repo))"; options...)
+@api_default unstar(api::GitHubAPI, repo; options...) = gh_delete(api, "/user/starred/$(name(repo))"; options...)
 
 ############
 # Watching #
 ############
 
-function watchers(repo; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/subscribers"; options...)
+@api_default function watchers(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/subscribers"; options...)
     return map(Owner, results), page_data
 end
 
-function watched(owner; options...)
-    results, page_data = gh_get_paged_json("/users/$(name(owner))/subscriptions"; options...)
+@api_default function watched(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/subscriptions"; options...)
     return map(Repo, results), page_data
 end
 
-watch(repo; options...) = gh_put("/repos/$(name(repo))/subscription"; options...)
+@api_default watch(api::GitHubAPI, repo; options...) = gh_put(api, "/repos/$(name(repo))/subscription"; options...)
 
-unwatch(repo; options...) = gh_delete("/repos/$(name(repo))/subscription"; options...)
+@api_default unwatch(api::GitHubAPI, repo; options...) = gh_delete(api, "/repos/$(name(repo))/subscription"; options...)

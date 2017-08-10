@@ -18,9 +18,9 @@ import HttpCommon,
 
 # include -------
 
+include("utils/requests.jl")
 include("utils/GitHubType.jl")
 include("utils/auth.jl")
-include("utils/requests.jl")
 
 # export -------
 
