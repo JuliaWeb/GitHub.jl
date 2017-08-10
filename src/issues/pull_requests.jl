@@ -55,3 +55,9 @@ function create_pull_request(repo; options...)
     result = gh_post_json("/repos/$(name(repo))/pulls"; options...)
     return PullRequest(result)
 end
+
+function create_comment(repo, pr::PullRequest, body::AbstractString; options...)
+    create_comment(repo, pr, :pr; params = Dict(
+        :body => body
+    ), options...)
+end

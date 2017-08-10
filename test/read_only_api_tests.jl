@@ -121,6 +121,13 @@ end
     @test get(gist_obj.files)["file1.jl"]["content"] == "Hello World!"
 end
 
+@testset "Reviews" begin
+    pr = pull_request(ghjl, 59; auth = auth)
+    review = first(reviews(ghjl, pr; auth=auth)[1])
+    
+    @test get(review.state) == "CHANGES_REQUESTED"
+end
+
 @testset "Activity" begin
     # test GitHub.stargazers, GitHub.starred
     @test length(first(stargazers(ghjl; auth = auth))) > 10 # every package should fail tests if it's not popular enough :p

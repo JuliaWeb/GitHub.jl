@@ -53,6 +53,7 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Issue`       | number, e.g. `31`                                      | [issues](https://developer.github.com/v3/issues/)                                                                                                                                                             |
 | `Team`        | id, e.g. `1`                                           | [teams](https://developer.github.com/v3/orgs/teams)                                                                                                                                                           |
 | `Gist`        | id, e.g. `0bace7cc774df4b3a4b0ee9aaa271ef6`            | [gists](https://developer.github.com/v3/gists)                                                                                                                                                                |
+| `Review`      | id, e.g. `1`                                       | [reviews](https://developer.github.com/v3/pulls/reviews/)                                                                                                                                                             |
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
 
@@ -115,7 +116,9 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `issue(repo, issue)`                     | `Issue`                            | [get the issue specified by `issue`](https://developer.github.com/v3/issues/#get-a-single-issue)                                                                                                            |
 | `issues(repo)`                           | `Tuple{Vector{Issue}, Dict}`       | [get `repo`'s issues](https://developer.github.com/v3/issues/#list-issues-for-a-repository)                                                                                                                 |
 | `create_issue(repo)`                     | `Issue`                            | [create an issue in `repo`](https://developer.github.com/v3/issues/#create-an-issue)                                                                                                                        |
-| `edit_issue(repo, issue)`                | `Issue`                            | [edit `issue` in `repo`](https://developer.github.com/v3/issues/#edit-an-issue)                                                                                                                             |
+| `edit_issue(repo, issue)`                | `Issue`                            | [edit `issue` in `repo`](https://developer.github.com/v3/issues/#edit-an-issue)                                                                                              
+| `reviews(repo, pr)`                      | `Tuple{Vector{PullRequest}, Dict}` | [get a `pr`'s reviews](https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request)                                                                                                      |
+| `dismiss_review(repo, review)`           | `HttpCommon.Response`              | [dismiss `review` in `repo`](https://developer.github.com/v3/pulls/reviews/#dismiss-a-pull-request-review)                                                                                                                             |
 
 #### Comments
 
@@ -141,6 +144,8 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `delete_comment(repo, comment, :pr)`     | `HttpCommon.Response`              | [delete the PR `comment` from `repo`](https://developer.github.com/v3/issues/comments/#delete-a-comment)                                                                                                    |
 | `delete_comment(repo, comment, :review)` | `HttpCommon.Response`              | [delete the review `comment` from `repo`](https://developer.github.com/v3/pulls/comments/#delete-a-comment)                                                                                                 |
 | `delete_comment(repo, comment, :commit)` | `HttpCommon.Response`              | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                                                           |
+| `delete_comment(repo, comment, :commit)` | `HttpCommon.Response`              | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                                                           |
+| `reply_to(repo, review, comment, body)` | `HttpCommon.Response`              | [reply to the `comment` (of `review` in `repo`) creating a new comment with the specified `body`](https://developer.github.com/v3/pulls/comments/#alternative-input)                                                                                           |
 
 #### Social Activity
 
