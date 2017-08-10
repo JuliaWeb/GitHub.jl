@@ -22,7 +22,7 @@ function base64_to_base64url(string)
     replace(replace(replace(string, "=", ""), '+', '-'), '/', '_')
 end
 
-function JWTAuth(app_id::Int, priv_key::String; iat = now(Dates.UTC), exp_mins = 1)
+function JWTAuth(app_id::Int, key::MbedTLS.PKContext; iat = now(Dates.UTC), exp_mins = 1)
     algo = base64_to_base64url(base64encode(JSON.json(Dict(
         "alg" => "RS256",
         "typ" => "JWT"
@@ -35,10 +35,13 @@ function JWTAuth(app_id::Int, priv_key::String; iat = now(Dates.UTC), exp_mins =
     entropy = MbedTLS.Entropy()
     rng = MbedTLS.CtrDrbg()
     MbedTLS.seed!(rng, entropy)
-    key = MbedTLS.parse_keyfile(priv_key)
     signature = base64_to_base64url(base64encode(MbedTLS.sign(key, MbedTLS.MD_SHA256,
         MbedTLS.digest(MbedTLS.MD_SHA256, string(algo,'.',data)), rng)))
     JWTAuth(string(algo,'.',data,'.',signature))
+end
+
+function JWTAuth(app_id::Int, privkey::String; kwargs...)
+    JWTAuth(app_id, MbedTLS.parse_keyfile(privkey); kwargs...)
 end
 
 ###############
