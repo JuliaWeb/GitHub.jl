@@ -5,8 +5,6 @@ type App <: GitHubType
     description::Nullable{String}
     external_url::Nullable{String}
     html_url::Nullable{String}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
 end
 
 namefield(a::App) = a.id
