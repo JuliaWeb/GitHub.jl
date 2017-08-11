@@ -133,6 +133,8 @@ export # pull_requests.jl
        pull_requests,
        pull_request,
        create_pull_request,
+       update_pull_request,
+       close_pull_request,
        Review
 
 export # issues.jl
@@ -149,7 +151,7 @@ export # comments.jl
        create_comment,
        edit_comment,
        delete_comment
-       
+
 export # reviews.jl
        Review,
        reviews,
