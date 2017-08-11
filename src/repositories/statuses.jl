@@ -27,17 +27,17 @@ namefield(status::Status) = status.id
 # API Methods #
 ###############
 
-function create_status(repo, sha; options...)
-    result = gh_post_json("/repos/$(name(repo))/statuses/$(name(sha))"; options...)
+@api_default function create_status(api::GitHubAPI, repo, sha; options...)
+    result = gh_post_json(api, "/repos/$(name(repo))/statuses/$(name(sha))"; options...)
     return Status(result)
 end
 
-function statuses(repo, ref; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/commits/$(name(ref))/statuses"; options...)
+@api_default function statuses(api::GitHubAPI, repo, ref; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/commits/$(name(ref))/statuses"; options...)
     return map(Status, results), page_data
 end
 
-function status(repo, ref; options...)
-    result = gh_get_json("/repos/$(name(repo))/commits/$(name(ref))/status"; options...)
+@api_default function status(api::GitHubAPI, repo, ref; options...)
+    result = gh_get_json(api, "/repos/$(name(repo))/commits/$(name(ref))/status"; options...)
     return Status(result)
 end
