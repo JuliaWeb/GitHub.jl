@@ -227,6 +227,7 @@ export # apps.jl
 
 export # installations.jl
        Installation,
-       create_access_token
+       create_access_token,
+       installations
 
 end # module GitHub

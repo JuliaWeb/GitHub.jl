@@ -186,6 +186,8 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `app(id)`                               | `App`                             | [get the GitHub app with the specified `id`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
 | `app(slug)`                               | `App`                             | [get the GitHub app with the specified `slug`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
 | `app(;auth=auth)`                               | `App`                     | [get the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#get-the-authenticated-github-app)   |
+| `installations(auth)`                     | `Vector{Installation}`           | [get the installations for the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#find-installations)   |
+| `repos(i::Installation)`          | `Tuple{Vector{Repo}, Dict}`        | [get the active repositories for this installation](https://developer.github.com/v3/apps/#find-installations)   |
 
 #### Miscellaneous
 
