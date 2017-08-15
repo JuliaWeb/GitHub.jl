@@ -51,6 +51,17 @@ end
     return PullRequest(result)
 end
 
+@api_default function update_pull_request(api::GitHubAPI, repo, pr; options...)
+    result = gh_patch_json(api, "/repos/$(name(repo))/pulls/$(name(pr))"; options...)
+    return PullRequest(result)
+end
+
+@api_default function close_pull_request(api::GitHubAPI, repo, pr; options...)
+    update_pull_request(api, repo, pr; params = Dict(
+        :state => "closed"
+    ), options...)
+end
+
 @api_default function create_pull_request(api::GitHubAPI, repo; options...)
     result = gh_post_json(api, "/repos/$(name(repo))/pulls"; options...)
     return PullRequest(result)
