@@ -18,7 +18,7 @@
 
 @compat abstract type GitHubType end
 
-function @compat(Base.:(==))(a::GitHubType, b::GitHubType)
+function Base.:(==)(a::GitHubType, b::GitHubType)
     if typeof(a) != typeof(b)
         return false
     end
