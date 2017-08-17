@@ -23,7 +23,7 @@ namefield(hook::Webhook) = hook.id
 # API Methods #
 ###############
 
-function create_webhook(owner, repo; options...)
-    result = gh_post_json("/repos/$(name(owner))/$(name(repo))/hooks"; options...)
+@api_default function create_webhook(api::GitHubAPI, owner, repo; options...)
+    result = gh_post_json(api, "/repos/$(name(owner))/$(name(repo))/hooks"; options...)
     return Webhook(result)
 end
