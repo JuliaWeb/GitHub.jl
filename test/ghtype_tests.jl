@@ -511,6 +511,40 @@ end
     test_show(team_result)
 end
 
+@testset "Webhook" begin
+    hook_json = JSON.parse("""
+      {
+        "id": 12625455,
+        "url": "https://api.github.com/repos/user/Example.jl/hooks/12625455",
+        "test_url": "https://api.github.com/repos/user/Example.jl/hooks/12625455/test",
+        "ping_url": "https://api.github.com/repos/user/Example.jl/hooks/12625455/pings",
+        "name": "web",
+        "events": ["push", "pull_request"],
+        "active": true,
+        "updated_at": "2017-03-14T14:03:16Z",
+        "created_at": "2017-03-14T14:03:16Z"
+      }
+    """)
+
+    hook_result = Webhook(
+        Nullable{Int}(hook_json["id"]),
+        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["url"])),
+        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["test_url"])),
+        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["ping_url"])),
+        Nullable{String}(hook_json["name"]),
+        Nullable{Array{String}}(map(String, hook_json["events"])),
+        Nullable{Bool}(hook_json["active"]),
+        Nullable{Dict{String, String}}(),
+        Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))),
+        Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))))
+
+    @test Webhook(hook_json) == hook_result
+    @test name(Webhook(hook_json["id"])) == name(hook_result)
+    @test setindex!(GitHub.github2json(hook_result), "web", "name") == hook_json
+
+    test_show(hook_result)
+end
+  
 @testset "Gist" begin
     gist_json = JSON.parse("""
       {

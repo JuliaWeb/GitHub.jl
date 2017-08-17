@@ -106,6 +106,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `create_status(repo, sha)`               | `Status`                           | [create a status for the commit specified by `sha`](https://developer.github.com/v3/repos/statuses/#create-a-status)                                                                                        |
 | `statuses(repo, ref)`                    | `Tuple{Vector{Status}, Dict}`      | [get the statuses posted to `ref`](https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref)                                                                                        |
 | `status(repo, ref)`                      | `Status`                           | [get the combined status for `ref`](https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref)                                                                             |
+| `create_webhook(owner, repo)`            | `Webhook`                          | [create a webhook for `repo`](https://developer.github.com/v3/repos/hooks/#create-a-hook)                                                                                                                   |
 
 #### Pull Requests and Issues
 

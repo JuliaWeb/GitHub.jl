@@ -74,6 +74,7 @@ include("repositories/contents.jl")
 include("repositories/commits.jl")
 include("repositories/branches.jl")
 include("repositories/statuses.jl")
+include("repositories/webhooks.jl")
 
 # export -------
 
@@ -114,6 +115,10 @@ export # statuses.jl
        create_status,
        statuses,
        status
+
+export # webhooks.jl
+       Webhook,
+       create_webhook
 
 ##########
 # Issues #
