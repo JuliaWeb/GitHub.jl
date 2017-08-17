@@ -532,9 +532,9 @@ end
         Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["test_url"])),
         Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["ping_url"])),
         Nullable{GitHubString}(hook_json["name"]),
-        Nullable{Array{GitHubString}}(map(GitHubString, hook_json["events"])),
+        Nullable{Array{String}}(map(String, hook_json["events"])),
         Nullable{Bool}(hook_json["active"]),
-        Nullable{Dict{GitHubString, GitHubString}}(),
+        Nullable{Dict{String, String}}(),
         Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))),
         Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))))
 
