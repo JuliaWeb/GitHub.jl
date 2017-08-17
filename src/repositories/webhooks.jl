@@ -7,10 +7,10 @@ type Webhook <: GitHubType
     url::Nullable{HttpCommon.URI}
     test_url::Nullable{HttpCommon.URI}
     ping_url::Nullable{HttpCommon.URI}
-    name::Nullable{GitHubString}
-    events::Nullable{Array{GitHubString}}
+    name::Nullable{String}
+    events::Nullable{Array{String}}
     active::Nullable{Bool}
-    config::Nullable{Dict{GitHubString, GitHubString}}
+    config::Nullable{Dict{String, String}}
     updated_at::Nullable{Dates.DateTime}
     created_at::Nullable{Dates.DateTime}
 end
