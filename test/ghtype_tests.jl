@@ -531,7 +531,7 @@ end
         Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["url"])),
         Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["test_url"])),
         Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["ping_url"])),
-        Nullable{GitHubString}(hook_json["name"]),
+        Nullable{String}(hook_json["name"]),
         Nullable{Array{String}}(map(String, hook_json["events"])),
         Nullable{Bool}(hook_json["active"]),
         Nullable{Dict{String, String}}(),
