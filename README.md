@@ -51,8 +51,9 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Status`      | id, e.g. `366961773`                                   | [commit statuses](https://developer.github.com/v3/repos/statuses/)                                                                                                                                            |
 | `PullRequest` | number, e.g. `44`                                      | [pull requests](https://developer.github.com/v3/pulls/)                                                                                                                                                       |
 | `Issue`       | number, e.g. `31`                                      | [issues](https://developer.github.com/v3/issues/)                                                                                                                                                             |
-| `Team`        | id, e.g. `1`                                       | [teams](https://developer.github.com/v3/orgs/teams)                                                                                                                                                             |
-
+| `Team`        | id, e.g. `1`                                           | [teams](https://developer.github.com/v3/orgs/teams)                                                                                                                                                           |
+| `Gist`        | id, e.g. `0bace7cc774df4b3a4b0ee9aaa271ef6`            | [gists](https://developer.github.com/v3/gists)                                                                                                                                                                |
+| `Review`      | id, e.g. `1`                                       | [reviews](https://developer.github.com/v3/pulls/reviews/)                                                                                                                                                             |
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
 
@@ -112,11 +113,15 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
 |------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `pull_request(repo, pr)`                 | `PullRequest`                      | [get the pull request specified by `pr`](https://developer.github.com/v3/pulls/#get-a-single-pull-request)                                                                                                  |
-| `pull_requests(repo)`                    | `Tuple{Vector{PullRequest}, Dict}` | [get `repo`'s pull requests](https://developer.github.com/v3/pulls/#list-pull-requests)                                                                                                                     |
-| `issue(repo, issue)`                     | `Issue`                            | [get the issue specified by `issue`](https://developer.github.com/v3/issues/#get-a-single-issue)                                                                                                            |
-| `issues(repo)`                           | `Tuple{Vector{Issue}, Dict}`       | [get `repo`'s issues](https://developer.github.com/v3/issues/#list-issues-for-a-repository)                                                                                                                 |
-| `create_issue(repo)`                     | `Issue`                            | [create an issue in `repo`](https://developer.github.com/v3/issues/#create-an-issue)                                                                                                                        |
-| `edit_issue(repo, issue)`                | `Issue`                            | [edit `issue` in `repo`](https://developer.github.com/v3/issues/#edit-an-issue)                                                                                                                             |
+| `pull_requests(repo)`                    | `Tuple{Vector{PullRequest}, Dict}` | [get `repo`'s pull requests](https://developer.github.com/v3/pulls/#list-pull-requests)
+| `update_pull_request(repo, pr)`          | `PullRequest`                      | [update the given `pr` in `repo`](https://developer.github.com/v3/pulls/#update-a-pull-request)  |
+| `close_pull_request(repo, pr)`          | `PullRequest`                      | [close the given `pr` in `repo`](https://developer.github.com/v3/pulls/#update-a-pull-request)   |
+| `issue(repo, issue)`                     | `Issue`                            | [get the issue specified by `issue`](https://developer.github.com/v3/issues/#get-a-single-issue)                                                                                                        |
+| `issues(repo)`                           | `Tuple{Vector{Issue}, Dict}`       | [get `repo`'s issues](https://developer.github.com/v3/issues/#list-issues-for-a-repository)                                    |
+| `create_issue(repo)`                     | `Issue`                            | [create an issue in `repo`](https://developer.github.com/v3/issues/#create-an-issue) |
+| `edit_issue(repo, issue)`                | `Issue`                            | [edit `issue` in `repo`](https://developer.github.com/v3/issues/#edit-an-issue) |
+| `reviews(repo, pr)`                      | `Tuple{Vector{PullRequest}, Dict}` | [get a `pr`'s reviews](https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request)  |
+| `dismiss_review(repo, review)`           | `HttpCommon.Response`              | [dismiss `review` in `repo`](https://developer.github.com/v3/pulls/reviews/#dismiss-a-pull-request-review)                                                                                                                             |
 
 #### Comments
 
@@ -142,6 +147,8 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `delete_comment(repo, comment, :pr)`     | `HttpCommon.Response`              | [delete the PR `comment` from `repo`](https://developer.github.com/v3/issues/comments/#delete-a-comment)                                                                                                    |
 | `delete_comment(repo, comment, :review)` | `HttpCommon.Response`              | [delete the review `comment` from `repo`](https://developer.github.com/v3/pulls/comments/#delete-a-comment)                                                                                                 |
 | `delete_comment(repo, comment, :commit)` | `HttpCommon.Response`              | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                                                           |
+| `delete_comment(repo, comment, :commit)` | `HttpCommon.Response`              | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                                                           |
+| `reply_to(repo, review, comment, body)` | `HttpCommon.Response`              | [reply to the `comment` (of `review` in `repo`) creating a new comment with the specified `body`](https://developer.github.com/v3/pulls/comments/#alternative-input)                                                                                           |
 
 #### Social Activity
 
@@ -155,6 +162,33 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `watched(user)`                          | `Tuple{Vector{Repo}, Dict}`        | [get repositories watched by `user`](https://developer.github.com/v3/activity/watching/#list-repositories-being-watched)                                                                                    |
 | `watch(repo)`                            | `HttpCommon.Response`              | [watch `repo`](https://developer.github.com/v3/activity/watching/#set-a-repository-subscription)                                                                                                            |
 | `unwatch(repo)`                          | `HttpCommon.Response`              | [unwatch `repo`](https://developer.github.com/v3/activity/watching/#delete-a-repository-subscription)                                                                                                       |
+
+#### Gists
+
+| method                                   | return type                        | documentation                                                                                                                                                                                               |
+|------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `gist(id)`                               | `Gist`                             | [get the gist specified by `id`](https://developer.github.com/v3/gists/#get-a-single-gist)                                                                                                                  |
+| `gist(id, revision)`                     | `Gist`                             | [get the gist specified by `id` and `revision`](https://developer.github.com/v3/gists/#get-a-specific-revision-of-a-gist)                                                                                   |
+| `gists()`                                | `Tuple{Vector{Gist}, Dict}`        | [get all public gists](https://developer.github.com/v3/gists/#list-all-public-gists)                                                                                                                        |
+| `gists(owner)`                           | `Tuple{Vector{Gist}, Dict}`        | [get all gists for `owner`](https://developer.github.com/v3/gists/#list-a-users-gists)                                                                                                                      |
+| `create_gist()`                          | `Gist`                             | [create a gist](https://developer.github.com/v3/gists/#create-a-gist)                                                                                                                                       |
+| `edit_gist(gist)`                        | `Gist`                             | [edit a gist](https://developer.github.com/v3/gists/#edit-a-gist)                                                                                                                                           |
+| `delete_gist(gist)`                      | `HttpCommon.Response`              | [delete a gist](https://developer.github.com/v3/gists/#delete-a-gist)                                                                                                                                       |
+| `create_gist_fork(gist)`                 | `Gist`                             | [fork a gist](https://developer.github.com/v3/gists/#fork-a-gist)                                                                                                                                           |
+| `gist_forks(gist)`                       | `Tuple{Vector{Gist}, Dict}`        | [list the forks of a gist](https://developer.github.com/v3/gists/#list-gist-forks)                                                                                                                          |
+| `star_gist(gist)`                        | `HttpCommon.Response`              | [star `gist`](https://developer.github.com/v3/gists/#star-a-gist)                                                                                                                                           |
+| `starred_gists()`                        | `Tuple{Vector{Gist}, Dict}`        | [get the starred `gist`s](https://developer.github.com/v3/gists/#list-starred-gists)                                                                                                                        |
+| `unstar_gist(gist)`                      | `HttpCommon.Response`              | [unstar `gist`](https://developer.github.com/v3/gists/#unstar-a-gist)                                                                                                                                       |
+
+#### GitHub Apps
+
+| method                                   | return type                        | documentation                                                                                                                                                                                               |
+|------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `app(id)`                               | `App`                             | [get the GitHub app with the specified `id`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
+| `app(slug)`                               | `App`                             | [get the GitHub app with the specified `slug`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
+| `app(;auth=auth)`                               | `App`                     | [get the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#get-the-authenticated-github-app)   |
+| `installations(auth)`                     | `Vector{Installation}`           | [get the installations for the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#find-installations)   |
+| `repos(i::Installation)`          | `Tuple{Vector{Repo}, Dict}`        | [get the active repositories for this installation](https://developer.github.com/v3/apps/#find-installations)   |
 
 #### Miscellaneous
 
@@ -189,6 +223,41 @@ As you can see, you can propagate the identity/permissions of the `myauth` token
 
 Note that if authentication is not provided, they'll be subject to the restrictions GitHub imposes on unauthenticated requests (such as [stricter rate limiting](https://developer.github.com/v3/#rate-limiting))
 
+### Authenticating as a GitHub app
+
+GitHub apps (formerly called integrations) have [their own authentication format](https://developer.github.com/apps/building-integrations/setting-up-and-registering-github-apps/about-authentication-options-for-github-apps/)
+based on [JSON Web Tokens](jwt.io). When creating a GitHub app, you will be
+prompted to download your app's private key. You can use this private key to
+authenticate as a Github App using the `JWTAuth` type:
+```
+appauth = JWTAuth(1234, "privkey.pem") # Replace with your app id/privkey file
+```
+
+The following shows a complete example that opens an issue on every repository
+on which your application gets installed:
+
+```
+listener = GitHub.EventListener() do event
+    # On installation, open an issue on every repository we got installed in
+    if event.kind == "installation"
+        # Authenticate as the application
+        appauth = GitHub.JWTAuth(1234, "privkey.pem")
+        # Now, get permissions for this particular installation
+        installation = Installation(event.payload["installation"])
+        auth = create_access_token(installation, appauth)
+        for repo in event.payload["repositories"]
+            create_issue(GitHub.Repo(repo), auth=auth,
+                params = Dict(
+                    :title => "Hello World",
+                    :body => "Thank you for installing me - I needed that"
+            ))
+        end
+    end
+    return HttpCommon.Response(200)
+end
+GitHub.run(listener, host=IPv4(0,0,0,0), port=8888)
+```
+
 ## Pagination
 
 GitHub will often [paginate](https://developer.github.com/v3/#pagination) results for requests that return multiple items. On the GitHub.jl side of things, it's pretty easy to see which methods return paginated results by referring to the [REST Methods documentation](#rest-methods); if a method returns a `Tuple{Vector{T}, Dict}`, that means its results are paginated.
@@ -213,7 +282,7 @@ julia> prs # 3 items per page * 2 page limit == 6 items, as expected
  GitHub.PullRequest(38)
 
 julia> page_data
-Dict{UTF8String,UTF8String} with 4 entries:
+Dict{String,String} with 4 entries:
   "prev"  => "https://api.github.com/repositories/16635105/pulls?page=2&per_page=3&state=all"
   "next"  => "https://api.github.com/repositories/16635105/pulls?page=4&per_page=3&state=all"
   "first" => "https://api.github.com/repositories/16635105/pulls?page=1&per_page=3&state=all"
@@ -240,7 +309,7 @@ julia> prs2
  GitHub.PullRequest(22)
 
 julia> page_data2
-Dict{UTF8String,UTF8String} with 4 entries:
+Dict{String,String} with 4 entries:
   "prev"  => "https://api.github.com/repositories/16635105/pulls?page=4&per_page=3&state=all"
   "next"  => "https://api.github.com/repositories/16635105/pulls?page=6&per_page=3&state=all"
   "first" => "https://api.github.com/repositories/16635105/pulls?page=1&per_page=3&state=all"

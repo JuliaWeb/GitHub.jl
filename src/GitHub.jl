@@ -18,9 +18,9 @@ import HttpCommon,
 
 # include -------
 
+include("utils/requests.jl")
 include("utils/GitHubType.jl")
 include("utils/auth.jl")
-include("utils/requests.jl")
 
 # export -------
 
@@ -129,13 +129,18 @@ export # webhooks.jl
 include("issues/pull_requests.jl")
 include("issues/issues.jl")
 include("issues/comments.jl")
+include("issues/reviews.jl")
 
 # export -------
 
 export # pull_requests.jl
        PullRequest,
        pull_requests,
-       pull_request
+       pull_request,
+       create_pull_request,
+       update_pull_request,
+       close_pull_request,
+       Review
 
 export # issues.jl
        Issue,
@@ -151,6 +156,36 @@ export # comments.jl
        create_comment,
        edit_comment,
        delete_comment
+
+export # reviews.jl
+       Review,
+       reviews,
+       reply_to,
+       dismiss_review
+
+
+#########
+# Gists #
+#########
+
+# include -------
+
+include("gists/gist.jl")
+
+# export --------
+
+export # gist.jl
+       Gist,
+       gist,
+       gists,
+       create_gist,
+       edit_gist,
+       delete_gist,
+       star_gist,
+       unstar_gist,
+       starred_gists,
+       create_gist_fork,
+       gist_forks
 
 ############
 # Activity #
@@ -179,5 +214,25 @@ export # events/events.jl
 export # events/listeners.jl
        EventListener,
        CommentListener
+
+############
+# Apps     #
+############
+
+# include -------
+
+include("apps/apps.jl")
+include("apps/installations.jl")
+
+# export -------
+
+export # apps.jl
+       App,
+       app
+
+export # installations.jl
+       Installation,
+       create_access_token,
+       installations
 
 end # module GitHub

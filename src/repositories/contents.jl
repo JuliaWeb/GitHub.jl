@@ -27,33 +27,33 @@ namefield(content::Content) = content.path
 # API Methods #
 ###############
 
-function file(repo, path; options...)
-    result = gh_get_json(content_uri(repo, path); options...)
+@api_default function file(api::GitHubAPI, repo, path; options...)
+    result = gh_get_json(api, content_uri(repo, path); options...)
     return Content(result)
 end
 
-function directory(repo, path; options...)
-    results, page_data = gh_get_paged_json(content_uri(repo, path); options...)
+@api_default function directory(api::GitHubAPI, repo, path; options...)
+    results, page_data = gh_get_paged_json(api, content_uri(repo, path); options...)
     return map(Content, results), page_data
 end
 
-function create_file(repo, path; options...)
-    result = gh_put_json(content_uri(repo, path); options...)
+@api_default function create_file(api::GitHubAPI, repo, path; options...)
+    result = gh_put_json(api, content_uri(repo, path); options...)
     return build_content_response(result)
 end
 
-function update_file(repo, path; options...)
-    result = gh_put_json(content_uri(repo, path); options...)
+@api_default function update_file(api::GitHubAPI, repo, path; options...)
+    result = gh_put_json(api, content_uri(repo, path); options...)
     return build_content_response(result)
 end
 
-function delete_file(repo, path; options...)
-    result = gh_delete_json(content_uri(repo, path); options...)
+@api_default function delete_file(api::GitHubAPI, repo, path; options...)
+    result = gh_delete_json(api, content_uri(repo, path); options...)
     return build_content_response(result)
 end
 
-function readme(repo; options...)
-    result = gh_get_json("/repos/$(name(repo))/readme"; options...)
+@api_default function readme(api::GitHubAPI, repo; options...)
+    result = gh_get_json(api, "/repos/$(name(repo))/readme"; options...)
     return Content(result)
 end
 

@@ -26,12 +26,12 @@ namefield(commit::Commit) = commit.sha
 # API Methods #
 ###############
 
-function commits(repo; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/commits"; options...)
+@api_default function commits(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/commits"; options...)
     return map(Commit, results), page_data
 end
 
-function commit(repo, sha; options...)
-    result = gh_get_json("/repos/$(name(repo))/commits/$(name(sha))"; options...)
+@api_default function commit(api::GitHubAPI, repo, sha; options...)
+    result = gh_get_json(api, "/repos/$(name(repo))/commits/$(name(sha))"; options...)
     return Commit(result)
 end

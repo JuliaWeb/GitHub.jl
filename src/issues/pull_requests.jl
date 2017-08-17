@@ -41,12 +41,34 @@ namefield(pr::PullRequest) = pr.number
 # API Methods #
 ###############
 
-function pull_requests(repo; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/pulls"; options...)
+@api_default function pull_requests(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/pulls"; options...)
     return map(PullRequest, results), page_data
 end
 
-function pull_request(repo, pr; options...)
-    result = gh_get_json("/repos/$(name(repo))/pulls/$(name(pr))"; options...)
+@api_default function pull_request(api::GitHubAPI, repo, pr; options...)
+    result = gh_get_json(api, "/repos/$(name(repo))/pulls/$(name(pr))"; options...)
     return PullRequest(result)
+end
+
+@api_default function update_pull_request(api::GitHubAPI, repo, pr; options...)
+    result = gh_patch_json(api, "/repos/$(name(repo))/pulls/$(name(pr))"; options...)
+    return PullRequest(result)
+end
+
+@api_default function close_pull_request(api::GitHubAPI, repo, pr; options...)
+    update_pull_request(api, repo, pr; params = Dict(
+        :state => "closed"
+    ), options...)
+end
+
+@api_default function create_pull_request(api::GitHubAPI, repo; options...)
+    result = gh_post_json(api, "/repos/$(name(repo))/pulls"; options...)
+    return PullRequest(result)
+end
+
+@api_default function create_comment(api::GitHubAPI, repo, pr::PullRequest, body::AbstractString; options...)
+    create_comment(api, repo, pr, :pr; params = Dict(
+        :body => body
+    ), options...)
 end

@@ -511,38 +511,277 @@ end
     test_show(team_result)
 end
 
-###########
-# Webhook #
-###########
+@testset "Webhook" begin
+    hook_json = JSON.parse("""
+      {
+        "id": 12625455,
+        "url": "https://api.github.com/repos/user/Example.jl/hooks/12625455",
+        "test_url": "https://api.github.com/repos/user/Example.jl/hooks/12625455/test",
+        "ping_url": "https://api.github.com/repos/user/Example.jl/hooks/12625455/pings",
+        "name": "web",
+        "events": ["push", "pull_request"],
+        "active": true,
+        "updated_at": "2017-03-14T14:03:16Z",
+        "created_at": "2017-03-14T14:03:16Z"
+      }
+    """)
 
-hook_json = JSON.parse("""
-  {
-    "id": 12625455,
-    "url": "https://api.github.com/repos/user/Example.jl/hooks/12625455",
-    "test_url": "https://api.github.com/repos/user/Example.jl/hooks/12625455/test",
-    "ping_url": "https://api.github.com/repos/user/Example.jl/hooks/12625455/pings",
-    "name": "web",
-    "events": ["push", "pull_request"],
-    "active": true,
-    "updated_at": "2017-03-14T14:03:16Z",
-    "created_at": "2017-03-14T14:03:16Z"
-  }
-""")
+    hook_result = Webhook(
+        Nullable{Int}(hook_json["id"]),
+        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["url"])),
+        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["test_url"])),
+        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["ping_url"])),
+        Nullable{GitHubString}(hook_json["name"]),
+        Nullable{Array{GitHubString}}(map(GitHubString, hook_json["events"])),
+        Nullable{Bool}(hook_json["active"]),
+        Nullable{Dict{GitHubString, GitHubString}}(),
+        Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))),
+        Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))))
 
-hook_result = Webhook(
-    Nullable{Int}(hook_json["id"]),
-    Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["url"])),
-    Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["test_url"])),
-    Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["ping_url"])),
-    Nullable{GitHubString}(hook_json["name"]),
-    Nullable{Array{GitHubString}}(map(GitHubString, hook_json["events"])),
-    Nullable{Bool}(hook_json["active"]),
-    Nullable{Dict{GitHubString, GitHubString}}(),
-    Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))),
-    Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))))
+    @test Webhook(hook_json) == hook_result
+    @test name(Webhook(hook_json["id"])) == name(hook_result)
+    @test setindex!(GitHub.github2json(hook_result), "web", "name") == hook_json
 
-@test Webhook(hook_json) == hook_result
-@test name(Webhook(hook_json["id"])) == name(hook_result)
-@test setindex!(GitHub.github2json(hook_result), "web", "name") == hook_json
+    test_show(hook_result)
+end
+  
+@testset "Gist" begin
+    gist_json = JSON.parse("""
+      {
+        "url": "https://api.github.com/gists/aa5a315d61ae9438b18d",
+        "forks_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/forks",
+        "commits_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/commits",
+        "id": "aa5a315d61ae9438b18d",
+        "description": "description of gist",
+        "public": true,
+        "owner": {
+          "login": "octocat",
+          "id": 1,
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/octocat",
+          "type": "User",
+          "site_admin": false
+        },
+        "user": null,
+        "files": {
+          "ring.erl": {
+            "size": 932,
+            "raw_url": "https://gist.githubusercontent.com/raw/365370/8c4d2d43d178df44f4c03a7f2ac0ff512853564e/ring.erl",
+            "type": "text/plain",
+            "language": "Erlang",
+            "truncated": false,
+            "content": "contents of gist"
+          }
+        },
+        "truncated": false,
+        "comments": 0,
+        "comments_url": "https://api.github.com/gists/aa5a315d61ae9438b18d/comments/",
+        "html_url": "https://gist.github.com/aa5a315d61ae9438b18d",
+        "git_pull_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+        "git_push_url": "https://gist.github.com/aa5a315d61ae9438b18d.git",
+        "created_at": "2010-04-14T02:15:15Z",
+        "updated_at": "2011-06-20T11:34:15Z",
+        "forks": [
+          {
+            "user": {
+              "login": "octocat",
+              "id": 1,
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/octocat",
+              "site_admin": false
+            },
+            "url": "https://api.github.com/gists/dee9c42e4998ce2ea439",
+            "id": "dee9c42e4998ce2ea439",
+            "created_at": "2011-04-14T16:00:49Z",
+            "updated_at": "2011-04-14T16:00:49Z"
+          }
+        ],
+        "history": [
+          {
+            "url": "https://api.github.com/gists/aa5a315d61ae9438b18d/57a7f021a713b1c5a6a199b54cc514735d2d462f",
+            "version": "57a7f021a713b1c5a6a199b54cc514735d2d462f",
+            "user": {
+              "login": "octocat",
+              "id": 1,
+              "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+              "gravatar_id": "",
+              "url": "https://api.github.com/users/octocat",
+              "html_url": "https://github.com/octocat",
+              "followers_url": "https://api.github.com/users/octocat/followers",
+              "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+              "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+              "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+              "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+              "organizations_url": "https://api.github.com/users/octocat/orgs",
+              "repos_url": "https://api.github.com/users/octocat/repos",
+              "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+              "received_events_url": "https://api.github.com/users/octocat/received_events",
+              "type": "User",
+              "site_admin": false
+            },
+            "change_status": {
+              "deletions": 0,
+              "additions": 180,
+              "total": 180
+            },
+            "committed_at": "2010-04-14T02:15:15Z"
+          }
+        ]
+      }
+      """
+    )
 
-test_show(hook_result)
+    gist_result = Gist(
+      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["url"])),
+      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["forks_url"])),
+      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["commits_url"])),
+      Nullable{String}(gist_json["id"]),
+      Nullable{String}(gist_json["description"]),
+      Nullable{Bool}(gist_json["public"]),
+      Nullable{Owner}(Owner(gist_json["owner"])),
+      Nullable{Owner}(),
+      Nullable{Bool}(gist_json["truncated"]),
+      Nullable{Int}(gist_json["comments"]),
+      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["comments_url"])),
+      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["html_url"])),
+      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["git_pull_url"])),
+      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["git_push_url"])),
+      Nullable{Dates.DateTime}(Dates.DateTime(chop(gist_json["created_at"]))),
+      Nullable{Dates.DateTime}(Dates.DateTime(chop(gist_json["updated_at"]))),
+      Nullable{Vector{Gist}}(map(Gist, gist_json["forks"])),
+      Nullable{Dict}(gist_json["files"]),
+      Nullable{Vector{Dict}}(gist_json["history"]),
+    )
+
+    @test Gist(gist_json) == gist_result
+    @test name(Gist(gist_json["id"])) == name(gist_result)
+    @test setindex!(GitHub.github2json(gist_result), nothing, "user") == gist_json
+
+    test_show(gist_result)
+end
+
+@testset "Installation" begin
+    # This is the format of an installation in the "installation event"
+    installation_json = JSON.parse("""
+      {
+        "id": 42926,
+        "account": {
+          "login": "Keno",
+          "id": 1291671,
+          "avatar_url": "https://avatars1.githubusercontent.com/u/1291671?v=4",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/Keno",
+          "html_url": "https://github.com/Keno",
+          "followers_url": "https://api.github.com/users/Keno/followers",
+          "following_url": "https://api.github.com/users/Keno/following{/other_user}",
+          "gists_url": "https://api.github.com/users/Keno/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/Keno/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/Keno/subscriptions",
+          "organizations_url": "https://api.github.com/users/Keno/orgs",
+          "repos_url": "https://api.github.com/users/Keno/repos",
+          "events_url": "https://api.github.com/users/Keno/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/Keno/received_events",
+          "type": "User",
+          "site_admin": false
+        },
+        "repository_selection": "selected",
+        "access_tokens_url": "https://api.github.com/installations/42926/access_tokens",
+        "repositories_url": "https://api.github.com/installation/repositories",
+        "html_url": "https://github.com/settings/installations/42926",
+        "app_id": 4123,
+        "target_id": 1291671,
+        "target_type": "User",
+        "permissions": {
+          "contents": "read",
+          "metadata": "read",
+          "pull_requests": "read"
+        },
+        "events": [
+          "commit_comment",
+          "pull_request",
+          "push",
+          "release"
+        ],
+        "created_at": 1501449845,
+        "updated_at": 1501449845,
+        "single_file_name": null
+      }
+    """)
+
+    installation_result = Installation(installation_json)
+
+    @test name(installation_result) == Int(installation_json["id"])
+end
+
+@testset "Apps" begin
+    app_json = JSON.parse("""
+      {
+        "id": 1,
+        "owner": {
+          "login": "github",
+          "id": 1,
+          "url": "https://api.github.com/orgs/github",
+          "repos_url": "https://api.github.com/orgs/github/repos",
+          "events_url": "https://api.github.com/orgs/github/events",
+          "hooks_url": "https://api.github.com/orgs/github/hooks",
+          "issues_url": "https://api.github.com/orgs/github/issues",
+          "members_url": "https://api.github.com/orgs/github/members{/member}",
+          "public_members_url": "https://api.github.com/orgs/github/public_members{/member}",
+          "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+          "description": "A great organization"
+        },
+        "name": "Super CI",
+        "description": "",
+        "external_url": "https://example.com",
+        "html_url": "https://github.com/apps/super-ci",
+        "created_at": "2017-07-08T16:18:44",
+        "updated_at": "2017-07-08T16:18:44"
+      }
+    """)
+    
+    app_result = App(app_json)
+    @test name(app_result) == Int(app_json["id"])
+end
+
+@testset "Review" begin
+    review_json = JSON.parse("""
+      {
+        "id": 80,
+        "user": {
+          "login": "octocat",
+          "id": 1,
+          "avatar_url": "https://github.com/images/error/octocat_happy.gif",
+          "gravatar_id": "",
+          "url": "https://api.github.com/users/octocat",
+          "html_url": "https://github.com/octocat",
+          "followers_url": "https://api.github.com/users/octocat/followers",
+          "following_url": "https://api.github.com/users/octocat/following{/other_user}",
+          "gists_url": "https://api.github.com/users/octocat/gists{/gist_id}",
+          "starred_url": "https://api.github.com/users/octocat/starred{/owner}{/repo}",
+          "subscriptions_url": "https://api.github.com/users/octocat/subscriptions",
+          "organizations_url": "https://api.github.com/users/octocat/orgs",
+          "repos_url": "https://api.github.com/users/octocat/repos",
+          "events_url": "https://api.github.com/users/octocat/events{/privacy}",
+          "received_events_url": "https://api.github.com/users/octocat/received_events",
+          "type": "User",
+          "site_admin": false
+        },
+        "body": "Here is the body for the review.",
+        "commit_id": "ecdd80bb57125d7ba9641ffaa4d7d2c19d3f3091",
+        "state": "APPROVED",
+        "html_url": "https://github.com/octocat/Hello-World/pull/12#pullrequestreview-80",
+        "pull_request_url": "https://api.github.com/repos/octocat/Hello-World/pulls/12",
+        "_links": {
+          "html": {
+            "href": "https://github.com/octocat/Hello-World/pull/12#pullrequestreview-80"
+          },
+          "pull_request": {
+            "href": "https://api.github.com/repos/octocat/Hello-World/pulls/12"
+          }
+        }
+      }
+    """)
+
+    review_result = App(review_json)
+    @test name(review_result) == Int(review_json["id"])
+end

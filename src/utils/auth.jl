@@ -10,14 +10,48 @@ end
 
 immutable AnonymousAuth <: Authorization end
 
+immutable JWTAuth <: Authorization
+    JWT::String
+end
+
+####################
+# JWT Construction #
+####################
+
+function base64_to_base64url(string)
+    replace(replace(replace(string, "=", ""), '+', '-'), '/', '_')
+end
+
+function JWTAuth(app_id::Int, key::MbedTLS.PKContext; iat = now(Dates.UTC), exp_mins = 1)
+    algo = base64_to_base64url(base64encode(JSON.json(Dict(
+        "alg" => "RS256",
+        "typ" => "JWT"
+    ))))
+    data = base64_to_base64url(base64encode(JSON.json(Dict(
+        "iat" => trunc(Int64, Dates.datetime2unix(iat)),
+        "exp" => trunc(Int64, Dates.datetime2unix(iat+Dates.Minute(exp_mins))),
+        "iss" => app_id
+    ))))
+    entropy = MbedTLS.Entropy()
+    rng = MbedTLS.CtrDrbg()
+    MbedTLS.seed!(rng, entropy)
+    signature = base64_to_base64url(base64encode(MbedTLS.sign(key, MbedTLS.MD_SHA256,
+        MbedTLS.digest(MbedTLS.MD_SHA256, string(algo,'.',data)), rng)))
+    JWTAuth(string(algo,'.',data,'.',signature))
+end
+
+function JWTAuth(app_id::Int, privkey::String; kwargs...)
+    JWTAuth(app_id, MbedTLS.parse_keyfile(privkey); kwargs...)
+end
+
 ###############
 # API Methods #
 ###############
 
-function authenticate(token::AbstractString; params = Dict(), options...)
+@api_default function authenticate(api::GitHubAPI, token::AbstractString; params = Dict(), options...)
     auth = OAuth2(token)
     params["access_token"] = auth.token
-    gh_get("/"; params = params, options...)
+    gh_get(api, "/"; params = params, options...)
     return auth
 end
 
@@ -31,6 +65,12 @@ function authenticate_headers!(headers, auth::OAuth2)
     headers["Authorization"] = "token $(auth.token)"
     return headers
 end
+
+function authenticate_headers!(headers, auth::JWTAuth)
+    headers["Authorization"] = "Bearer $(auth.JWT)"
+    return headers
+end
+
 
 ###################
 # Pretty Printing #

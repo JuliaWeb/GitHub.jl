@@ -35,22 +35,22 @@ namefield(issue::Issue) = issue.number
 # API Methods #
 ###############
 
-function issue(repo, issue_obj; options...)
-    result = gh_get_json("/repos/$(name(repo))/issues/$(name(issue_obj))"; options...)
+@api_default function issue(api::GitHubAPI, repo, issue_obj; options...)
+    result = gh_get_json(api, "/repos/$(name(repo))/issues/$(name(issue_obj))"; options...)
     return Issue(result)
 end
 
-function issues(repo; options...)
-    results, page_data = gh_get_paged_json("/repos/$(name(repo))/issues"; options...)
+@api_default function issues(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/issues"; options...)
     return map(Issue, results), page_data
 end
 
-function create_issue(repo; options...)
-    result = gh_post_json("/repos/$(name(repo))/issues"; options...)
+@api_default function create_issue(api::GitHubAPI, repo; options...)
+    result = gh_post_json(api, "/repos/$(name(repo))/issues"; options...)
     return Issue(result)
 end
 
-function edit_issue(repo, issue; options...)
-    result = gh_patch_json("/repos/$(name(repo))/issues/$(name(issue))"; options...)
+@api_default function edit_issue(api::GitHubAPI, repo, issue; options...)
+    result = gh_patch_json(api, "/repos/$(name(repo))/issues/$(name(issue))"; options...)
     return Issue(result)
 end
