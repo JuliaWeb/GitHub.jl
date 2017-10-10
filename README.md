@@ -226,7 +226,7 @@ Note that if authentication is not provided, they'll be subject to the restricti
 ### Authenticating as a GitHub app
 
 GitHub apps (formerly called integrations) have [their own authentication format](https://developer.github.com/apps/building-integrations/setting-up-and-registering-github-apps/about-authentication-options-for-github-apps/)
-based on [JSON Web Tokens](jwt.io). When creating a GitHub app, you will be
+based on [JSON Web Tokens](https://jwt.io/). When creating a GitHub app, you will be
 prompted to download your app's private key. You can use this private key to
 authenticate as a Github App using the `JWTAuth` type:
 ```
