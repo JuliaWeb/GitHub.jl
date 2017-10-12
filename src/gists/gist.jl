@@ -32,8 +32,6 @@ namefield(gist::Gist) = gist.id
 # creating #
 #----------#
 
-@api_default gist(api::GitHubAPI, gist_obj::Gist; options...) = gist(api::GitHubAPI, name(gist_obj); options...)
-
 @api_default function gist(api::GitHubAPI, gist_obj, sha = ""; options...)
     !isempty(sha) && (sha = "/" * sha)
     result = gh_get_json(api, "/gists/$(name(gist_obj))$sha"; options...)
