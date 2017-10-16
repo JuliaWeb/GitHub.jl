@@ -18,9 +18,9 @@ mutable struct Repo <: GitHubType
     stargazers_count::Nullable{Int}
     watchers_count::Nullable{Int}
     open_issues_count::Nullable{Int}
-    url::Nullable{HttpCommon.URI}
-    html_url::Nullable{HttpCommon.URI}
-    homepage::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
+    html_url::Nullable{HTTP.URI}
+    homepage::Nullable{HTTP.URI}
     pushed_at::Nullable{Dates.DateTime}
     created_at::Nullable{Dates.DateTime}
     updated_at::Nullable{Dates.DateTime}

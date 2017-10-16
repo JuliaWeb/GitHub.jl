@@ -20,9 +20,9 @@ mutable struct Owner <: GitHubType
     followers::Nullable{Int}
     following::Nullable{Int}
     collaborators::Nullable{Int}
-    blog::Nullable{HttpCommon.URI}
-    url::Nullable{HttpCommon.URI}
-    html_url::Nullable{HttpCommon.URI}
+    blog::Nullable{HTTP.URI}
+    url::Nullable{HTTP.URI}
+    html_url::Nullable{HTTP.URI}
     updated_at::Nullable{Dates.DateTime}
     created_at::Nullable{Dates.DateTime}
     date::Nullable{Dates.DateTime}
@@ -57,7 +57,7 @@ end
 
 @api_default function check_membership(api::GitHubAPI, org, user; public_only = false, options...)
     scope = public_only ? "public_members" : "members"
-    resp = gh_get(api, "/orgs/$(name(org))/$scope/$(name(user))"; handle_error = false, allow_redirects = false,  options...)
+    resp = gh_get(api, "/orgs/$(name(org))/$scope/$(name(user))"; handle_error = false, allowredirects = false, options...)
     if resp.status == 204
         return true
     elseif resp.status == 404

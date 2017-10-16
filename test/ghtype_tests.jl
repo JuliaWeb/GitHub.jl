@@ -1,6 +1,6 @@
 import JSON
 using GitHub, GitHub.name, GitHub.Branch
-import HttpCommon
+import HTTP
 using Base.Test
 
 # This file tests various GitHubType constructors. To test for proper Nullable
@@ -54,9 +54,9 @@ end
         Nullable{Int}(),
         Nullable{Int}(),
         Nullable{Int}(),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(owner_json["html_url"])),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(HTTP.URI(owner_json["html_url"])),
         Nullable{Dates.DateTime}(Dates.DateTime(chop(owner_json["updated_at"]))),
         Nullable{Dates.DateTime}(),
         Nullable{Dates.DateTime}(),
@@ -112,9 +112,9 @@ end
         Nullable{Int}(),
         Nullable{Int}(),
         Nullable{Int}(),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(repo_json["url"])),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
+        Nullable{HTTP.URI}(HTTP.URI(repo_json["url"])),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
         Nullable{Dates.DateTime}(Dates.DateTime(chop(repo_json["pushed_at"]))),
         Nullable{Dates.DateTime}(),
         Nullable{Dates.DateTime}(),
@@ -177,9 +177,9 @@ end
         Nullable{Owner}(Owner(commit_json["author"])),
         Nullable{Owner}(),
         Nullable{Commit}(Commit(commit_json["commit"])),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(commit_json["url"])),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
+        Nullable{HTTP.URI}(HTTP.URI(commit_json["url"])),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
         Nullable{Vector{Commit}}(map(Commit, commit_json["parents"])),
         Nullable{Dict}(commit_json["stats"]),
         Nullable{Vector{Content}}(map(Content, commit_json["files"])),
@@ -266,10 +266,10 @@ end
         Nullable{Int}(),
         Nullable{Dates.DateTime}(Dates.DateTime(chop(comment_json["created_at"]))),
         Nullable{Dates.DateTime}(),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(comment_json["url"])),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
+        Nullable{HTTP.URI}(HTTP.URI(comment_json["url"])),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
         Nullable{Owner}(Owner(comment_json["user"]))
     )
 
@@ -302,10 +302,10 @@ end
         Nullable{String}(),
         Nullable{String}(),
         Nullable{String}(),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(content_json["url"])),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
+        Nullable{HTTP.URI}(HTTP.URI(content_json["url"])),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
         Nullable{Int}(content_json["size"])
     )
 
@@ -348,8 +348,8 @@ end
         Nullable{String}(String(status_json["description"])),
         Nullable{String}(),
         Nullable{String}(),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(status_json["url"])),
-        Nullable{HttpCommon.URI}(),
+        Nullable{HTTP.URI}(HTTP.URI(status_json["url"])),
+        Nullable{HTTP.URI}(),
         Nullable{Dates.DateTime}(Dates.DateTime(chop(status_json["created_at"]))),
         Nullable{Dates.DateTime}(),
         Nullable{Owner}(Owner(status_json["creator"])),
@@ -407,8 +407,8 @@ end
         Nullable{Dates.DateTime}(),
         Nullable{Dates.DateTime}(),
         Nullable{Dates.DateTime}(),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(pr_json["url"])),
-        Nullable{HttpCommon.URI}(),
+        Nullable{HTTP.URI}(HTTP.URI(pr_json["url"])),
+        Nullable{HTTP.URI}(),
         Nullable{Owner}(Owner(pr_json["assignee"])),
         Nullable{Owner}(),
         Nullable{Owner}(),
@@ -470,11 +470,11 @@ end
         Nullable{Vector{Dict}}(Vector{Dict}(issue_json["labels"])),
         Nullable{Dict}(),
         Nullable{PullRequest}(PullRequest(issue_json["pull_request"])),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(issue_json["url"])),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
-        Nullable{HttpCommon.URI}(),
+        Nullable{HTTP.URI}(HTTP.URI(issue_json["url"])),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
+        Nullable{HTTP.URI}(),
         Nullable{Bool}(Bool(issue_json["locked"]))
     )
 
@@ -529,9 +529,9 @@ end
 
     hook_result = Webhook(
         Nullable{Int}(hook_json["id"]),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["url"])),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["test_url"])),
-        Nullable{HttpCommon.URI}(HttpCommon.URI(hook_json["ping_url"])),
+        Nullable{HTTP.URI}(HTTP.URI(hook_json["url"])),
+        Nullable{HTTP.URI}(HTTP.URI(hook_json["test_url"])),
+        Nullable{HTTP.URI}(HTTP.URI(hook_json["ping_url"])),
         Nullable{String}(hook_json["name"]),
         Nullable{Array{String}}(map(String, hook_json["events"])),
         Nullable{Bool}(hook_json["active"]),
@@ -633,9 +633,9 @@ end
     )
 
     gist_result = Gist(
-      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["url"])),
-      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["forks_url"])),
-      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["commits_url"])),
+      Nullable{HTTP.URI}(HTTP.URI(gist_json["url"])),
+      Nullable{HTTP.URI}(HTTP.URI(gist_json["forks_url"])),
+      Nullable{HTTP.URI}(HTTP.URI(gist_json["commits_url"])),
       Nullable{String}(gist_json["id"]),
       Nullable{String}(gist_json["description"]),
       Nullable{Bool}(gist_json["public"]),
@@ -643,10 +643,10 @@ end
       Nullable{Owner}(),
       Nullable{Bool}(gist_json["truncated"]),
       Nullable{Int}(gist_json["comments"]),
-      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["comments_url"])),
-      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["html_url"])),
-      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["git_pull_url"])),
-      Nullable{HttpCommon.URI}(HttpCommon.URI(gist_json["git_push_url"])),
+      Nullable{HTTP.URI}(HTTP.URI(gist_json["comments_url"])),
+      Nullable{HTTP.URI}(HTTP.URI(gist_json["html_url"])),
+      Nullable{HTTP.URI}(HTTP.URI(gist_json["git_pull_url"])),
+      Nullable{HTTP.URI}(HTTP.URI(gist_json["git_push_url"])),
       Nullable{Dates.DateTime}(Dates.DateTime(chop(gist_json["created_at"]))),
       Nullable{Dates.DateTime}(Dates.DateTime(chop(gist_json["updated_at"]))),
       Nullable{Vector{Gist}}(map(Gist, gist_json["forks"])),

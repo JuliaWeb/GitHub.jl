@@ -20,8 +20,8 @@ mutable struct PullRequest <: GitHubType
     updated_at::Nullable{Dates.DateTime}
     closed_at::Nullable{Dates.DateTime}
     merged_at::Nullable{Dates.DateTime}
-    url::Nullable{HttpCommon.URI}
-    html_url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
+    html_url::Nullable{HTTP.URI}
     assignee::Nullable{Owner}
     user::Nullable{Owner}
     merged_by::Nullable{Owner}

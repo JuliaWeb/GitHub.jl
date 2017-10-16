@@ -8,9 +8,9 @@ mutable struct Commit <: GitHubType
     author::Nullable{Owner}
     committer::Nullable{Owner}
     commit::Nullable{Commit}
-    url::Nullable{HttpCommon.URI}
-    html_url::Nullable{HttpCommon.URI}
-    comments_url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
+    html_url::Nullable{HTTP.URI}
+    comments_url::Nullable{HTTP.URI}
     parents::Nullable{Vector{Commit}}
     stats::Nullable{Dict}
     files::Nullable{Vector{Content}}

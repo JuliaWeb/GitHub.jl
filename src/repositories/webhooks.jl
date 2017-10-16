@@ -4,9 +4,9 @@
 
 mutable struct Webhook <: GitHubType
     id::Nullable{Int}
-    url::Nullable{HttpCommon.URI}
-    test_url::Nullable{HttpCommon.URI}
-    ping_url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
+    test_url::Nullable{HTTP.URI}
+    ping_url::Nullable{HTTP.URI}
     name::Nullable{String}
     events::Nullable{Array{String}}
     active::Nullable{Bool}

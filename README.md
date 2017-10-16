@@ -65,12 +65,12 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
 |------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `owner(owner[, isorg = false])`          | `Owner`                            | get `owner` as a [user](https://developer.github.com/v3/users/#get-a-single-user) or [organization](https://developer.github.com/v3/orgs/#get-an-organization)                                                    |
+| `owner(owner[, isorg = false])`          | `Owner`                            | get `owner` as a [user](https://developer.github.com/v3/users/#get-a-single-user) or [organization](https://developer.github.com/v3/orgs/#get-an-organization)                                              |
 | `orgs(owner)`                            | `Tuple{Vector{Owner}, Dict}`       | [get the `owner`'s organizations](https://developer.github.com/v3/orgs/#list-user-organizations)                                                                                                            |
 | `followers(owner)`                       | `Tuple{Vector{Owner}, Dict}`       | [get the `owner`'s followers](https://developer.github.com/v3/users/followers/#list-followers-of-a-user)                                                                                                    |
 | `following(owner)`                       | `Tuple{Vector{Owner}, Dict}`       | [get the users followed by `owner`](https://developer.github.com/v3/users/followers/#list-users-followed-by-another-user)                                                                                   |
 | `repos(owner[, isorg = false])`          | `Tuple{Vector{Repo}, Dict}`        | [get the `owner`'s repositories](https://developer.github.com/v3/repos/#list-user-repositories)/[get an organization's repositories](https://developer.github.com/v3/repos/#list-organization-repositories) |
-| `teams(owner)`          | `Tuple{Vector{Team}, Dict}`        | [get the `organizations`'s teams repositories](https://developer.github.com/v3/orgs/teams/#list-teams) |
+| `teams(owner)`                           | `Tuple{Vector{Team}, Dict}`        | [get the `organizations`'s teams repositories](https://developer.github.com/v3/orgs/teams/#list-teams) |
 
 
 #### Teams
@@ -89,9 +89,9 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `contributors(repo)`                     | `Dict`                             | [get `repo`'s contributors](https://developer.github.com/v3/repos/#list-contributors)                                                                                                                       |
 | `collaborators(repo)`                    | `Tuple{Vector{Owner}, Dict}`       | [get `repo`'s collaborators](https://developer.github.com/v3/repos/collaborators/#list)                                                                                                                     |
 | `iscollaborator(repo, user)`             | `Bool`                             | [check if `user` is a collaborator on `repo`](https://developer.github.com/v3/repos/collaborators/#get)                                                                                                     |
-| `add_collaborator(repo, user)`           | `HttpCommon.Response`              | [add `user` as a collaborator to `repo`](https://developer.github.com/v3/repos/collaborators/#add-collaborator)                                                                                             |
-| `remove_collaborator(repo, user)`        | `HttpCommon.Response`              | [remove `user` as a collaborator from `repo`](https://developer.github.com/v3/repos/collaborators/#remove-collaborator)                                                                                     |
-| `stats(repo, stat[, attempts = 3])`      | `HttpCommon.Response`              | [get information on `stat` (e.g. "contributors", "code_frequency", "commit_activity", etc.)](https://developer.github.com/v3/repos/statistics/)                                                             |
+| `add_collaborator(repo, user)`           | `HTTP.Response`                    | [add `user` as a collaborator to `repo`](https://developer.github.com/v3/repos/collaborators/#add-collaborator)                                                                                             |
+| `remove_collaborator(repo, user)`        | `HTTP.Response`                    | [remove `user` as a collaborator from `repo`](https://developer.github.com/v3/repos/collaborators/#remove-collaborator)                                                                                     |
+| `stats(repo, stat[, attempts = 3])`      | `HTTP.Response`                    | [get information on `stat` (e.g. "contributors", "code_frequency", "commit_activity", etc.)](https://developer.github.com/v3/repos/statistics/)                                                             |
 | `commit(repo, sha)`                      | `Commit`                           | [get the commit specified by `sha`](https://developer.github.com/v3/repos/commits/#get-a-single-commit)                                                                                                     |
 | `commits(repo)`                          | `Tuple{Vector{Commit}, Dict}`      | [get `repo`'s commits](https://developer.github.com/v3/repos/commits/#list-commits-on-a-repository)                                                                                                         |
 | `branch(repo, branch)`                   | `Branch`                           | [get the branch specified by `branch`](https://developer.github.com/v3/repos/#get-branch)                                                                                                                   |
@@ -101,7 +101,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `create_file(repo, path)`                | `Dict`                             | [create a file at `path` in `repo`](https://developer.github.com/v3/repos/contents/#create-a-file)                                                                                                          |
 | `update_file(repo, path)`                | `Dict`                             | [update a file at `path` in `repo`](https://developer.github.com/v3/repos/contents/#update-a-file)                                                                                                          |
 | `delete_file(repo, path)`                | `Dict`                             | [delete a file at `path` in `repo`](https://developer.github.com/v3/repos/contents/#delete-a-file)                                                                                                          |
-| `permalink(content::Content, commit)`    | `HttpCommon.URI`                   | [get a permalink for `content` at the SHA specified by `commit`](https://help.github.com/articles/getting-permanent-links-to-files/)                                                                        |
+| `permalink(content::Content, commit)`    | `HTTP.URI`                         | [get a permalink for `content` at the SHA specified by `commit`](https://help.github.com/articles/getting-permanent-links-to-files/)                                                                        |
 | `readme(repo)`                           | `Content`                          | [get `repo`'s README](https://developer.github.com/v3/repos/contents/#get-the-readme)                                                                                                                       |
 | `create_status(repo, sha)`               | `Status`                           | [create a status for the commit specified by `sha`](https://developer.github.com/v3/repos/statuses/#create-a-status)                                                                                        |
 | `statuses(repo, ref)`                    | `Tuple{Vector{Status}, Dict}`      | [get the statuses posted to `ref`](https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref)                                                                                        |
@@ -122,7 +122,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `create_issue(repo)`                     | `Issue`                            | [create an issue in `repo`](https://developer.github.com/v3/issues/#create-an-issue) |
 | `edit_issue(repo, issue)`                | `Issue`                            | [edit `issue` in `repo`](https://developer.github.com/v3/issues/#edit-an-issue) |
 | `reviews(repo, pr)`                      | `Tuple{Vector{PullRequest}, Dict}` | [get a `pr`'s reviews](https://developer.github.com/v3/pulls/reviews/#list-reviews-on-a-pull-request)  |
-| `dismiss_review(repo, review)`           | `HttpCommon.Response`              | [dismiss `review` in `repo`](https://developer.github.com/v3/pulls/reviews/#dismiss-a-pull-request-review)                                                                                                                             |
+| `dismiss_review(repo, review)`           | `HTTP.Response`                    | [dismiss `review` in `repo`](https://developer.github.com/v3/pulls/reviews/#dismiss-a-pull-request-review)                                                                                                                             |
 
 #### Comments
 
@@ -144,25 +144,25 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `edit_comment(repo, comment, :pr)`       | `Comment`                          | [edit the PR `comment` in `repo`](https://developer.github.com/v3/issues/comments/#edit-a-comment)                                                                                                          |
 | `edit_comment(repo, comment, :review)`   | `Comment`                          | [edit the review `comment` in `repo`](https://developer.github.com/v3/pulls/comments/#edit-a-comment)                                                                                                       |
 | `edit_comment(repo, comment, :commit)`   | `Comment`                          | [edit the commit `comment` in `repo`](https://developer.github.com/v3/repos/comments/#update-a-commit-comment)                                                                                              |
-| `delete_comment(repo, comment, :issue)`  | `HttpCommon.Response`              | [delete the issue `comment` from `repo`](https://developer.github.com/v3/issues/comments/#delete-a-comment)                                                                                                 |
-| `delete_comment(repo, comment, :pr)`     | `HttpCommon.Response`              | [delete the PR `comment` from `repo`](https://developer.github.com/v3/issues/comments/#delete-a-comment)                                                                                                    |
-| `delete_comment(repo, comment, :review)` | `HttpCommon.Response`              | [delete the review `comment` from `repo`](https://developer.github.com/v3/pulls/comments/#delete-a-comment)                                                                                                 |
-| `delete_comment(repo, comment, :commit)` | `HttpCommon.Response`              | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                                                           |
-| `delete_comment(repo, comment, :commit)` | `HttpCommon.Response`              | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                                                           |
-| `reply_to(repo, review, comment, body)` | `HttpCommon.Response`              | [reply to the `comment` (of `review` in `repo`) creating a new comment with the specified `body`](https://developer.github.com/v3/pulls/comments/#alternative-input)                                                                                           |
+| `delete_comment(repo, comment, :issue)`  | `HTTP.Response`                    | [delete the issue `comment` from `repo`](https://developer.github.com/v3/issues/comments/#delete-a-comment)                                                                                                 |
+| `delete_comment(repo, comment, :pr)`     | `HTTP.Response`                    | [delete the PR `comment` from `repo`](https://developer.github.com/v3/issues/comments/#delete-a-comment)                                                                                                    |
+| `delete_comment(repo, comment, :review)` | `HTTP.Response`                    | [delete the review `comment` from `repo`](https://developer.github.com/v3/pulls/comments/#delete-a-comment)                                                                                                 |
+| `delete_comment(repo, comment, :commit)` | `HTTP.Response`                    | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                                                           |
+| `delete_comment(repo, comment, :commit)` | `HTTP.Response`                    | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                                                           |
+| `reply_to(repo, review, comment, body)`  | `HTTP.Response`                    | [reply to the `comment` (of `review` in `repo`) creating a new comment with the specified `body`](https://developer.github.com/v3/pulls/comments/#alternative-input)                                                                                           |
 
 #### Social Activity
 
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
 |------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `star(repo)`                             | `HttpCommon.Response`              | [star `repo`](https://developer.github.com/v3/activity/starring/#star-a-repository)                                                                                                                         |
-| `unstar(repo)`                           | `HttpCommon.Response`              | [unstar `repo`](https://developer.github.com/v3/activity/starring/#unstar-a-repository)                                                                                                                     |
+| `star(repo)`                             | `HTTP.Response`                    | [star `repo`](https://developer.github.com/v3/activity/starring/#star-a-repository)                                                                                                                         |
+| `unstar(repo)`                           | `HTTP.Response`                    | [unstar `repo`](https://developer.github.com/v3/activity/starring/#unstar-a-repository)                                                                                                                     |
 | `stargazers(repo)`                       | `Tuple{Vector{Owner}, Dict}`       | [get `repo`'s stargazers](https://developer.github.com/v3/activity/starring/#list-stargazers)                                                                                                               |
 | `starred(user)`                          | `Tuple{Vector{Repo}, Dict}`        | [get repositories starred by `user`](https://developer.github.com/v3/activity/starring/#list-repositories-being-starred)                                                                                    |
 | `watchers(repo)`                         | `Tuple{Vector{Owner}, Dict}`       | [get `repo`'s watchers](https://developer.github.com/v3/activity/watching/#list-watchers)                                                                                                                   |
 | `watched(user)`                          | `Tuple{Vector{Repo}, Dict}`        | [get repositories watched by `user`](https://developer.github.com/v3/activity/watching/#list-repositories-being-watched)                                                                                    |
-| `watch(repo)`                            | `HttpCommon.Response`              | [watch `repo`](https://developer.github.com/v3/activity/watching/#set-a-repository-subscription)                                                                                                            |
-| `unwatch(repo)`                          | `HttpCommon.Response`              | [unwatch `repo`](https://developer.github.com/v3/activity/watching/#delete-a-repository-subscription)                                                                                                       |
+| `watch(repo)`                            | `HTTP.Response`                    | [watch `repo`](https://developer.github.com/v3/activity/watching/#set-a-repository-subscription)                                                                                                            |
+| `unwatch(repo)`                          | `HTTP.Response`                    | [unwatch `repo`](https://developer.github.com/v3/activity/watching/#delete-a-repository-subscription)                                                                                                       |
 
 #### Gists
 
@@ -174,22 +174,22 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `gists(owner)`                           | `Tuple{Vector{Gist}, Dict}`        | [get all gists for `owner`](https://developer.github.com/v3/gists/#list-a-users-gists)                                                                                                                      |
 | `create_gist()`                          | `Gist`                             | [create a gist](https://developer.github.com/v3/gists/#create-a-gist)                                                                                                                                       |
 | `edit_gist(gist)`                        | `Gist`                             | [edit a gist](https://developer.github.com/v3/gists/#edit-a-gist)                                                                                                                                           |
-| `delete_gist(gist)`                      | `HttpCommon.Response`              | [delete a gist](https://developer.github.com/v3/gists/#delete-a-gist)                                                                                                                                       |
+| `delete_gist(gist)`                      | `HTTP.Response`                    | [delete a gist](https://developer.github.com/v3/gists/#delete-a-gist)                                                                                                                                       |
 | `create_gist_fork(gist)`                 | `Gist`                             | [fork a gist](https://developer.github.com/v3/gists/#fork-a-gist)                                                                                                                                           |
 | `gist_forks(gist)`                       | `Tuple{Vector{Gist}, Dict}`        | [list the forks of a gist](https://developer.github.com/v3/gists/#list-gist-forks)                                                                                                                          |
-| `star_gist(gist)`                        | `HttpCommon.Response`              | [star `gist`](https://developer.github.com/v3/gists/#star-a-gist)                                                                                                                                           |
+| `star_gist(gist)`                        | `HTTP.Response`                    | [star `gist`](https://developer.github.com/v3/gists/#star-a-gist)                                                                                                                                           |
 | `starred_gists()`                        | `Tuple{Vector{Gist}, Dict}`        | [get the starred `gist`s](https://developer.github.com/v3/gists/#list-starred-gists)                                                                                                                        |
-| `unstar_gist(gist)`                      | `HttpCommon.Response`              | [unstar `gist`](https://developer.github.com/v3/gists/#unstar-a-gist)                                                                                                                                       |
+| `unstar_gist(gist)`                      | `HTTP.Response`                    | [unstar `gist`](https://developer.github.com/v3/gists/#unstar-a-gist)                                                                                                                                       |
 
 #### GitHub Apps
 
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
 |------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `app(id)`                               | `App`                             | [get the GitHub app with the specified `id`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
-| `app(slug)`                               | `App`                             | [get the GitHub app with the specified `slug`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
-| `app(;auth=auth)`                               | `App`                     | [get the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#get-the-authenticated-github-app)   |
-| `installations(auth)`                     | `Vector{Installation}`           | [get the installations for the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#find-installations)   |
-| `repos(i::Installation)`          | `Tuple{Vector{Repo}, Dict}`        | [get the active repositories for this installation](https://developer.github.com/v3/apps/#find-installations)   |
+| `app(id)`                                | `App`                              | [get the GitHub app with the specified `id`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
+| `app(slug)`                              | `App`                              | [get the GitHub app with the specified `slug`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
+| `app(;auth=auth)`                        | `App`                              | [get the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#get-the-authenticated-github-app)   |
+| `installations(auth)`                    | `Vector{Installation}`             | [get the installations for the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#find-installations)   |
+| `repos(i::Installation)`                 | `Tuple{Vector{Repo}, Dict}`        | [get the active repositories for this installation](https://developer.github.com/v3/apps/#find-installations)   |
 
 #### Miscellaneous
 
@@ -254,7 +254,7 @@ listener = GitHub.EventListener() do event
             ))
         end
     end
-    return HttpCommon.Response(200)
+    return HTTP.Response(200)
 end
 GitHub.run(listener, host=IPv4(0,0,0,0), port=8888)
 ```
@@ -323,7 +323,7 @@ GitHub.jl comes with configurable `EventListener` and `CommentListener` types th
 
 #### `EventListener`
 
-When an `EventListener` receives an event, it performs some basic validation and wraps the event payload (and some other data) in [a `WebhookEvent` type](https://github.com/JuliaWeb/GitHub.jl/blob/master/src/activity/events/events.jl). This `WebhookEvent` instance, along with the provided `Authorization`, is then fed to the server's handler function, which the user defines to determine the server's response behavior. The handler function is expected to return an `HttpCommon.Response` that is then sent back to GitHub.
+When an `EventListener` receives an event, it performs some basic validation and wraps the event payload (and some other data) in [a `WebhookEvent` type](https://github.com/JuliaWeb/GitHub.jl/blob/master/src/activity/events/events.jl). This `WebhookEvent` instance, along with the provided `Authorization`, is then fed to the server's handler function, which the user defines to determine the server's response behavior. The handler function is expected to return an `HTTP.Response` that is then sent back to GitHub.
 
 The `EventListener` constructor takes the following keyword arguments:
 
@@ -331,7 +331,7 @@ The `EventListener` constructor takes the following keyword arguments:
 - `secret`: A string used to verify the event source. If the event is from a GitHub Webhook, it's the Webhook's secret. If a secret is not provided, the server won't validate the secret signature of incoming requests.
 - `repos`: A vector of `Repo`s (or fully qualified repository names) listing all acceptable repositories. All repositories are whitelisted by default.
 - `events`: A vector of [event names](https://developer.github.com/webhooks/#events) listing all acceptable events (e.g. ["commit_comment", "pull_request"]). All events are whitelisted by default.
-- `forwards`: A vector of `HttpCommon.URI`s (or URI strings) to which any incoming requests should be forwarded (after being validated by the listener)
+- `forwards`: A vector of `HTTP.URI`s (or URI strings) to which any incoming requests should be forwarded (after being validated by the listener)
 
 Here's an example that demonstrates how to construct and run an `EventListener` that does benchmarking on every commit and PR:
 
@@ -343,7 +343,7 @@ myauth = GitHub.authenticate(ENV["GITHUB_AUTH"])
 mysecret = ENV["MY_SECRET"]
 myevents = ["pull_request", "push"]
 myrepos = [GitHub.Repo("owner1/repo1"), "owner2/repo2"] # can be Repos or repo names
-myforwards = [HttpCommon.URI("http://myforward1.com"), "http://myforward2.com"] # can be HttpCommon.URIs or URI strings
+myforwards = [HTTP.URI("http://myforward1.com"), "http://myforward2.com"] # can be HTTP.URIs or URI strings
 
 # Set up Status parameters
 pending_params = Dict(
@@ -373,7 +373,7 @@ listener = GitHub.EventListener(auth = myauth,
     kind, payload, repo = event.kind, event.payload, event.repository
 
     if kind == "pull_request" && payload["action"] == "closed"
-        return HttpCommon.Response(200)
+        return HTTP.Response(200)
     end
 
     if event.kind == "push"
@@ -389,16 +389,16 @@ listener = GitHub.EventListener(auth = myauth,
         run_and_log_benchmarks(event, "\$(sha)-benchmarks.csv")
     catch err
         GitHub.create_status(repo, sha; auth = myauth, params = error_params(err))
-        return HttpCommon.Response(500)
+        return HTTP.Response(500)
     end
 
     GitHub.create_status(repo, sha; auth = myauth, params = success_params)
 
-    return HttpCommon.Response(200)
+    return HTTP.Response(200)
 end
 
 # Start the listener on localhost at port 8000
-GitHub.run(listener, host=IPv4(127,0,0,1), port=8000)
+GitHub.run(listener, IPv4(127,0,0,1), 8000)
 ```
 
 #### `CommentListener`
@@ -467,9 +467,9 @@ listener = GitHub.CommentListener(trigger; auth = myauth, secret = mysecret) do 
     # send the comment creation request to GitHub
     GitHub.create_comment(event.repository, reply_to, comment_kind; auth = myauth, params = comment_params)
 
-    return HttpCommon.Response(200)
+    return HTTP.Response(200)
 end
 
 # Start the listener on localhost at port 8000
-GitHub.run(listener, host=IPv4(127,0,0,1), port=8000)
+GitHub.run(listener, IPv4(127,0,0,1), 8000)
 ```

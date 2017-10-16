@@ -1,7 +1,7 @@
 mutable struct Gist <: GitHubType
-    url::Nullable{HttpCommon.URI}
-    forks_url::Nullable{HttpCommon.URI}
-    commits_url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
+    forks_url::Nullable{HTTP.URI}
+    commits_url::Nullable{HTTP.URI}
     id::Nullable{String}
     description::Nullable{String}
     public::Nullable{Bool}
@@ -9,10 +9,10 @@ mutable struct Gist <: GitHubType
     user::Nullable{Owner}
     truncated::Nullable{Bool}
     comments::Nullable{Int}
-    comments_url::Nullable{HttpCommon.URI}
-    html_url::Nullable{HttpCommon.URI}
-    git_pull_url::Nullable{HttpCommon.URI}
-    git_push_url::Nullable{HttpCommon.URI}
+    comments_url::Nullable{HTTP.URI}
+    html_url::Nullable{HTTP.URI}
+    git_pull_url::Nullable{HTTP.URI}
+    git_push_url::Nullable{HTTP.URI}
     created_at::Nullable{Dates.DateTime}
     updated_at::Nullable{Dates.DateTime}
     forks::Nullable{Vector{Gist}}
@@ -31,6 +31,8 @@ namefield(gist::Gist) = gist.id
 
 # creating #
 #----------#
+
+@api_default gist(api::GitHubAPI, gist_obj::Gist; options...) = gist(api::GitHubAPI, name(gist_obj); options...)
 
 @api_default function gist(api::GitHubAPI, gist_obj, sha = ""; options...)
     !isempty(sha) && (sha = "/" * sha)

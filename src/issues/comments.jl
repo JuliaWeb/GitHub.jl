@@ -14,10 +14,10 @@ mutable struct Comment <: GitHubType
     line::Nullable{Int}
     created_at::Nullable{Dates.DateTime}
     updated_at::Nullable{Dates.DateTime}
-    url::Nullable{HttpCommon.URI}
-    html_url::Nullable{HttpCommon.URI}
-    issue_url::Nullable{HttpCommon.URI}
-    pull_request_url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
+    html_url::Nullable{HTTP.URI}
+    issue_url::Nullable{HTTP.URI}
+    pull_request_url::Nullable{HTTP.URI}
     user::Nullable{Owner}
 end
 

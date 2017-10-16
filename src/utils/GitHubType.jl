@@ -96,7 +96,7 @@ end
 #############################################
 
 github2json(val) = val
-github2json(uri::HttpCommon.URI) = string(uri)
+github2json(uri::HTTP.URI) = string(uri)
 github2json(dt::Dates.DateTime) = string(dt) * "Z"
 github2json(v::Vector) = [github2json(i) for i in v]
 

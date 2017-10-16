@@ -11,10 +11,10 @@ mutable struct Content <: GitHubType
     encoding::Nullable{String}
     content::Nullable{String}
     sha::Nullable{String}
-    url::Nullable{HttpCommon.URI}
-    git_url::Nullable{HttpCommon.URI}
-    html_url::Nullable{HttpCommon.URI}
-    download_url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
+    git_url::Nullable{HTTP.URI}
+    html_url::Nullable{HTTP.URI}
+    download_url::Nullable{HTTP.URI}
     size::Nullable{Int}
 end
 
@@ -62,7 +62,7 @@ function permalink(content::Content, commit)
     prefix = get(content.typ) == "file" ? "blob" : "tree"
     rgx = Regex(string("/", prefix, "/.*?/"))
     replacement = string("/", prefix, "/", name(commit), "/")
-    return HttpCommon.URI(replace(url, rgx, replacement))
+    return HTTP.URI(replace(url, rgx, replacement))
 end
 
 ###########################
