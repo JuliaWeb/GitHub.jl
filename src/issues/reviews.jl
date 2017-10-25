@@ -1,4 +1,4 @@
-type Review <: GitHubType
+mutable struct Review <: GitHubType
     pr::Nullable{PullRequest}
     id::Nullable{Int}
     user::Nullable{Owner}

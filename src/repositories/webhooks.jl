@@ -2,7 +2,7 @@
 # Webhook type #
 ################
 
-type Webhook <: GitHubType
+mutable struct Webhook <: GitHubType
     id::Nullable{Int}
     url::Nullable{HttpCommon.URI}
     test_url::Nullable{HttpCommon.URI}

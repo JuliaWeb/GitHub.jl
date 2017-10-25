@@ -2,7 +2,7 @@
 # Issue type #
 ##############
 
-type Issue <: GitHubType
+mutable struct Issue <: GitHubType
     id::Nullable{Int}
     number::Nullable{Int}
     comments::Nullable{Int}

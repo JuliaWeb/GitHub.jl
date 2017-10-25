@@ -2,7 +2,7 @@
 # Branch Type #
 ###############
 
-type Branch <: GitHubType
+mutable struct Branch <: GitHubType
     name::Nullable{String}
     label::Nullable{String}
     ref::Nullable{String}

@@ -1,4 +1,4 @@
-type Installation <: GitHubType
+mutable struct Installation <: GitHubType
     id::Nullable{Int}
 end
 

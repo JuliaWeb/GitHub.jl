@@ -1,4 +1,4 @@
-type App <: GitHubType
+mutable struct App <: GitHubType
     id::Nullable{Int}
     owner::Nullable{Owner}
     name::Nullable{String}

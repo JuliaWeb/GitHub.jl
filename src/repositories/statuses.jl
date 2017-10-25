@@ -2,7 +2,7 @@
 # Status type #
 ###############
 
-type Status <: GitHubType
+mutable struct Status <: GitHubType
     id::Nullable{Int}
     total_count::Nullable{Int}
     state::Nullable{String}

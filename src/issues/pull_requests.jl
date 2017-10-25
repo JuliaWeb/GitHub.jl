@@ -2,7 +2,7 @@
 # PullRequest Type #
 ####################
 
-type PullRequest <: GitHubType
+mutable struct PullRequest <: GitHubType
     base::Nullable{Branch}
     head::Nullable{Branch}
     number::Nullable{Int}

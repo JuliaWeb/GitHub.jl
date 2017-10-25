@@ -1,5 +1,6 @@
 import JSON
 using GitHub, GitHub.name, GitHub.Branch
+import HttpCommon
 using Base.Test
 
 # This file tests various GitHubType constructors. To test for proper Nullable

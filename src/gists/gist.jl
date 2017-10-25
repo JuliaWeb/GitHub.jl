@@ -1,4 +1,4 @@
-type Gist <: GitHubType
+mutable struct Gist <: GitHubType
     url::Nullable{HttpCommon.URI}
     forks_url::Nullable{HttpCommon.URI}
     commits_url::Nullable{HttpCommon.URI}

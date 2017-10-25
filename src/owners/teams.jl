@@ -1,4 +1,4 @@
-type Team <: GitHubType
+mutable struct Team <: GitHubType
     name::Nullable{String}
     description::Nullable{String}
     privacy::Nullable{String}

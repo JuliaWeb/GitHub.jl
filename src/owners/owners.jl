@@ -2,7 +2,7 @@
 # Owner Type #
 ##############
 
-type Owner <: GitHubType
+mutable struct Owner <: GitHubType
     typ::Nullable{String}
     email::Nullable{String}
     name::Nullable{String}

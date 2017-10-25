@@ -2,15 +2,15 @@
 # Authorization Types #
 #######################
 
-@compat abstract type Authorization end
+abstract type Authorization end
 
-immutable OAuth2 <: Authorization
+struct OAuth2 <: Authorization
     token::String
 end
 
-immutable AnonymousAuth <: Authorization end
+struct AnonymousAuth <: Authorization end
 
-immutable JWTAuth <: Authorization
+struct JWTAuth <: Authorization
     JWT::String
 end
 
