@@ -2,7 +2,7 @@
 # Repo Type #
 #############
 
-type Repo <: GitHubType
+mutable struct Repo <: GitHubType
     name::Nullable{String}
     full_name::Nullable{String}
     description::Nullable{String}

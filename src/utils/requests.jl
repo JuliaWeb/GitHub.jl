@@ -6,9 +6,9 @@
 Represents the API to interact with, either an actual GitHub instance,
 or a mock API for testing purposes
 """
-@compat abstract type GitHubAPI end
+abstract type GitHubAPI end
 
-immutable GitHubWebAPI <: GitHubAPI
+struct GitHubWebAPI <: GitHubAPI
     endpoint::HttpCommon.URI
 end
 

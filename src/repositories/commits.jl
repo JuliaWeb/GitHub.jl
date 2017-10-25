@@ -2,7 +2,7 @@
 # Commit Type #
 ###############
 
-type Commit <: GitHubType
+mutable struct Commit <: GitHubType
     sha::Nullable{String}
     message::Nullable{String}
     author::Nullable{Owner}

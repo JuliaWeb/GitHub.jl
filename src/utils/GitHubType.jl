@@ -23,7 +23,7 @@ function Base.:(==)(a::GitHubType, b::GitHubType)
         return false
     end
 
-    for field in fieldnames(a)
+    for field in fieldnames(typeof(a))
         aval, bval = getfield(a, field), getfield(b, field)
         if isnull(aval) == isnull(bval)
             if !(isnull(aval)) && get(aval) != get(bval)
@@ -46,7 +46,7 @@ name(g::GitHubType) = get(namefield(g))
 # Converting JSON Dicts to GitHubTypes #
 ########################################
 
-function extract_nullable{T}(data::Dict, key, ::Type{T})
+function extract_nullable(data::Dict, key, ::Type{T}) where {T}
     if haskey(data, key)
         val = data[key]
         if !(isa(val, Void))
@@ -61,7 +61,7 @@ function extract_nullable{T}(data::Dict, key, ::Type{T})
     return Nullable{T}()
 end
 
-prune_github_value{T}(val, ::Type{T}) = T(val)
+prune_github_value(val, ::Type{T}) where {T} = T(val)
 prune_github_value(val::AbstractString, ::Type{Dates.DateTime}) = Dates.DateTime(chopz(val))
 
 # ISO 8601 allows for a trailing 'Z' to indicate that the given time is UTC.
@@ -79,7 +79,7 @@ end
 # dictionary into the type `G` with the expectation that the fieldnames of
 # `G` are keys of `data`, and the corresponding values can be converted to the
 # given field types.
-@generated function json2github{G<:GitHubType}(::Type{G}, data::Dict)
+@generated function json2github(::Type{G}, data::Dict) where {G<:GitHubType}
     types = G.types
     fields = fieldnames(G)
     args = Vector{Expr}(length(fields))
@@ -102,7 +102,7 @@ github2json(v::Vector) = [github2json(i) for i in v]
 
 function github2json(g::GitHubType)
     results = Dict()
-    for field in fieldnames(g)
+    for field in fieldnames(typeof(g))
         val = getfield(g, field)
         if !(isnull(val))
             key = field == :typ ? "type" : string(field)
@@ -112,7 +112,7 @@ function github2json(g::GitHubType)
     return results
 end
 
-function github2json{K}(data::Dict{K})
+function github2json(data::Dict{K}) where {K}
     results = Dict{K,Any}()
     for (key, val) in data
         results[key] = github2json(val)
@@ -126,7 +126,7 @@ end
 
 function Base.show(io::IO, g::GitHubType)
     print(io, "$(typeof(g)) (all fields are Nullable):")
-    for field in fieldnames(g)
+    for field in fieldnames(typeof(g))
         val = getfield(g, field)
         if !(isnull(val))
             gotval = get(val)

@@ -2,7 +2,7 @@
 # Content Type #
 ################
 
-type Content <: GitHubType
+mutable struct Content <: GitHubType
     typ::Nullable{String}
     filename::Nullable{String}
     name::Nullable{String}

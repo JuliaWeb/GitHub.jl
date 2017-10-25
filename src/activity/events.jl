@@ -2,7 +2,7 @@
 # WebhookEvent Type #
 #####################
 
-type WebhookEvent
+mutable struct WebhookEvent
     kind::String
     payload::Dict
     repository::Repo
@@ -61,7 +61,7 @@ end
 # EventListener #
 #################
 
-immutable EventListener
+struct EventListener
     server::HttpServer.Server
     function EventListener(handle; auth::Authorization = AnonymousAuth(),
                            secret = nothing, events = nothing,
@@ -138,7 +138,7 @@ const COMMENT_EVENTS = ["commit_comment",
                         "issues",
                         "issue_comment"]
 
-immutable CommentListener
+struct CommentListener
     listener::EventListener
     function CommentListener(handle, trigger::Regex;
                              auth::Authorization = AnonymousAuth(),

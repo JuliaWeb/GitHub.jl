@@ -2,7 +2,7 @@
 # Comment Type #
 ################
 
-type Comment <: GitHubType
+mutable struct Comment <: GitHubType
     body::Nullable{String}
     path::Nullable{String}
     diff_hunk::Nullable{String}
