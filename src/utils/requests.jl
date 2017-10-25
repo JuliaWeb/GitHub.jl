@@ -12,7 +12,7 @@ struct GitHubWebAPI <: GitHubAPI
     endpoint::HTTP.URI
 end
 
-const DEFAULT_API = GitHubWebAPI(HTTP.URL("https://api.github.com"))
+const DEFAULT_API = GitHubWebAPI(HTTP.URI("https://api.github.com"))
 
 using Base.Meta
 """
@@ -40,7 +40,7 @@ end
 # Default API URIs #
 ####################
 
-api_uri(api::GitHubWebAPI, path) = HTTP.URL(string(api.endpoint), path = path)
+api_uri(api::GitHubWebAPI, path) = HTTP.URI(string(api.endpoint), path = path)
 api_uri(api::GitHubAPI, path) = error("URI retrieval not implemented for this API type")
 
 #######################

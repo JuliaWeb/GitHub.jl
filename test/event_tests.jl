@@ -4,8 +4,8 @@ event_json = JSON.parse(String(event_request))
 event = GitHub.event_from_payload!("commit_comment", event_json)
 
 @testset "WebhookEvent" begin
-    @test get(event.repository.name) == "BenchmarkTrackers.jl"
-    @test get(event.sender.login) == "jrevels"
+    @test event.repository.name == "BenchmarkTrackers.jl"
+    @test event.sender.login == "jrevels"
 end # testset
 
 @testset "EventListener" begin

@@ -3,10 +3,10 @@
 #####################
 
 mutable struct WebhookEvent
-    kind::String
-    payload::Dict
-    repository::Repo
-    sender::Owner
+    kind       :: String
+    payload    :: Dict
+    repository :: Repo
+    sender     :: Owner
 end
 
 function event_from_payload!(kind, data::Dict)
@@ -194,7 +194,7 @@ function handle_comment(handle, event::WebhookEvent, auth::Authorization,
 
     trigger_match = match(trigger, body_container["body"])
 
-    if trigger_match == nothing
+    if trigger_match === nothing
         return HTTP.Response(204, "trigger match not found")
     end
 

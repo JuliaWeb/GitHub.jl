@@ -1,13 +1,13 @@
 mutable struct App <: GitHubType
-    id::Nullable{Int}
-    owner::Nullable{Owner}
-    name::Nullable{String}
-    description::Nullable{String}
-    external_url::Nullable{String}
-    html_url::Nullable{String}
+    id           :: ?{Int}
+    owner        :: ?{Owner}
+    name         :: ?{String}
+    description  :: ?{String}
+    external_url :: ?{String}
+    html_url     :: ?{String}
 end
 
-namefield(a::App) = a.id
+name(a::App) = a.id
 App(data::Dict) = json2github(App, data)
 
 @api_default function app(api::GitHubAPI; headers = Dict(), kwargs...)

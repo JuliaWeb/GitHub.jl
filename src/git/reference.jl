@@ -1,7 +1,7 @@
 mutable struct Reference <: GitHubType
-    ref::Nullable{String}
-    url::Nullable{HttpCommon.URI}
-    object::Nullable{Dict}
+    ref    :: ?{String}
+    url    :: ?{HTTP.URI}
+    object :: ?{Dict}
 end
 
 Reference(data::Dict) = json2github(Reference, data)

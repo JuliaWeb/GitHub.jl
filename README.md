@@ -29,7 +29,7 @@ Here's a table of contents for this rather lengthy README:
 
 GitHub's JSON responses are parsed and returned to the caller as types of the form `G<:GitHub.GitHubType`. Here's some useful information about these types:
 
-- All fields are `Nullable`.
+- All fields can be [`nothing`] which matches `null` from the GitHub API.
 - Field names generally match the corresponding field in GitHub's JSON representation (the exception is `"type"`, which has the corresponding field name `typ` to avoid the obvious language conflict).
 - `GitHubType`s can be passed as arguments to API methods in place of (and in combination with) regular identifying properties. For example, `create_status(repo, commit)` could be called as:
 
@@ -55,10 +55,10 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Team`        | id, e.g. `1`                                           | [teams](https://developer.github.com/v3/orgs/teams)                                                                                                                                                           |
 | `Gist`        | id, e.g. `0bace7cc774df4b3a4b0ee9aaa271ef6`            | [gists](https://developer.github.com/v3/gists)                                                                                                                                                                |
 | `Review`      | id, e.g. `1`                                       | [reviews](https://developer.github.com/v3/pulls/reviews/)                                                                                                                                                             |
-| `Blob`      | sha, e.g. `"95c8d1aa2a7b1e6d672e15b67e0df4abbe57dcbe"` | [raw git blobs](https://developer.github.com/v3/git/blobs/)       
-| `Tree`      | sha, e.g. `"78e524d5e979e326a7c144ce195bf94ca9b04fa0"` | [raw git trees](https://developer.github.com/v3/git/trees/)       
-| `Tag`      | tag name, e.g. `v1.0` | [git tags](https://developer.github.com/v3/git/tags/)       
-| `References`      | reference name, e.g. `heads/master` (note: omits leading `refs/`) | [git tags](https://developer.github.com/v3/git/refs/)       
+| `Blob`      | sha, e.g. `"95c8d1aa2a7b1e6d672e15b67e0df4abbe57dcbe"` | [raw git blobs](https://developer.github.com/v3/git/blobs/)
+| `Tree`      | sha, e.g. `"78e524d5e979e326a7c144ce195bf94ca9b04fa0"` | [raw git trees](https://developer.github.com/v3/git/trees/)
+| `Tag`      | tag name, e.g. `v1.0` | [git tags](https://developer.github.com/v3/git/tags/)
+| `References`      | reference name, e.g. `heads/master` (note: omits leading `refs/`) | [git tags](https://developer.github.com/v3/git/refs/)
 
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
@@ -89,7 +89,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
 |------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `repo(repo)`                             | `Repo`                             | [get `repo`](https://developer.github.com/v3/repos/#get) |                                                                                
+| `repo(repo)`                             | `Repo`                             | [get `repo`](https://developer.github.com/v3/repos/#get) |
 | `create_repo(owner, name, params=Dict{String,String}())`       | `Repo`                             | [create a repository of the given `name` in the given  `owner`'s account](https://developer.github.com/v3/repos/#create)                                                                                                                                                    |
 | `create_fork(repo)`                      | `Repo`                             | [create a fork of `repo`](https://developer.github.com/v3/repos/forks/#create-a-fork)                                                                                                                       |
 | `forks(repo)`                            | `Tuple{Vector{Repo}, Dict}`        | [get `repo`'s forks](https://developer.github.com/v3/repos/forks/#list-forks)                                                                                                                               |
@@ -482,14 +482,14 @@ listener = GitHub.CommentListener(trigger; auth = myauth, secret = mysecret) do 
         reply_to = event.payload["issue"]["number"]
     elseif event.kind == "commit_comment"
         comment_kind = :commit
-        reply_to = get(comment.commit_id)
+        reply_to = comment.commit_id
     elseif event.kind == "pull_request_review_comment"
         comment_kind = :review
         reply_to = event.payload["pull_request"]["number"]
         # load required query params for review comment creation
-        comment_params["commit_id"] = get(comment.commit_id)
-        comment_params["path"] = get(comment.path)
-        comment_params["position"] = get(comment.position)
+        comment_params["commit_id"] = comment.commit_id
+        comment_params["path"] = comment.path
+        comment_params["position"] = comment.position
     end
 
     # send the comment creation request to GitHub

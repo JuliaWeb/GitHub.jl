@@ -3,25 +3,25 @@
 ###############
 
 mutable struct Status <: GitHubType
-    id::Nullable{Int}
-    total_count::Nullable{Int}
-    state::Nullable{String}
-    description::Nullable{String}
-    context::Nullable{String}
-    sha::Nullable{String}
-    url::Nullable{HTTP.URI}
-    target_url::Nullable{HTTP.URI}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    creator::Nullable{Owner}
-    repository::Nullable{Repo}
-    statuses::Nullable{Vector{Status}}
+    id          :: ?{Int}
+    total_count :: ?{Int}
+    state       :: ?{String}
+    description :: ?{String}
+    context     :: ?{String}
+    sha         :: ?{String}
+    url         :: ?{HTTP.URI}
+    target_url  :: ?{HTTP.URI}
+    created_at  :: ?{Dates.DateTime}
+    updated_at  :: ?{Dates.DateTime}
+    creator     :: ?{Owner}
+    repository  :: ?{Repo}
+    statuses    :: ?{Vector{Status}}
 end
 
 Status(data::Dict) = json2github(Status, data)
 Status(id::Real) = Status(Dict("id" => id))
 
-namefield(status::Status) = status.id
+name(status::Status) = status.id
 
 ###############
 # API Methods #

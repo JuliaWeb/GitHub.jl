@@ -1,8 +1,8 @@
 mutable struct Tree <: GitHubType
-    sha::Nullable{String}
-    url::Nullable{HttpCommon.URI}
-    tree::Nullable{Vector}
-    truncated::Nullable{Bool}
+    sha       :: ?{String}
+    url       :: ?{HTTP.URI}
+    tree      :: ?{Vector}
+    truncated :: ?{Bool}
 end
 
 Tree(data::Dict) = json2github(Tree, data)

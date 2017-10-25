@@ -3,40 +3,40 @@
 #############
 
 mutable struct Repo <: GitHubType
-    name::Nullable{String}
-    full_name::Nullable{String}
-    description::Nullable{String}
-    language::Nullable{String}
-    default_branch::Nullable{String}
-    owner::Nullable{Owner}
-    parent::Nullable{Repo}
-    source::Nullable{Repo}
-    id::Nullable{Int}
-    size::Nullable{Int}
-    subscribers_count::Nullable{Int}
-    forks_count::Nullable{Int}
-    stargazers_count::Nullable{Int}
-    watchers_count::Nullable{Int}
-    open_issues_count::Nullable{Int}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    homepage::Nullable{HTTP.URI}
-    pushed_at::Nullable{Dates.DateTime}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    has_issues::Nullable{Bool}
-    has_wiki::Nullable{Bool}
-    has_downloads::Nullable{Bool}
-    has_pages::Nullable{Bool}
-    private::Nullable{Bool}
-    fork::Nullable{Bool}
-    permissions::Nullable{Dict}
+    name              :: ?{String}
+    full_name         :: ?{String}
+    description       :: ?{String}
+    language          :: ?{String}
+    default_branch    :: ?{String}
+    owner             :: ?{Owner}
+    parent            :: ?{Repo}
+    source            :: ?{Repo}
+    id                :: ?{Int}
+    size              :: ?{Int}
+    subscribers_count :: ?{Int}
+    forks_count       :: ?{Int}
+    stargazers_count  :: ?{Int}
+    watchers_count    :: ?{Int}
+    open_issues_count :: ?{Int}
+    url               :: ?{HTTP.URI}
+    html_url          :: ?{HTTP.URI}
+    homepage          :: ?{HTTP.URI}
+    pushed_at         :: ?{Dates.DateTime}
+    created_at        :: ?{Dates.DateTime}
+    updated_at        :: ?{Dates.DateTime}
+    has_issues        :: ?{Bool}
+    has_wiki          :: ?{Bool}
+    has_downloads     :: ?{Bool}
+    has_pages         :: ?{Bool}
+    private           :: ?{Bool}
+    fork              :: ?{Bool}
+    permissions       :: ?{Dict}
 end
 
 Repo(data::Dict) = json2github(Repo, data)
 Repo(full_name::AbstractString) = Repo(Dict("full_name" => full_name))
 
-namefield(repo::Repo) = repo.full_name
+name(repo::Repo) = repo.full_name
 
 ###############
 # API Methods #
