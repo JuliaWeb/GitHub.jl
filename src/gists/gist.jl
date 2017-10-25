@@ -32,7 +32,7 @@ namefield(gist::Gist) = gist.id
 # creating #
 #----------#
 
-@api_default gist(gist_obj::Gist; options...) = gist(api::GitHubAPI, name(gist_obj); options...)
+@api_default gist(api::GitHubAPI, gist_obj::Gist; options...) = gist(api::GitHubAPI, name(gist_obj); options...)
 
 @api_default function gist(api::GitHubAPI, gist_obj, sha = ""; options...)
     !isempty(sha) && (sha = "/" * sha)
@@ -53,7 +53,7 @@ end
 # modifying #
 #-----------#
 
-@api_default create_gist(; options...) = Gist(gh_post_json(api, "/gists"; options...))
+@api_default create_gist(api::GitHubAPI; options...) = Gist(gh_post_json(api, "/gists"; options...))
 @api_default edit_gist(api::GitHubAPI, gist; options...) = Gist(gh_patch_json(api, "/gists/$(name(gist))"; options...))
 @api_default delete_gist(api::GitHubAPI, gist; options...) = gh_delete(api, "/gists/$(name(gist))"; options...)
 

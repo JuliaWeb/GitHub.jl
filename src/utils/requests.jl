@@ -78,7 +78,7 @@ gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = Requests.json(gh_patc
 # Rate Limiting #
 #################
 
-@api_default rate_limit(api; options...) = gh_get_json(api, "/rate_limit"; options...)
+@api_default rate_limit(api::GitHubAPI; options...) = gh_get_json(api, "/rate_limit"; options...)
 
 ##############
 # Pagination #
