@@ -215,9 +215,9 @@ export # events/listeners.jl
        EventListener,
        CommentListener
 
-############
-# Apps     #
-############
+########
+# Apps #
+########
 
 # include -------
 
@@ -234,5 +234,47 @@ export # installations.jl
        Installation,
        create_access_token,
        installations
+
+#######
+# Git #
+#######
+
+# include --------
+
+include("git/blob.jl")
+include("git/reference.jl")
+include("git/tree.jl")
+include("git/tag.jl")
+include("git/gitcommit.jl")
+
+export # blob.jl
+    Blob,
+    blob,
+    create_blob
+
+export # reference.jl
+    Reference,
+    reference,
+    refereces,
+    create_reference,
+    update_reference,
+    delete_reference
+
+export # tree.jl
+    Tree,
+    tree,
+    create_tree
+
+export # tag.jl
+    Tag,
+    tag,
+    create_tag
+
+export # gitcommit.jl
+    GitCommit,
+    gitcommit,
+    create_gitcommit
+
+
 
 end # module GitHub
