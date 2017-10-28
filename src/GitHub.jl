@@ -6,11 +6,10 @@ using Compat
 # import #
 ##########
 
-import HttpCommon,
-       HttpServer,
+import HTTP,
        JSON,
        MbedTLS,
-       Requests
+       HttpCommon # for deprecations
 
 #############
 # Utilities #

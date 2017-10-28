@@ -1,9 +1,9 @@
 using GitHub
-using JLD
 using Base.Test
 
-event_request = JLD.load(joinpath(dirname(@__FILE__), "commit_comment.jld"), "request")
-event_json = Requests.json(event_request)
+include("commit_comment.jl")
+event_request = create_event()
+event_json = JSON.parse(String(event_request))
 event = GitHub.event_from_payload!("commit_comment", event_json)
 
 @testset "WebhookEvent" begin
@@ -28,8 +28,8 @@ end # testset
                                 secret = "secret",
                                 repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                                 events = ["commit_comment"],
-                                forwards = ["http://bob.com", HttpCommon.URI("http://jim.org")])
-        r = listener.server.http.handle(HttpCommon.Request(),HttpCommon.Response())
+                                forwards = ["http://bob.com", HTTP.URI("http://jim.org")])
+        r = listener.server.handler.func(HTTP.Request(), HTTP.Response())
         r.status == 400
     end
 end
@@ -41,9 +41,9 @@ end
         listener = CommentListener((x, y) -> true, r"trigger";
                                 secret = "secret",
                                 repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
-                                forwards = ["http://bob.com", HttpCommon.URI("http://jim.org")],
+                                forwards = ["http://bob.com", HTTP.URI("http://jim.org")],
                                 check_collab = false)
-        r = listener.listener.server.http.handle(HttpCommon.Request(), HttpCommon.Response())
+        r = listener.listener.server.handler.func(HTTP.Request(), HTTP.Response())
         r.status == 400
     end
 end

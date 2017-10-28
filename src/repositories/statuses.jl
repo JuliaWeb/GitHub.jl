@@ -9,8 +9,8 @@ mutable struct Status <: GitHubType
     description::Nullable{String}
     context::Nullable{String}
     sha::Nullable{String}
-    url::Nullable{HttpCommon.URI}
-    target_url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
+    target_url::Nullable{HTTP.URI}
     created_at::Nullable{Dates.DateTime}
     updated_at::Nullable{Dates.DateTime}
     creator::Nullable{Owner}

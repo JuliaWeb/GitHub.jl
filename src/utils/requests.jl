@@ -9,10 +9,10 @@ or a mock API for testing purposes
 abstract type GitHubAPI end
 
 struct GitHubWebAPI <: GitHubAPI
-    endpoint::HttpCommon.URI
+    endpoint::HTTP.URI
 end
 
-const DEFAULT_API = GitHubWebAPI(HttpCommon.URI("https://api.github.com/"))
+const DEFAULT_API = GitHubWebAPI(HTTP.URL("https://api.github.com"))
 
 using Base.Meta
 """
@@ -40,7 +40,7 @@ end
 # Default API URIs #
 ####################
 
-api_uri(api::GitHubWebAPI, path) = HttpCommon.URI(api.endpoint, path = path)
+api_uri(api::GitHubWebAPI, path) = HTTP.URL(string(api.endpoint), path = path)
 api_uri(api::GitHubAPI, path) = error("URI retrieval not implemented for this API type")
 
 #######################
@@ -49,30 +49,31 @@ api_uri(api::GitHubAPI, path) = error("URI retrieval not implemented for this AP
 
 function github_request(api::GitHubAPI, request_method, endpoint;
                         auth = AnonymousAuth(), handle_error = true,
-                        headers = Dict(), params = Dict(), allow_redirects = true)
+                        headers = Dict(), params = Dict(), allowredirects = true)
     authenticate_headers!(headers, auth)
     params = github2json(params)
     api_endpoint = api_uri(api, endpoint)
-    if request_method == Requests.get
-        r = request_method(api_endpoint; headers = headers, query = params, allow_redirects = allow_redirects)
+    _headers = convert(Dict{String, String}, headers)
+    if request_method == HTTP.get
+        r = request_method(string(api_endpoint), headers = _headers, query = params, allowredirects = allowredirects, statusraise = false)
     else
-        r = request_method(api_endpoint; headers = headers, json = params, allow_redirects = allow_redirects)
+        r = request_method(string(api_endpoint); headers = _headers, body = JSON.json(params), allowredirects = allowredirects, statusraise = false)
     end
     handle_error && handle_response_error(r)
     return r
 end
 
-gh_get(api::GitHubAPI, endpoint = ""; options...) = github_request(api, Requests.get, endpoint; options...)
-gh_post(api::GitHubAPI, endpoint = ""; options...) = github_request(api, Requests.post, endpoint; options...)
-gh_put(api::GitHubAPI, endpoint = ""; options...) = github_request(api, Requests.put, endpoint; options...)
-gh_delete(api::GitHubAPI, endpoint = ""; options...) = github_request(api, Requests.delete, endpoint; options...)
-gh_patch(api::GitHubAPI, endpoint = ""; options...) = github_request(api, Requests.patch, endpoint; options...)
+gh_get(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.get, endpoint; options...)
+gh_post(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.post, endpoint; options...)
+gh_put(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.put, endpoint; options...)
+gh_delete(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.delete, endpoint; options...)
+gh_patch(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.patch, endpoint; options...)
 
-gh_get_json(api::GitHubAPI, endpoint = ""; options...) = Requests.json(gh_get(api, endpoint; options...))
-gh_post_json(api::GitHubAPI, endpoint = ""; options...) = Requests.json(gh_post(api, endpoint; options...))
-gh_put_json(api::GitHubAPI, endpoint = ""; options...) = Requests.json(gh_put(api, endpoint; options...))
-gh_delete_json(api::GitHubAPI, endpoint = ""; options...) = Requests.json(gh_delete(api, endpoint; options...))
-gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = Requests.json(gh_patch(api, endpoint; options...))
+gh_get_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_get(api, endpoint; options...))))
+gh_post_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_post(api, endpoint; options...))))
+gh_put_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_put(api, endpoint; options...))))
+gh_delete_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_delete(api, endpoint; options...))))
+gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_patch(api, endpoint; options...))))
 
 #################
 # Rate Limiting #
@@ -84,8 +85,8 @@ gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = Requests.json(gh_patc
 # Pagination #
 ##############
 
-has_page_links(r) = haskey(r.headers, "Link")
-get_page_links(r) = split(r.headers["Link"], ',')
+has_page_links(r) = haskey(HTTP.headers(r), "Link")
+get_page_links(r) = split(HTTP.headers(r)["Link"], ',')
 
 function find_page_link(links, rel)
     relstr = "rel=\"$(rel)\""
@@ -101,13 +102,14 @@ extract_page_url(link) = match(r"<.*?>", link).match[2:end-1]
 
 function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", handle_error = true,
                           headers = Dict(), params = Dict(), options...)
+    _headers = convert(Dict{String, String}, headers)
     if isempty(start_page)
-        r = gh_get(api, endpoint; handle_error = handle_error, headers = headers, params = params, options...)
+        r = gh_get(api, endpoint; handle_error = handle_error, headers = _headers, params = params, options...)
     else
         @assert isempty(params) "`start_page` kwarg is incompatible with `params` kwarg"
-        r = Requests.get(start_page, headers = headers)
+        r = HTTP.get(start_page, headers = _headers)
     end
-    results = HttpCommon.Response[r]
+    results = HTTP.Response[r]
     page_data = Dict{String, String}()
     if has_page_links(r)
         page_count = 1
@@ -115,7 +117,7 @@ function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", hand
             links = get_page_links(r)
             next_index = find_page_link(links, "next")
             next_index == 0 && break
-            r = Requests.get(extract_page_url(links[next_index]), headers = headers)
+            r = HTTP.get(extract_page_url(links[next_index]), headers = _headers)
             handle_error && handle_response_error(r)
             push!(results, r)
             page_count += 1
@@ -133,18 +135,18 @@ end
 
 function gh_get_paged_json(api, endpoint = ""; options...)
     results, page_data = github_paged_get(api, endpoint; options...)
-    return mapreduce(Requests.json, vcat, results), page_data
+    return mapreduce(r -> JSON.parse(String(r)), vcat, results), page_data
 end
 
 ##################
 # Error Handling #
 ##################
 
-function handle_response_error(r::HttpCommon.Response)
+function handle_response_error(r::HTTP.Response)
     if r.status >= 400
         message, docs_url, errors = "", "", ""
         try
-            data = Requests.json(r)
+            data = JSON.parse(String(r))
             message = get(data, "message", "")
             docs_url = get(data, "documentation_url", "")
             errors = get(data, "errors", "")

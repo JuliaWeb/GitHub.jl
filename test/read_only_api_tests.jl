@@ -1,6 +1,6 @@
 using GitHub, GitHub.name
 using Base.Test
-
+using MbedTLS
 # The below tests are network-dependent, and actually make calls to GitHub's
 # API. They're all read-only, meaning none of them require authentication.
 
