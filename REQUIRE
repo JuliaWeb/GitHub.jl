@@ -2,5 +2,5 @@ julia 0.6
 
 JSON
 MbedTLS
-HTTP
+HTTP 0.5.2 0.5.2+
 HttpCommon # for deprecations
