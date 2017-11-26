@@ -1,5 +1,3 @@
-using GitHub
-using MbedTLS
 correct_jwt = replace("""
 eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.
 eyJleHAiOjE0NzM5NDgwNjAsImlhdCI6MTQ3Mzk0ODAwMCwiaXNzIjoxMjM0fQ.
