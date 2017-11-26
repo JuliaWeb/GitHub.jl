@@ -1,8 +1,3 @@
-import JSON
-using GitHub, GitHub.name, GitHub.Branch
-import HTTP
-using Base.Test
-
 # This file tests various GitHubType constructors. To test for proper Nullable
 # handling, most fields have been removed from the JSON samples used below.
 # Sample fields were selected in order to cover the full range of type behavior,

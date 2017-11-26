@@ -1,6 +1,3 @@
-using GitHub
-using Base.Test
-
 include("commit_comment.jl")
 event_request = create_event()
 event_json = JSON.parse(String(event_request))
