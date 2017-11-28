@@ -781,3 +781,141 @@ end
     review_result = App(review_json)
     @test name(review_result) == Int(review_json["id"])
 end
+
+@testset "Blob" begin
+    blob_json = JSON.parse("""
+    {
+      "content": "Q29udGVudCBvZiB0aGUgYmxvYg==\\n",
+      "encoding": "base64",
+      "url": "https://api.github.com/repos/octocat/example/git/blobs/3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+      "sha": "3a0f86fb8db8eea7ccbb9a95f325ddbedfb25e15",
+      "size": 19
+    }
+    """)
+
+    blob_result = Blob(blob_json)
+    @test name(blob_result) == blob_json["sha"]
+end
+
+@testset "Git Commit" begin
+    commit_json = JSON.parse("""
+    {
+      "sha": "7638417db6d59f3c431d3e1f261cc637155684cd",
+      "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/7638417db6d59f3c431d3e1f261cc637155684cd",
+      "author": {
+        "date": "2014-11-07T22:01:45Z",
+        "name": "Scott Chacon",
+        "email": "schacon@gmail.com"
+      },
+      "committer": {
+        "date": "2014-11-07T22:01:45Z",
+        "name": "Scott Chacon",
+        "email": "schacon@gmail.com"
+      },
+      "message": "added readme, because im a good github citizen",
+      "tree": {
+        "url": "https://api.github.com/repos/octocat/Hello-World/git/trees/691272480426f78a0138979dd3ce63b77f706feb",
+        "sha": "691272480426f78a0138979dd3ce63b77f706feb"
+      },
+      "parents": [
+        {
+          "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/1acc419d4d6a9ce985db7be48c6349a0475975b5",
+          "sha": "1acc419d4d6a9ce985db7be48c6349a0475975b5"
+        }
+      ],
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    }
+    """)
+    commit_result = GitCommit(commit_json)
+    @test name(commit_result) == commit_json["sha"]
+end
+
+@testset "Reference" begin
+    reference_json = JSON.parse("""
+    {
+      "ref": "refs/heads/featureA",
+      "url": "https://api.github.com/repos/octocat/Hello-World/git/refs/heads/featureA",
+      "object": {
+        "type": "commit",
+        "sha": "aa218f56b14c9653891f9e74264a383fa43fefbd",
+        "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/aa218f56b14c9653891f9e74264a383fa43fefbd"
+      }
+    }
+    """)
+
+    reference_result = Reference(reference_json)
+    @test name(reference_result) == "heads/featureA"
+end
+
+@testset "Tag" begin
+    tag_json = JSON.parse("""
+    {
+      "tag": "v0.0.1",
+      "sha": "940bd336248efae0f9ee5bc7b2d5c985887b16ac",
+      "url": "https://api.github.com/repos/octocat/Hello-World/git/tags/940bd336248efae0f9ee5bc7b2d5c985887b16ac",
+      "message": "initial version",
+      "tagger": {
+        "name": "Scott Chacon",
+        "email": "schacon@gmail.com",
+        "date": "2014-11-07T22:01:45Z"
+      },
+      "object": {
+        "type": "commit",
+        "sha": "c3d0be41ecbe669545ee3e94d31ed9a4bc91ee3c",
+        "url": "https://api.github.com/repos/octocat/Hello-World/git/commits/c3d0be41ecbe669545ee3e94d31ed9a4bc91ee3c"
+      },
+      "verification": {
+        "verified": false,
+        "reason": "unsigned",
+        "signature": null,
+        "payload": null
+      }
+    }
+    """)
+
+    tag_result = Tag(tag_json)
+    @test name(tag_result) == tag_json["sha"]
+end
+
+@testset "Tree" begin
+    tree_json = JSON.parse("""
+    {
+      "sha": "9fb037999f264ba9a7fc6274d15fa3ae2ab98312",
+      "url": "https://api.github.com/repos/octocat/Hello-World/trees/9fb037999f264ba9a7fc6274d15fa3ae2ab98312",
+      "tree": [
+        {
+          "path": "file.rb",
+          "mode": "100644",
+          "type": "blob",
+          "size": 30,
+          "sha": "44b4fc6d56897b048c772eb4087f854f46256132",
+          "url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/44b4fc6d56897b048c772eb4087f854f46256132"
+        },
+        {
+          "path": "subdir",
+          "mode": "040000",
+          "type": "tree",
+          "sha": "f484d249c660418515fb01c2b9662073663c242e",
+          "url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/f484d249c660418515fb01c2b9662073663c242e"
+        },
+        {
+          "path": "exec_file",
+          "mode": "100755",
+          "type": "blob",
+          "size": 75,
+          "sha": "45b983be36b73c0788dc9cbcb76cbb80fc7bb057",
+          "url": "https://api.github.com/repos/octocat/Hello-World/git/blobs/45b983be36b73c0788dc9cbcb76cbb80fc7bb057"
+        }
+      ],
+      "truncated": false
+    }
+    """)
+
+    tree_result = Tree(tree_json)
+    @test name(tree_result) == tree_json["sha"]
+end

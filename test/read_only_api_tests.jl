@@ -176,3 +176,31 @@ testbot_key =
     @test length(installations(jwt)[1]) == 1
 end
 
+@testset "Git Data" begin
+    github_jl = Repo("JuliaWeb/GitHub.jl")
+
+    g = gitcommit(github_jl, "0d9f04ce4be061d3c2b12644316a232c8f889b44"; auth=auth)
+    @test get(g.tree)["sha"] == "e22fee36cb13d9a1850b242f79938458221a5d2e"
+
+    t = tree(github_jl, get(g.tree)["sha"]; auth=auth)
+    for entry in get(t.tree)
+        if entry["path"] == "README.md"
+            @test entry["sha"] == "95c8d1aa2a7b1e6d672e15b67e0df4abbe57dcbe"
+            @test entry["type"] == "blob"
+
+            b = blob(github_jl, entry["sha"]; auth=auth)
+            @test contains(String(base64decode(replace(get(b.content),"\n",""))), "GitHub.jl")
+
+            break
+        end
+    end
+end
+
+@testset "Tags and References" begin
+    github_jl = Repo("JuliaWeb/GitHub.jl")
+    ref = reference(github_jl, "heads/master"; auth=auth)
+    @test get(ref.object)["type"] == "commit"
+
+    # All tags in this repo are lightweight tags which are not covered by the API
+    # Maybe test in the future when we have a use case
+end
