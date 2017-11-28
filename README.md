@@ -44,7 +44,8 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 |---------------|--------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `Owner`       | login, e.g. `"octocat"`                                | [organizations](https://developer.github.com/v3/orgs/), [users](https://developer.github.com/v3/users/)                                                                                                       |
 | `Repo`        | full_name, e.g. `"JuliaWeb/GitHub.jl"`                 | [repositories](https://developer.github.com/v3/repos/)                                                                                                                                                        |
-| `Commit`      | sha, e.g. `"d069993b320c57b2ba27336406f6ec3a9ae39375"` | [repository commits](https://developer.github.com/v3/repos/commits/)                                                                                                                                          |
+| `Commit`      | sha, e.g. `"d069993b320c57b2ba27336406f6ec3a9ae39375"` | [repository commits](https://developer.github.com/v3/repos/commits/) |
+| `GitCommit`      | sha, e.g. `"d069993b320c57b2ba27336406f6ec3a9ae39375"` | [raw git commits](https://developer.github.com/v3/git/commits/)                                                                                                                                          |
 | `Branch`      | name, e.g. `master`                                    | [repository branches](https://developer.github.com/v3/repos/#get-branch)                                                                                                                                      |
 | `Content`     | path, e.g. `"src/owners/owners.jl"`                    | [repository contents](https://developer.github.com/v3/repos/contents/)                                                                                                                                        |
 | `Comment`     | id, e.g. `162224613`                                   | [commit comments](https://developer.github.com/v3/repos/comments/), [issue comments](https://developer.github.com/v3/issues/comments/), [PR review comments](https://developer.github.com/v3/pulls/comments/) |
@@ -54,6 +55,11 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Team`        | id, e.g. `1`                                           | [teams](https://developer.github.com/v3/orgs/teams)                                                                                                                                                           |
 | `Gist`        | id, e.g. `0bace7cc774df4b3a4b0ee9aaa271ef6`            | [gists](https://developer.github.com/v3/gists)                                                                                                                                                                |
 | `Review`      | id, e.g. `1`                                       | [reviews](https://developer.github.com/v3/pulls/reviews/)                                                                                                                                                             |
+| `Blob`      | sha, e.g. `"95c8d1aa2a7b1e6d672e15b67e0df4abbe57dcbe"` | [raw git blobs](https://developer.github.com/v3/git/blobs/)       
+| `Tree`      | sha, e.g. `"78e524d5e979e326a7c144ce195bf94ca9b04fa0"` | [raw git trees](https://developer.github.com/v3/git/trees/)       
+| `Tag`      | tag name, e.g. `v1.0` | [git tags](https://developer.github.com/v3/git/tags/)       
+| `References`      | reference name, e.g. `heads/master` (note: omits leading `refs/`) | [git tags](https://developer.github.com/v3/git/refs/)       
+
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
 
@@ -181,8 +187,28 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `starred_gists()`                        | `Tuple{Vector{Gist}, Dict}`        | [get the starred `gist`s](https://developer.github.com/v3/gists/#list-starred-gists)                                                                                                                        |
 | `unstar_gist(gist)`                      | `HTTP.Response`                    | [unstar `gist`](https://developer.github.com/v3/gists/#unstar-a-gist)                                                                                                                                       |
 
-#### GitHub Apps
+#### Git Data
 
+| method                                   | return type                        | documentation                                                                                                                                                                                               |
+|------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `blob(repo, sha)`                                | `Blob`                              | [Look up a blob in the `repo` by its SHA](https://developer.github.com/v3/git/blobs/#get-a-blob)   |
+| `create_blob(repo)`                              | `Blob`                              | [Create a blob in the `repo`](https://developer.github.com/v3/git/blobs/#create-a-blob)   |
+| `gitcommit(repo, sha)`                           | `GitCommit`                              | [Look up a commit in the `repo` by its SHA](https://developer.github.com/v3/git/commits/#get-a-commit)   |
+| `create_gitcommit(repo)`                         | `GitCommit`                              | [Create a commit in the `repo`](https://developer.github.com/v3/git/commits/#create-a-commit)   |
+| `tree(repo, sha)`                                | `Tree`                              | [Look up a tree in the `repo` by its SHA](https://developer.github.com/v3/git/trees/#get-a-tree)   |
+| `create_tree(repo)`                              | `Tree`                              | [Create a tree in the `repo`](https://developer.github.com/v3/git/trees/create-a-tree) |
+| `tag(repo, sha)`                                | `Tag`                              | [Look up a tag in the `repo` by its name](https://developer.github.com/v3/git/tag/#get-a-tag)   |
+| `create_tag(repo)`                              | `Tag`                              | [Create a tag in the `repo`](
+   https://developer.github.com/v3/git/tag/#create-a-tag) |
+| `reference(repo, name)`                           | `Reference`                              | [Look up a ref in the `repo` by its name](https://developer.github.com/v3/git/refs/#get-a-reference)   |
+| `references(repo)`                           | `Vector{Reference}`                              | [Get all `refs ` of the repo](https://developer.github.com/v3/git/refs/#get-all-references)   |
+| `create_reference(repo)`                         | `Reference`                              | [Create a reference in the `repo`](https://developer.github.com/v3/git/refs/#create-a-reference)   |
+| `update_reference(repo)`                         | `Reference`                              | [Update a reference in the `repo`](https://developer.github.com/v3/git/refs/#create-a-reference)   |
+| `delete_reference(repo)`                         | `GitCommit`                              | [Delete a the `repo`](https://developer.github.com/v3/git/refs/#delete-a-reference)   |
+| `tag(repo)`                         | `Reference`                              | [Update a reference in the `repo`](https://developer.github.com/v3/git/refs/#create-a-reference)   |
+| `delete_reference(repo)`                         | `GitCommit`                              | [Delete a the `repo`](https://developer.github.com/v3/git/refs/#delete-a-reference)   |
+
+#### GitHub Apps
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
 |------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `app(id)`                                | `App`                              | [get the GitHub app with the specified `id`](https://developer.github.com/v3/apps/#get-a-single-github-app)   |
@@ -190,6 +216,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `app(;auth=auth)`                        | `App`                              | [get the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#get-the-authenticated-github-app)   |
 | `installations(auth)`                    | `Vector{Installation}`             | [get the installations for the GitHub app authenticated by the corresponding `auth`](https://developer.github.com/v3/apps/#find-installations)   |
 | `repos(i::Installation)`                 | `Tuple{Vector{Repo}, Dict}`        | [get the active repositories for this installation](https://developer.github.com/v3/apps/#find-installations)   |
+
 
 #### Miscellaneous
 
