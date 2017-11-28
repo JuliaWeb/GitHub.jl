@@ -50,6 +50,16 @@ namefield(repo::Repo) = repo.full_name
     return Repo(result)
 end
 
+@api_default function create_repo(api::GitHubAPI, owner, name::String, params=Dict{String,Any}(); options...)
+    params["name"] = name
+    if isorg(owner)
+        result = gh_post_json(api, "/orgs/$(name(owner))/repos"; params=params, options...)
+    else
+        result = gh_post_json(api, "/user/repos"; params=params, options...)
+    end
+    return Repo(result)
+end
+
 # forks #
 #-------#
 
