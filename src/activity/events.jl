@@ -102,7 +102,7 @@ function handle_event_request(request, handle;
     end
 
     if !(isa(events, Void)) && !(is_valid_event(request, events))
-        return HTTP.Response(400, "invalid event")
+        return HTTP.Response(204, "event ignored")
     end
 
     event = event_from_payload!(event_header(request), JSON.parse(String(request)))
