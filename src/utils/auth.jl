@@ -32,11 +32,8 @@ function JWTAuth(app_id::Int, key::MbedTLS.PKContext; iat = now(Dates.UTC), exp_
         "exp" => trunc(Int64, Dates.datetime2unix(iat+Dates.Minute(exp_mins))),
         "iss" => app_id
     ))))
-    entropy = MbedTLS.Entropy()
-    rng = MbedTLS.CtrDrbg()
-    MbedTLS.seed!(rng, entropy)
     signature = base64_to_base64url(base64encode(MbedTLS.sign(key, MbedTLS.MD_SHA256,
-        MbedTLS.digest(MbedTLS.MD_SHA256, string(algo,'.',data)), rng)))
+        MbedTLS.digest(MbedTLS.MD_SHA256, string(algo,'.',data)), RNG[])))
     JWTAuth(string(algo,'.',data,'.',signature))
 end
 
