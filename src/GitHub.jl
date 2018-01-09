@@ -18,6 +18,19 @@ import HTTP,
        MbedTLS,
        HttpCommon # for deprecations
 
+########
+# init #
+########
+
+const ENTROPY = Ref{MbedTLS.Entropy}()
+const RNG     = Ref{MbedTLS.CtrDrbg}()
+
+function __init__()
+    ENTROPY[] = MbedTLS.Entropy()
+    RNG[]     = MbedTLS.CtrDrbg()
+    MbedTLS.seed!(RNG[], ENTROPY[])
+end
+
 #############
 # Utilities #
 #############
