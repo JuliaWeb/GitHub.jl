@@ -1,7 +1,7 @@
 mutable struct Blob <: GitHubType
     content::Nullable{String}
     encoding::Nullable{String}
-    url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
     sha::Nullable{String}
     size::Nullable{Int}
 end

@@ -15,8 +15,7 @@ end
 
 import HTTP,
        JSON,
-       MbedTLS,
-       HttpCommon # for deprecations
+       MbedTLS
 
 #############
 # Utilities #

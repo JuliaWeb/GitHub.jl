@@ -1,6 +1,6 @@
 mutable struct Tree <: GitHubType
     sha::Nullable{String}
-    url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
     tree::Nullable{Vector}
     truncated::Nullable{Bool}
 end

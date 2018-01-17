@@ -1,7 +1,7 @@
 mutable struct Tag <: GitHubType
     tag::Nullable{String}
     sha::Nullable{String}
-    url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
     message::Nullable{String}
     tagger::Nullable{Dict}
     object::Nullable{Dict}
