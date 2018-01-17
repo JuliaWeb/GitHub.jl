@@ -26,7 +26,7 @@ end
     """
     {
       "id": 1,
-      "email": nothing,
+      "email": null,
       "html_url": "https://github.com/octocat",
       "login": "octocat",
       "updated_at": "2008-01-14T04:33:35Z",
@@ -84,7 +84,7 @@ end
       "full_name": "octocat/Hello-World",
       "private": false,
       "url": "https://api.github.com/repos/octocat/Hello-World",
-      "language": nothing,
+      "language": null,
       "pushed_at": "2011-01-26T19:06:43Z",
       "permissions": {
         "admin": false,
@@ -139,7 +139,7 @@ end
     {
       "url": "https://api.github.com/repos/octocat/Hello-World/commits/6dcb09b5b57875f334f61aebed695e2e4193db5e",
       "sha": "6dcb09b5b57875f334f61aebed695e2e4193db5e",
-      "html_url": nothing,
+      "html_url": null,
       "commit": {
         "message": "Fix all the bugs",
         "comment_count": 0
@@ -171,20 +171,6 @@ end
     )
 
     commit_result = Commit(
-<<<<<<< HEAD
-        Nullable{String}(String(commit_json["sha"])),
-        Nullable{String}(),
-        Nullable{Owner}(Owner(commit_json["author"])),
-        Nullable{Owner}(),
-        Nullable{Commit}(Commit(commit_json["commit"])),
-        Nullable{HTTP.URI}(HTTP.URI(commit_json["url"])),
-        Nullable{HTTP.URI}(),
-        Nullable{HTTP.URI}(),
-        Nullable{Vector{Commit}}(map(Commit, commit_json["parents"])),
-        Nullable{Dict}(commit_json["stats"]),
-        Nullable{Vector{Content}}(map(Content, commit_json["files"])),
-        Nullable{Int}()
-=======
         String(commit_json["sha"]),
         nothing,
         Owner(commit_json["author"]),
@@ -197,7 +183,6 @@ end
         commit_json["stats"],
         map(Content, commit_json["files"]),
         nothing
->>>>>>> use Nulls instead of Nullable
     )
 
     @test Commit(commit_json) == commit_result
@@ -212,7 +197,7 @@ end
     """
     {
       "name": "master",
-      "sha": nothing,
+      "sha": null,
       "protection": {
         "enabled": false,
         "required_status_checks": {
@@ -258,7 +243,7 @@ end
     {
       "url": "https://api.github.com/repos/octocat/Hello-World/comments/1",
       "id": 1,
-      "position": nothing,
+      "position": null,
       "body": "Great stuff",
       "user": {
         "login": "octocat"
@@ -269,24 +254,6 @@ end
     )
 
     comment_result = Comment(
-<<<<<<< HEAD
-        Nullable{String}(String(comment_json["body"])),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{Int}(Int(comment_json["id"])),
-        Nullable{Int}(),
-        Nullable{Int}(),
-        Nullable{Int}(),
-        Nullable{Dates.DateTime}(Dates.DateTime(chop(comment_json["created_at"]))),
-        Nullable{Dates.DateTime}(),
-        Nullable{HTTP.URI}(HTTP.URI(comment_json["url"])),
-        Nullable{HTTP.URI}(),
-        Nullable{HTTP.URI}(),
-        Nullable{HTTP.URI}(),
-        Nullable{Owner}(Owner(comment_json["user"]))
-=======
         String(comment_json["body"]),
         nothing,
         nothing,
@@ -303,7 +270,6 @@ end
         nothing,
         nothing,
         Owner(comment_json["user"])
->>>>>>> use Nulls instead of Nullable
     )
 
     @test Comment(comment_json) == comment_result
@@ -320,28 +286,13 @@ end
       "type": "file",
       "path": "lib/octokit.rb",
       "size": 625,
-      "encoding": nothing,
+      "encoding": null,
       "url": "https://api.github.com/repos/octokit/octokit.rb/contents/lib/octokit.rb"
     }
     """
     )
 
     content_result = Content(
-<<<<<<< HEAD
-        Nullable{String}(String(content_json["type"])),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{String}(String(content_json["path"])),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{HTTP.URI}(HTTP.URI(content_json["url"])),
-        Nullable{HTTP.URI}(),
-        Nullable{HTTP.URI}(),
-        Nullable{HTTP.URI}(),
-        Nullable{Int}(content_json["size"])
-=======
         String(content_json["type"]),
         nothing,
         nothing,
@@ -355,7 +306,6 @@ end
         nothing,
         nothing,
         content_json["size"]
->>>>>>> use Nulls instead of Nullable
     )
 
     @test Content(content_json) == content_result
@@ -373,7 +323,7 @@ end
       "created_at": "2012-07-20T01:19:13Z",
       "description": "Build has completed successfully",
       "id": 1,
-      "context": nothing,
+      "context": null,
       "url": "https://api.github.com/repos/octocat/Hello-World/statuses/1",
       "creator": {
         "login": "octocat"
@@ -391,21 +341,6 @@ end
     )
 
     status_result = Status(
-<<<<<<< HEAD
-        Nullable{Int}(Int(status_json["id"])),
-        Nullable{Int}(),
-        Nullable{String}(),
-        Nullable{String}(String(status_json["description"])),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{HTTP.URI}(HTTP.URI(status_json["url"])),
-        Nullable{HTTP.URI}(),
-        Nullable{Dates.DateTime}(Dates.DateTime(chop(status_json["created_at"]))),
-        Nullable{Dates.DateTime}(),
-        Nullable{Owner}(Owner(status_json["creator"])),
-        Nullable{Repo}(Repo(status_json["repository"])),
-        Nullable{Vector{Status}}(map(Status, status_json["statuses"]))
-=======
         Int(status_json["id"]),
         nothing,
         nothing,
@@ -419,7 +354,6 @@ end
         Owner(status_json["creator"]),
         Repo(status_json["repository"]),
         map(Status, status_json["statuses"])
->>>>>>> use Nulls instead of Nullable
     )
 
     @test Status(status_json) == status_result
@@ -455,35 +389,6 @@ end
     )
 
     pr_result = PullRequest(
-<<<<<<< HEAD
-        Nullable{Branch}(),
-        Nullable{Branch}(Branch(pr_json["head"])),
-        Nullable{Int}(Int(pr_json["number"])),
-        Nullable{Int}(),
-        Nullable{Int}(),
-        Nullable{Int}(),
-        Nullable{Int}(),
-        Nullable{Int}(),
-        Nullable{Int}(),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{String}(String(pr_json["body"])),
-        Nullable{String}(),
-        Nullable{Dates.DateTime}(Dates.DateTime(chop(pr_json["created_at"]))),
-        Nullable{Dates.DateTime}(),
-        Nullable{Dates.DateTime}(),
-        Nullable{Dates.DateTime}(),
-        Nullable{HTTP.URI}(HTTP.URI(pr_json["url"])),
-        Nullable{HTTP.URI}(),
-        Nullable{Owner}(Owner(pr_json["assignee"])),
-        Nullable{Owner}(),
-        Nullable{Owner}(),
-        Nullable{Dict}(pr_json["milestone"]),
-        Nullable{Dict}(),
-        Nullable{Bool}(),
-        Nullable{Bool}(),
-        Nullable{Bool}(pr_json["locked"])
-=======
         nothing,
         Branch(pr_json["head"]),
         Int(pr_json["number"]),
@@ -511,7 +416,6 @@ end
         nothing,
         nothing,
         pr_json["locked"]
->>>>>>> use Nulls instead of Nullable
     )
 
     @test PullRequest(pr_json) == pr_result
@@ -543,36 +447,13 @@ end
         "html_url": "https://github.com/octocat/Hello-World/pull/1347"
       },
       "locked": false,
-      "closed_at": nothing,
+      "closed_at": null,
       "created_at": "2011-04-22T13:33:48Z"
     }
     """
     )
 
     issue_result = Issue(
-<<<<<<< HEAD
-        Nullable{Int}(),
-        Nullable{Int}(Int(issue_json["number"])),
-        Nullable{Int}(),
-        Nullable{String}(String(issue_json["title"])),
-        Nullable{String}(),
-        Nullable{String}(),
-        Nullable{Owner}(Owner(issue_json["user"])),
-        Nullable{Owner}(),
-        Nullable{Owner}(),
-        Nullable{Dates.DateTime}(Dates.DateTime(chop(issue_json["created_at"]))),
-        Nullable{Dates.DateTime}(),
-        Nullable{Dates.DateTime}(),
-        Nullable{Vector{Dict}}(Vector{Dict}(issue_json["labels"])),
-        Nullable{Dict}(),
-        Nullable{PullRequest}(PullRequest(issue_json["pull_request"])),
-        Nullable{HTTP.URI}(HTTP.URI(issue_json["url"])),
-        Nullable{HTTP.URI}(),
-        Nullable{HTTP.URI}(),
-        Nullable{HTTP.URI}(),
-        Nullable{HTTP.URI}(),
-        Nullable{Bool}(Bool(issue_json["locked"]))
-=======
         nothing,
         Int(issue_json["number"]),
         nothing,
@@ -594,7 +475,6 @@ end
         nothing,
         nothing,
         Bool(issue_json["locked"])
->>>>>>> use Nulls instead of Nullable
     )
 
     @test Issue(issue_json) == issue_result
@@ -647,18 +527,6 @@ end
     """)
 
     hook_result = Webhook(
-<<<<<<< HEAD
-        Nullable{Int}(hook_json["id"]),
-        Nullable{HTTP.URI}(HTTP.URI(hook_json["url"])),
-        Nullable{HTTP.URI}(HTTP.URI(hook_json["test_url"])),
-        Nullable{HTTP.URI}(HTTP.URI(hook_json["ping_url"])),
-        Nullable{String}(hook_json["name"]),
-        Nullable{Array{String}}(map(String, hook_json["events"])),
-        Nullable{Bool}(hook_json["active"]),
-        Nullable{Dict{String, String}}(),
-        Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))),
-        Nullable{Dates.DateTime}(Dates.DateTime(chop("2017-03-14T14:03:16Z"))))
-=======
         hook_json["id"],
         HTTP.URI(hook_json["url"]),
         HTTP.URI(hook_json["test_url"]),
@@ -669,7 +537,6 @@ end
         nothing,
         Dates.DateTime(chop("2017-03-14T14:03:16Z")),
         Dates.DateTime(chop("2017-03-14T14:03:16Z")))
->>>>>>> use Nulls instead of Nullable
 
     @test Webhook(hook_json) == hook_result
     @test name(Webhook(hook_json["id"])) == name(hook_result)
@@ -695,7 +562,7 @@ end
           "type": "User",
           "site_admin": false
         },
-        "user": nothing,
+        "user": null,
         "files": {
           "ring.erl": {
             "size": 932,
@@ -765,27 +632,6 @@ end
     )
 
     gist_result = Gist(
-<<<<<<< HEAD
-      Nullable{HTTP.URI}(HTTP.URI(gist_json["url"])),
-      Nullable{HTTP.URI}(HTTP.URI(gist_json["forks_url"])),
-      Nullable{HTTP.URI}(HTTP.URI(gist_json["commits_url"])),
-      Nullable{String}(gist_json["id"]),
-      Nullable{String}(gist_json["description"]),
-      Nullable{Bool}(gist_json["public"]),
-      Nullable{Owner}(Owner(gist_json["owner"])),
-      Nullable{Owner}(),
-      Nullable{Bool}(gist_json["truncated"]),
-      Nullable{Int}(gist_json["comments"]),
-      Nullable{HTTP.URI}(HTTP.URI(gist_json["comments_url"])),
-      Nullable{HTTP.URI}(HTTP.URI(gist_json["html_url"])),
-      Nullable{HTTP.URI}(HTTP.URI(gist_json["git_pull_url"])),
-      Nullable{HTTP.URI}(HTTP.URI(gist_json["git_push_url"])),
-      Nullable{Dates.DateTime}(Dates.DateTime(chop(gist_json["created_at"]))),
-      Nullable{Dates.DateTime}(Dates.DateTime(chop(gist_json["updated_at"]))),
-      Nullable{Vector{Gist}}(map(Gist, gist_json["forks"])),
-      Nullable{Dict}(gist_json["files"]),
-      Nullable{Vector{Dict}}(gist_json["history"]),
-=======
       HTTP.URI(gist_json["url"]),
       HTTP.URI(gist_json["forks_url"]),
       HTTP.URI(gist_json["commits_url"]),
@@ -805,7 +651,6 @@ end
       map(Gist, gist_json["forks"]),
       gist_json["files"],
       gist_json["history"],
->>>>>>> use Nulls instead of Nullable
     )
 
     @test Gist(gist_json) == gist_result
@@ -859,7 +704,7 @@ end
         ],
         "created_at": 1501449845,
         "updated_at": 1501449845,
-        "single_file_name": nothing
+        "single_file_name": null
       }
     """)
 
@@ -985,8 +830,8 @@ end
       "verification": {
         "verified": false,
         "reason": "unsigned",
-        "signature": nothing,
-        "payload": nothing
+        "signature": null,
+        "payload": null
       }
     }
     """)
@@ -1031,8 +876,8 @@ end
       "verification": {
         "verified": false,
         "reason": "unsigned",
-        "signature": nothing,
-        "payload": nothing
+        "signature": null,
+        "payload": null
       }
     }
     """)

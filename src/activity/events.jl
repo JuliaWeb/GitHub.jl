@@ -35,15 +35,15 @@ end
 # Validation Functions #
 ########################
 
-has_event_header(request::HTTP.Request) = haskey(HTTP.headers(request), "X-Github-Event")
-event_header(request::HTTP.Request) = HTTP.headers(request)["X-Github-Event"]
+has_event_header(request::HTTP.Request) = HTTP.hasheader(request, "X-Github-Event")
+event_header(request::HTTP.Request) = HTTP.header(request, "X-Github-Event")
 
-has_sig_header(request::HTTP.Request) = haskey(HTTP.headers(request), "X-Hub-Signature")
-sig_header(request::HTTP.Request) = HTTP.headers(request)["X-Hub-Signature"]
+has_sig_header(request::HTTP.Request) = HTTP.hasheader(request, "X-Hub-Signature")
+sig_header(request::HTTP.Request) = HTTP.header(request, "X-Hub-Signature")
 
 function has_valid_secret(request::HTTP.Request, secret)
     if has_sig_header(request)
-        secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, String(request), secret))
+        secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, HTTP.load(request), secret))
         return sig_header(request) == secret_sha
     end
     return false
@@ -62,7 +62,7 @@ end
 #################
 
 struct EventListener
-    server::HTTP.Server
+    server::HTTP.Servers.Server
     repos
     events
     function EventListener(handle; auth::Authorization = AnonymousAuth(),
@@ -76,7 +76,7 @@ struct EventListener
             repos = map(name, repos)
         end
 
-        server = HTTP.Server() do request, response
+        server = HTTP.Servers.Server() do request, response
             try
                 handle_event_request(request, handle; auth = auth,
                                      secret = secret, events = events,
@@ -98,17 +98,17 @@ function handle_event_request(request, handle;
                               secret = nothing, events = nothing,
                               repos = nothing, forwards = nothing)
     if !(isa(secret, Void)) && !(has_valid_secret(request, secret))
-        return HTTP.Response(400, "invalid signature")
+        return HTTP.Response(400)
     end
 
     if !(isa(events, Void)) && !(is_valid_event(request, events))
-        return HTTP.Response(204, "event ignored")
+        return HTTP.Response(204)
     end
 
-    event = event_from_payload!(event_header(request), JSON.parse(String(request)))
+    event = event_from_payload!(event_header(request), JSON.parse(HTTP.load(request)))
 
     if !(isa(repos, Void)) && !(from_valid_repo(event, repos))
-        return HTTP.Response(400, "invalid repo")
+        return HTTP.Response(400)
     end
 
     if !(isa(forwards, Void))
@@ -117,14 +117,7 @@ function handle_event_request(request, handle;
         end
     end
 
-    retval = handle(event)
-    if retval isa HttpCommon.Response
-        Base.depwarn("event handlers should return an `HTTP.Response` instead of an `HttpCommon.Response`,
-                 making a best effort to convert to an `HTTP.Response`", :handle_event_request)
-        retval = HTTP.Response(; status = retval.status, headers = convert(Dict{String, String}, retval.headers),
-                                 body = HTTP.FIFOBuffer(retval.data))
-    end
-    return retval
+    return handle(event)
 end
 
 function Base.run(listener, args...; host = nothing, port = nothing, kwargs...)
@@ -138,7 +131,7 @@ function Base.run(listener::EventListener, host::HTTP.IPAddr, port::Int, args...
     println("Listening for GitHub events sent to $port;")
     println("Whitelisted events: $(isa(listener.events, Void) ? "All" : listener.events)")
     println("Whitelisted repos: $(isa(listener.repos, Void) ? "All" : listener.repos)")
-    return HTTP.serve(listener.server, host, port, args...; kwargs...)
+    return HTTP.Servers.serve(listener.server, host, port, args...; kwargs...)
 end
 
 ###################

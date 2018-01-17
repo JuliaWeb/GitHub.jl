@@ -16,8 +16,7 @@ const ?{T} = Union{T, Nothing}
 
 import HTTP,
        JSON,
-       MbedTLS,
-       HttpCommon # for deprecations
+       MbedTLS
 
 #############
 # Utilities #

@@ -52,7 +52,7 @@ function extract_nothing(data::Dict, key, ::Type{T}) where {T}
             end
         end
     end
-    return nothng
+    return nothing
 end
 
 prune_github_value(val, ::Type{T}) where {T} = T(val)
@@ -80,14 +80,12 @@ end
     args = Vector{Expr}(length(fields))
     for i in eachindex(fields)
         TT = types[i]
-        field, T = fields[i], (TT.a == Null ? TT.b : TT.a)
+        field, T = fields[i], (TT.a == Nothing ? TT.b : TT.a)
         key = field == :typ ? "type" : string(field)
         args[i] = :(extract_nothing(data, $key, $T))
     end
     return :(G($(args...))::G)
 end
-
-nonnull_type(t::ANY) = t.a == nothing ? t.b : t.a
 
 #############################################
 # Converting GitHubType Dicts to JSON Dicts #

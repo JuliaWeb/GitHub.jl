@@ -6,7 +6,7 @@ end
 
 Reference(data::Dict) = json2github(Reference, data)
 
-name(ref::Reference) = String(split(get(ref.ref), "refs/")[2])
+name(ref::Reference) = String(split(ref.ref, "refs/")[2])
 
 @api_default function reference(api::GitHubAPI, repo, ref_obj; options...)
     result = gh_get_json(api, "/repos/$(name(repo))/git/refs/$(name(ref_obj))"; options...)

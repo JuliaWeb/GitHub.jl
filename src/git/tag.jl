@@ -9,7 +9,7 @@ mutable struct Tag <: GitHubType
 end
 
 Tag(data::Dict) = json2github(Tag, data)
-namefield(tag::Tag) = tag.sha
+name(tag::Tag) = tag.sha
 
 @api_default function tag(api::GitHubAPI, repo, tag_obj; options...)
     result = gh_get_json(api, "/repos/$(name(repo))/git/tags/$(name(tag_obj))"; options...)
