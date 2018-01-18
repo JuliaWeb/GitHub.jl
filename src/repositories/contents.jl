@@ -3,25 +3,25 @@
 ################
 
 mutable struct Content <: GitHubType
-    typ::Nullable{String}
-    filename::Nullable{String}
-    name::Nullable{String}
-    path::Nullable{String}
-    target::Nullable{String}
-    encoding::Nullable{String}
-    content::Nullable{String}
-    sha::Nullable{String}
-    url::Nullable{HTTP.URI}
-    git_url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    download_url::Nullable{HTTP.URI}
-    size::Nullable{Int}
+    typ          :: ?{String}
+    filename     :: ?{String}
+    name         :: ?{String}
+    path         :: ?{String}
+    target       :: ?{String}
+    encoding     :: ?{String}
+    content      :: ?{String}
+    sha          :: ?{String}
+    url          :: ?{HTTP.URI}
+    git_url      :: ?{HTTP.URI}
+    html_url     :: ?{HTTP.URI}
+    download_url :: ?{HTTP.URI}
+    size         :: ?{Int}
 end
 
 Content(data::Dict) = json2github(Content, data)
 Content(path::AbstractString) = Content(Dict("path" => path))
 
-namefield(content::Content) = content.path
+name(content::Content) = content.path
 
 ###############
 # API Methods #
@@ -58,8 +58,8 @@ end
 end
 
 function permalink(content::Content, commit)
-    url = string(get(content.html_url))
-    prefix = get(content.typ) == "file" ? "blob" : "tree"
+    url = string(content.html_url)
+    prefix = content.typ == "file" ? "blob" : "tree"
     rgx = Regex(string("/", prefix, "/.*?/"))
     replacement = string("/", prefix, "/", name(commit), "/")
     return HTTP.URI(replace(url, rgx, replacement))

@@ -1,11 +1,11 @@
 include("commit_comment.jl")
 event_request = create_event()
-event_json = JSON.parse(String(event_request))
+event_json = JSON.parse(HTTP.load(event_request))
 event = GitHub.event_from_payload!("commit_comment", event_json)
 
 @testset "WebhookEvent" begin
-    @test get(event.repository.name) == "BenchmarkTrackers.jl"
-    @test get(event.sender.login) == "jrevels"
+    @test event.repository.name == "BenchmarkTrackers.jl"
+    @test event.sender.login == "jrevels"
 end # testset
 
 @testset "EventListener" begin
@@ -26,7 +26,7 @@ end # testset
                                 repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                                 events = ["commit_comment"],
                                 forwards = ["http://bob.com", HTTP.URI("http://jim.org")])
-        r = listener.server.handler.func(HTTP.Request(), HTTP.Response())
+        r = listener.handle_request(HTTP.Request())
         r.status == 400
     end
 end
@@ -40,7 +40,7 @@ end
                                 repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                                 forwards = ["http://bob.com", HTTP.URI("http://jim.org")],
                                 check_collab = false)
-        r = listener.listener.server.handler.func(HTTP.Request(), HTTP.Response())
+        r = listener.listener.handle_request(HTTP.Request())
         r.status == 400
     end
 end

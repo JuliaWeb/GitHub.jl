@@ -1,13 +1,13 @@
 mutable struct Team <: GitHubType
-    name::Nullable{String}
-    description::Nullable{String}
-    privacy::Nullable{String}
-    permission::Nullable{String}
-    slug::Nullable{String}
-    id::Nullable{Int}
+    name        :: ?{String}
+    description :: ?{String}
+    privacy     :: ?{String}
+    permission  :: ?{String}
+    slug        :: ?{String}
+    id          :: ?{Int}
 end
 
-namefield(t::Team) = t.id
+name(t::Team) = t.id
 
 Team(data::Dict) = json2github(Team, data)
 

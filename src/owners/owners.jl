@@ -3,37 +3,37 @@
 ##############
 
 mutable struct Owner <: GitHubType
-    typ::Nullable{String}
-    email::Nullable{String}
-    name::Nullable{String}
-    login::Nullable{String}
-    bio::Nullable{String}
-    company::Nullable{String}
-    location::Nullable{String}
-    gravatar_id::Nullable{String}
-    id::Nullable{Int}
-    public_repos::Nullable{Int}
-    owned_private_repos::Nullable{Int}
-    total_private_repos::Nullable{Int}
-    public_gists::Nullable{Int}
-    private_gists::Nullable{Int}
-    followers::Nullable{Int}
-    following::Nullable{Int}
-    collaborators::Nullable{Int}
-    blog::Nullable{HTTP.URI}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    updated_at::Nullable{Dates.DateTime}
-    created_at::Nullable{Dates.DateTime}
-    date::Nullable{Dates.DateTime}
-    hireable::Nullable{Bool}
-    site_admin::Nullable{Bool}
+    typ                 :: ?{String}
+    email               :: ?{String}
+    name                :: ?{String}
+    login               :: ?{String}
+    bio                 :: ?{String}
+    company             :: ?{String}
+    location            :: ?{String}
+    gravatar_id         :: ?{String}
+    id                  :: ?{Int}
+    public_repos        :: ?{Int}
+    owned_private_repos :: ?{Int}
+    total_private_repos :: ?{Int}
+    public_gists        :: ?{Int}
+    private_gists       :: ?{Int}
+    followers           :: ?{Int}
+    following           :: ?{Int}
+    collaborators       :: ?{Int}
+    blog                :: ?{HTTP.URI}
+    url                 :: ?{HTTP.URI}
+    html_url            :: ?{HTTP.URI}
+    updated_at          :: ?{Dates.DateTime}
+    created_at          :: ?{Dates.DateTime}
+    date                :: ?{Dates.DateTime}
+    hireable            :: ?{Bool}
+    site_admin          :: ?{Bool}
 end
 
 Owner(data::Dict) = json2github(Owner, data)
 Owner(login::AbstractString, isorg = false) = Owner(Dict("login" => login, "typ" => isorg ? "User" : "Organization"))
 
-namefield(owner::Owner) = owner.login
+name(owner::Owner) = owner.login
 
 typprefix(isorg) = isorg ? "orgs" : "users"
 
@@ -41,7 +41,7 @@ typprefix(isorg) = isorg ? "orgs" : "users"
 # Owner API #
 #############
 
-isorg(owner::Owner) = get(owner.typ, "") == "Organization"
+isorg(owner::Owner) = owner.typ != nothing && owner.typ == "Organization"
 
 @api_default owner(api::GitHubAPI, owner_obj::Owner; options...) = owner(api, name(owner_obj), isorg(owner_obj); options...)
 

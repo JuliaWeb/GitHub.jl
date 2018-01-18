@@ -4,10 +4,11 @@ module GitHub
 
 using Compat
 using Compat.Dates
-
 if VERSION >= v"0.7.0-DEV.2338"
     using Base64
 end
+
+const ?{T} = Union{T, Nothing}
 
 ##########
 # import #
@@ -15,8 +16,7 @@ end
 
 import HTTP,
        JSON,
-       MbedTLS,
-       HttpCommon # for deprecations
+       MbedTLS
 
 #############
 # Utilities #

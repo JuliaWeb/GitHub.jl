@@ -3,28 +3,28 @@
 ################
 
 mutable struct Comment <: GitHubType
-    body::Nullable{String}
-    path::Nullable{String}
-    diff_hunk::Nullable{String}
-    original_commit_id::Nullable{String}
-    commit_id::Nullable{String}
-    id::Nullable{Int}
-    original_position::Nullable{Int}
-    position::Nullable{Int}
-    line::Nullable{Int}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    issue_url::Nullable{HTTP.URI}
-    pull_request_url::Nullable{HTTP.URI}
-    user::Nullable{Owner}
+    body               :: ?{String}
+    path               :: ?{String}
+    diff_hunk          :: ?{String}
+    original_commit_id :: ?{String}
+    commit_id          :: ?{String}
+    id                 :: ?{Int}
+    original_position  :: ?{Int}
+    position           :: ?{Int}
+    line               :: ?{Int}
+    created_at         :: ?{Dates.DateTime}
+    updated_at         :: ?{Dates.DateTime}
+    url                :: ?{HTTP.URI}
+    html_url           :: ?{HTTP.URI}
+    issue_url          :: ?{HTTP.URI}
+    pull_request_url   :: ?{HTTP.URI}
+    user               :: ?{Owner}
 end
 
 Comment(data::Dict) = json2github(Comment, data)
 Comment(id::Real) = Comment(Dict("id" => id))
 
-namefield(comment::Comment) = comment.id
+name(comment::Comment) = comment.id
 
 kind_err_str(kind) = ("Error building comment request: :$kind is not a valid kind of comment.\n"*
                       "The only valid comment kinds are: :issue, :review, :commit")

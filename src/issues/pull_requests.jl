@@ -3,39 +3,39 @@
 ####################
 
 mutable struct PullRequest <: GitHubType
-    base::Nullable{Branch}
-    head::Nullable{Branch}
-    number::Nullable{Int}
-    id::Nullable{Int}
-    comments::Nullable{Int}
-    commits::Nullable{Int}
-    additions::Nullable{Int}
-    deletions::Nullable{Int}
-    changed_files::Nullable{Int}
-    state::Nullable{String}
-    title::Nullable{String}
-    body::Nullable{String}
-    merge_commit_sha::Nullable{String}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    closed_at::Nullable{Dates.DateTime}
-    merged_at::Nullable{Dates.DateTime}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    assignee::Nullable{Owner}
-    user::Nullable{Owner}
-    merged_by::Nullable{Owner}
-    milestone::Nullable{Dict}
-    _links::Nullable{Dict}
-    mergeable::Nullable{Bool}
-    merged::Nullable{Bool}
-    locked::Nullable{Bool}
+    base             :: ?{Branch}
+    head             :: ?{Branch}
+    number           :: ?{Int}
+    id               :: ?{Int}
+    comments         :: ?{Int}
+    commits          :: ?{Int}
+    additions        :: ?{Int}
+    deletions        :: ?{Int}
+    changed_files    :: ?{Int}
+    state            :: ?{String}
+    title            :: ?{String}
+    body             :: ?{String}
+    merge_commit_sha :: ?{String}
+    created_at       :: ?{Dates.DateTime}
+    updated_at       :: ?{Dates.DateTime}
+    closed_at        :: ?{Dates.DateTime}
+    merged_at        :: ?{Dates.DateTime}
+    url              :: ?{HTTP.URI}
+    html_url         :: ?{HTTP.URI}
+    assignee         :: ?{Owner}
+    user             :: ?{Owner}
+    merged_by        :: ?{Owner}
+    milestone        :: ?{Dict}
+    _links           :: ?{Dict}
+    mergeable        :: ?{Bool}
+    merged           :: ?{Bool}
+    locked           :: ?{Bool}
 end
 
 PullRequest(data::Dict) = json2github(PullRequest, data)
 PullRequest(number::Real) = PullRequest(Dict("number" => number))
 
-namefield(pr::PullRequest) = pr.number
+name(pr::PullRequest) = pr.number
 
 ###############
 # API Methods #

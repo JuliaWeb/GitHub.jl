@@ -3,24 +3,24 @@
 ###############
 
 mutable struct Commit <: GitHubType
-    sha::Nullable{String}
-    message::Nullable{String}
-    author::Nullable{Owner}
-    committer::Nullable{Owner}
-    commit::Nullable{Commit}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    comments_url::Nullable{HTTP.URI}
-    parents::Nullable{Vector{Commit}}
-    stats::Nullable{Dict}
-    files::Nullable{Vector{Content}}
-    comment_count::Nullable{Int}
+    sha           :: ?{String}
+    message       :: ?{String}
+    author        :: ?{Owner}
+    committer     :: ?{Owner}
+    commit        :: ?{Commit}
+    url           :: ?{HTTP.URI}
+    html_url      :: ?{HTTP.URI}
+    comments_url  :: ?{HTTP.URI}
+    parents       :: ?{Vector{Commit}}
+    stats         :: ?{Dict}
+    files         :: ?{Vector{Content}}
+    comment_count :: ?{Int}
 end
 
 Commit(data::Dict) = json2github(Commit, data)
 Commit(sha::AbstractString) = Commit(Dict("sha" => sha))
 
-namefield(commit::Commit) = commit.sha
+name(commit::Commit) = commit.sha
 
 ###############
 # API Methods #

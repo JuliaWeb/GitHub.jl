@@ -3,33 +3,33 @@
 ##############
 
 mutable struct Issue <: GitHubType
-    id::Nullable{Int}
-    number::Nullable{Int}
-    comments::Nullable{Int}
-    title::Nullable{String}
-    state::Nullable{String}
-    body::Nullable{String}
-    user::Nullable{Owner}
-    assignee::Nullable{Owner}
-    closed_by::Nullable{Owner}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    closed_at::Nullable{Dates.DateTime}
-    labels::Nullable{Vector{Dict}}
-    milestone::Nullable{Dict}
-    pull_request::Nullable{PullRequest}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    labels_url::Nullable{HTTP.URI}
-    comments_url::Nullable{HTTP.URI}
-    events_url::Nullable{HTTP.URI}
-    locked::Nullable{Bool}
+    id           :: ?{Int}
+    number       :: ?{Int}
+    comments     :: ?{Int}
+    title        :: ?{String}
+    state        :: ?{String}
+    body         :: ?{String}
+    user         :: ?{Owner}
+    assignee     :: ?{Owner}
+    closed_by    :: ?{Owner}
+    created_at   :: ?{Dates.DateTime}
+    updated_at   :: ?{Dates.DateTime}
+    closed_at    :: ?{Dates.DateTime}
+    labels       :: ?{Vector{Dict}}
+    milestone    :: ?{Dict}
+    pull_request :: ?{PullRequest}
+    url          :: ?{HTTP.URI}
+    html_url     :: ?{HTTP.URI}
+    labels_url   :: ?{HTTP.URI}
+    comments_url :: ?{HTTP.URI}
+    events_url   :: ?{HTTP.URI}
+    locked       :: ?{Bool}
 end
 
 Issue(data::Dict) = json2github(Issue, data)
 Issue(number::Real) = Issue(Dict("number" => number))
 
-namefield(issue::Issue) = issue.number
+name(issue::Issue) = issue.number
 
 ###############
 # API Methods #

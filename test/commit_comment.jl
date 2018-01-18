@@ -16,5 +16,5 @@ function create_event()
         "X-Hub-Signature"   => "sha1=494685b443b34bb0241a14f82604a0600b18f996",
     )
 
-    return HTTP.Request(headers = headers, body = HTTP.FIFOBuffer(base64decode(data_base64)))
+    return HTTP.Request("GET", "http://www.github.com", headers, base64decode(data_base64))
 end

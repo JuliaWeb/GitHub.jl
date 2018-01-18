@@ -3,4 +3,3 @@ julia 0.6
 JSON
 MbedTLS
 HTTP 0.5.4
-HttpCommon # for deprecations

@@ -1,29 +1,29 @@
 mutable struct Gist <: GitHubType
-    url::Nullable{HTTP.URI}
-    forks_url::Nullable{HTTP.URI}
-    commits_url::Nullable{HTTP.URI}
-    id::Nullable{String}
-    description::Nullable{String}
-    public::Nullable{Bool}
-    owner::Nullable{Owner}
-    user::Nullable{Owner}
-    truncated::Nullable{Bool}
-    comments::Nullable{Int}
-    comments_url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    git_pull_url::Nullable{HTTP.URI}
-    git_push_url::Nullable{HTTP.URI}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    forks::Nullable{Vector{Gist}}
-    files::Nullable{Dict}
-    history::Nullable{Vector{Dict}}
+    url          :: ?{HTTP.URI}
+    forks_url    :: ?{HTTP.URI}
+    commits_url  :: ?{HTTP.URI}
+    id           :: ?{String}
+    description  :: ?{String}
+    public       :: ?{Bool}
+    owner        :: ?{Owner}
+    user         :: ?{Owner}
+    truncated    :: ?{Bool}
+    comments     :: ?{Int}
+    comments_url :: ?{HTTP.URI}
+    html_url     :: ?{HTTP.URI}
+    git_pull_url :: ?{HTTP.URI}
+    git_push_url :: ?{HTTP.URI}
+    created_at   :: ?{Dates.DateTime}
+    updated_at   :: ?{Dates.DateTime}
+    forks        :: ?{Vector{Gist}}
+    files        :: ?{Dict}
+    history      :: ?{Vector{Dict}}
 end
 
 Gist(data::Dict) = json2github(Gist, data)
 Gist(id::AbstractString) = Gist(Dict("id" => id))
 
-namefield(gist::Gist) = gist.id
+name(gist::Gist) = gist.id
 
 ###############
 # API Methods #
