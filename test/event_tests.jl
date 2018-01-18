@@ -26,7 +26,7 @@ end # testset
                                 repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                                 events = ["commit_comment"],
                                 forwards = ["http://bob.com", HTTP.URI("http://jim.org")])
-        r = listener.server.handler.func(HTTP.Request(), HTTP.Response())
+        r = listener.handle_request(HTTP.Request())
         r.status == 400
     end
 end
@@ -40,7 +40,7 @@ end
                                 repos = [Repo("JuliaCI/BenchmarkTrackers.jl"), "JuliaWeb/GitHub.jl"],
                                 forwards = ["http://bob.com", HTTP.URI("http://jim.org")],
                                 check_collab = false)
-        r = listener.listener.server.handler.func(HTTP.Request(), HTTP.Response())
+        r = listener.listener.handle_request(HTTP.Request())
         r.status == 400
     end
 end

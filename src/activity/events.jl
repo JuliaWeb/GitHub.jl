@@ -62,7 +62,7 @@ end
 #################
 
 struct EventListener
-    server::HTTP.Servers.Server
+    handle_request
     repos
     events
     function EventListener(handle; auth::Authorization = AnonymousAuth(),
@@ -76,20 +76,12 @@ struct EventListener
             repos = map(name, repos)
         end
 
-        server = HTTP.Servers.Server() do request, response
-            try
-                handle_event_request(request, handle; auth = auth,
-                                     secret = secret, events = events,
-                                     repos = repos, forwards = forwards)
-            catch err
-                bt = catch_backtrace()
-                print(STDERR, "SERVER ERROR: ")
-                Base.showerror(STDERR, err, bt)
-                return HTTP.Response(500)
-            end
-        end
+        handle_request = request::HTTP.Request ->
+            handle_event_request(request, handle; auth = auth,
+                                 secret = secret, events = events,
+                                 repos = repos, forwards = forwards)
 
-        return new(server, repos, events)
+        return new(handle_request, repos, events)
     end
 end
 
@@ -131,7 +123,7 @@ function Base.run(listener::EventListener, host::HTTP.IPAddr, port::Int, args...
     println("Listening for GitHub events sent to $port;")
     println("Whitelisted events: $(isa(listener.events, Void) ? "All" : listener.events)")
     println("Whitelisted repos: $(isa(listener.repos, Void) ? "All" : listener.repos)")
-    return HTTP.Servers.serve(listener.server, host, port, args...; kwargs...)
+    HTTP.listen(listener.handle_request, host, port; kwargs...)
 end
 
 ###################
