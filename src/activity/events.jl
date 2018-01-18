@@ -68,11 +68,11 @@ struct EventListener
     function EventListener(handle; auth::Authorization = AnonymousAuth(),
                            secret = nothing, events = nothing,
                            repos = nothing, forwards = nothing)
-        if !(isa(forwards, Void))
+        if !(isa(forwards, Nothing))
             forwards = map(HTTP.URI, forwards)
         end
 
-        if !(isa(repos, Void))
+        if !(isa(repos, Nothing))
             repos = map(name, repos)
         end
 
@@ -89,21 +89,21 @@ function handle_event_request(request, handle;
                               auth::Authorization = AnonymousAuth(),
                               secret = nothing, events = nothing,
                               repos = nothing, forwards = nothing)
-    if !(isa(secret, Void)) && !(has_valid_secret(request, secret))
+    if !(isa(secret, Nothing)) && !(has_valid_secret(request, secret))
         return HTTP.Response(400)
     end
 
-    if !(isa(events, Void)) && !(is_valid_event(request, events))
+    if !(isa(events, Nothing)) && !(is_valid_event(request, events))
         return HTTP.Response(204)
     end
 
     event = event_from_payload!(event_header(request), JSON.parse(HTTP.load(request)))
 
-    if !(isa(repos, Void)) && !(from_valid_repo(event, repos))
+    if !(isa(repos, Nothing)) && !(from_valid_repo(event, repos))
         return HTTP.Response(400)
     end
 
-    if !(isa(forwards, Void))
+    if !(isa(forwards, Nothing))
         for address in forwards
             HTTP.post(address, request)
         end
@@ -121,8 +121,8 @@ end
 
 function Base.run(listener::EventListener, host::HTTP.IPAddr, port::Int, args...; kwargs...)
     println("Listening for GitHub events sent to $port;")
-    println("Whitelisted events: $(isa(listener.events, Void) ? "All" : listener.events)")
-    println("Whitelisted repos: $(isa(listener.repos, Void) ? "All" : listener.repos)")
+    println("Whitelisted events: $(isa(listener.events, Nothing) ? "All" : listener.events)")
+    println("Whitelisted repos: $(isa(listener.repos, Nothing) ? "All" : listener.repos)")
     HTTP.listen(listener.handle_request, host, port; kwargs...)
 end
 
