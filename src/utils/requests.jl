@@ -12,7 +12,7 @@ struct GitHubWebAPI <: GitHubAPI
     endpoint::HTTP.URI
 end
 
-const DEFAULT_API = GitHubWebAPI(HTTP.URL("https://api.github.com"))
+const DEFAULT_API = GitHubWebAPI(HTTP.URI("https://api.github.com"))
 
 using Base.Meta
 """
@@ -40,7 +40,7 @@ end
 # Default API URIs #
 ####################
 
-api_uri(api::GitHubWebAPI, path) = HTTP.URL(string(api.endpoint), path = path)
+api_uri(api::GitHubWebAPI, path) = HTTP.URI(string(api.endpoint, path))
 api_uri(api::GitHubAPI, path) = error("URI retrieval not implemented for this API type")
 
 #######################
@@ -54,10 +54,11 @@ function github_request(api::GitHubAPI, request_method, endpoint;
     params = github2json(params)
     api_endpoint = api_uri(api, endpoint)
     _headers = convert(Dict{String, String}, headers)
+    _headers["User-Agent"] = "GitHub.jl/1.0"
     if request_method == HTTP.get
-        r = request_method(string(api_endpoint), headers = _headers, query = params, allowredirects = allowredirects, statusraise = false)
+        r = request_method(string(api_endpoint), headers = _headers, query = params, redirect = allowredirects, status_exception = false, verbose=2)
     else
-        r = request_method(string(api_endpoint); headers = _headers, body = JSON.json(params), allowredirects = allowredirects, statusraise = false)
+        r = request_method(string(api_endpoint); headers = _headers, body = JSON.json(params), redirect = allowredirects, status_exception = false, verbose=2)
     end
     handle_error && handle_response_error(r)
     return r
@@ -69,11 +70,11 @@ gh_put(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.put
 gh_delete(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.delete, endpoint; options...)
 gh_patch(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.patch, endpoint; options...)
 
-gh_get_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_get(api, endpoint; options...))))
-gh_post_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_post(api, endpoint; options...))))
-gh_put_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_put(api, endpoint; options...))))
-gh_delete_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_delete(api, endpoint; options...))))
-gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_patch(api, endpoint; options...))))
+gh_get_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_get(api, endpoint; options...)).body))
+gh_post_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_post(api, endpoint; options...)).body))
+gh_put_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_put(api, endpoint; options...)).body))
+gh_delete_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_delete(api, endpoint; options...)).body))
+gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh_patch(api, endpoint; options...)).body))
 
 #################
 # Rate Limiting #
@@ -85,8 +86,8 @@ gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(String((gh
 # Pagination #
 ##############
 
-has_page_links(r) = haskey(HTTP.headers(r), "Link")
-get_page_links(r) = split(HTTP.headers(r)["Link"], ',')
+has_page_links(r) = HTTP.hasheader(r, "Link")
+get_page_links(r) = split(HTTP.header(r, "Link"), ',')
 
 function find_page_link(links, rel)
     relstr = "rel=\"$(rel)\""
@@ -135,7 +136,7 @@ end
 
 function gh_get_paged_json(api, endpoint = ""; options...)
     results, page_data = github_paged_get(api, endpoint; options...)
-    return mapreduce(r -> JSON.parse(String(r)), vcat, results), page_data
+    return mapreduce(r -> JSON.parse(String(r.body)), vcat, results), page_data
 end
 
 ##################
@@ -146,7 +147,7 @@ function handle_response_error(r::HTTP.Response)
     if r.status >= 400
         message, docs_url, errors = "", "", ""
         try
-            data = JSON.parse(String(r))
+            data = JSON.parse(String(r.body))
             message = get(data, "message", "")
             docs_url = get(data, "documentation_url", "")
             errors = get(data, "errors", "")
