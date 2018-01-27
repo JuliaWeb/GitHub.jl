@@ -149,7 +149,6 @@ function handle_response_error(r::HTTP.Response)
     if r.status >= 400
         message, docs_url, errors = "", "", ""
         try
-            @show r
             data = JSON.parse(HTTP.load(r))
             message = get(data, "message", "")
             docs_url = get(data, "documentation_url", "")

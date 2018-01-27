@@ -90,17 +90,17 @@ function handle_event_request(request, handle;
                               secret = nothing, events = nothing,
                               repos = nothing, forwards = nothing)
     if !(isa(secret, Void)) && !(has_valid_secret(request, secret))
-        return HTTP.Response(400)
+        return HTTP.Response(400, "invalid signature")
     end
 
     if !(isa(events, Void)) && !(is_valid_event(request, events))
-        return HTTP.Response(204)
+        return HTTP.Response(204, "event ignored")
     end
 
     event = event_from_payload!(event_header(request), JSON.parse(HTTP.load(request)))
 
     if !(isa(repos, Void)) && !(from_valid_repo(event, repos))
-        return HTTP.Response(400)
+        return HTTP.Response(400, "invalid repo")
     end
 
     if !(isa(forwards, Void))
