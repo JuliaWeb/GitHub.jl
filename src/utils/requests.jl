@@ -113,7 +113,6 @@ function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", hand
     end
     results = HTTP.Response[r]
     page_data = Dict{String, String}()
-    page_count = 1
     if has_page_links(r)
         page_count = 1
         while page_count < page_limit
