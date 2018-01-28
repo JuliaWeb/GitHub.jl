@@ -19,7 +19,7 @@ end
 ####################
 
 function base64_to_base64url(string)
-    replace(replace(replace(string, "=", ""), '+', '-'), '/', '_')
+    replace(replace(replace(string, "=" => ""), '+' => '-'), '/' => '_')
 end
 
 function JWTAuth(app_id::Int, key::MbedTLS.PKContext; iat = now(Dates.UTC), exp_mins = 1)

@@ -4,6 +4,7 @@ module GitHub
 
 using Compat
 using Compat.Dates
+using Nullables
 
 if VERSION >= v"0.7.0-DEV.2338"
     using Base64

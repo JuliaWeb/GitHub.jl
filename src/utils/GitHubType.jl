@@ -49,7 +49,7 @@ name(g::GitHubType) = get(namefield(g))
 function extract_nullable(data::Dict, key, ::Type{T}) where {T}
     if haskey(data, key)
         val = data[key]
-        if !(isa(val, Void))
+        if !(isa(val, Nothing))
             if T <: Vector
                 V = eltype(T)
                 return Nullable{T}(V[prune_github_value(v, V) for v in val])

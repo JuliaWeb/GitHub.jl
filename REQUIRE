@@ -2,4 +2,6 @@ julia 0.6
 
 JSON
 MbedTLS
-HTTP 0.5.4
+HTTP 0.6
+Nullables
+

@@ -7,13 +7,13 @@ _qCoY2kjLdriWiLFHznJvG6jfPHK-iX9VIolNjkiM9e4DG9Aq60UnZ_df40wZXd
 696sRpgCakvIV3mQTmRv9IfOLVF9eRRD4yVvwTtYNGOqewpQqkPnm6K3ctYlQIX
 kwKMynp6R-CgbwRedA4n0WAvy1o14TyZZ-QAChQUcS-OKb0ZM4z-fbG5ZSpWP7f
 wsQxsZgWFIz6hodiw_q45bHYsLw
-""",'\n',"")
+""",'\n' => "")
 # Fix iat, to make sure the payload is reproducible
 auth = GitHub.JWTAuth(1234, joinpath(dirname(@__FILE__), "not_a_real_key.pem");
     iat = DateTime("2016-9-15T14:00"))
 key = MbedTLS.PKContext()
 MbedTLS.parse_key!(key,
-    readstring(joinpath(dirname(@__FILE__), "not_a_real_key.pem")))
+    read(joinpath(dirname(@__FILE__), "not_a_real_key.pem"), String))
 auth = GitHub.JWTAuth(1234, joinpath(dirname(@__FILE__), "not_a_real_key.pem");
     iat = DateTime("2016-9-15T14:00"))
 auth2 = GitHub.JWTAuth(1234, key; iat = DateTime("2016-9-15T14:00"))
