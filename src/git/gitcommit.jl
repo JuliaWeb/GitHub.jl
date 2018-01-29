@@ -1,6 +1,6 @@
 mutable struct GitCommit <: GitHubType
     sha::Nullable{String}
-    url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
     author::Nullable{Dict}
     commiter::Nullable{Dict}
     message::Nullable{String}

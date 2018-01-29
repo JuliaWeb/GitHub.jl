@@ -1,6 +1,8 @@
 julia 0.6
 
+Compat 0.43
 JSON
 MbedTLS
-HTTP 0.5.4
-HttpCommon # for deprecations
+HTTP 0.6
+Nullables
+

@@ -62,7 +62,7 @@ function permalink(content::Content, commit)
     prefix = get(content.typ) == "file" ? "blob" : "tree"
     rgx = Regex(string("/", prefix, "/.*?/"))
     replacement = string("/", prefix, "/", name(commit), "/")
-    return HTTP.URI(replace(url, rgx, replacement))
+    return HTTP.URI(replace(url, rgx => replacement))
 end
 
 ###########################

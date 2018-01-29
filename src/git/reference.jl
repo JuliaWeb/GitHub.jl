@@ -1,6 +1,6 @@
 mutable struct Reference <: GitHubType
     ref::Nullable{String}
-    url::Nullable{HttpCommon.URI}
+    url::Nullable{HTTP.URI}
     object::Nullable{Dict}
 end
 

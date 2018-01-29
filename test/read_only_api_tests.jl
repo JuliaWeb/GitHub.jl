@@ -189,7 +189,7 @@ end
             @test entry["type"] == "blob"
 
             b = blob(github_jl, entry["sha"]; auth=auth)
-            @test contains(String(base64decode(replace(get(b.content),"\n",""))), "GitHub.jl")
+            @test contains(String(base64decode(replace(get(b.content),"\n" => ""))), "GitHub.jl")
 
             break
         end
