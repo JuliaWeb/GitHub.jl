@@ -147,16 +147,19 @@ end
 function handle_response_error(r::HTTP.Response)
     if r.status >= 400
         message, docs_url, errors = "", "", ""
+        body = HTTP.load(r)
         try
-            data = JSON.parse(HTTP.load(r))
+            data = JSON.parse(body)
             message = get(data, "message", "")
             docs_url = get(data, "documentation_url", "")
             errors = get(data, "errors", "")
         end
         error("Error found in GitHub reponse:\n",
               "\tStatus Code: $(r.status)\n",
-              "\tMessage: $message\n",
-              "\tDocs URL: $docs_url\n",
-              "\tErrors: $errors")
+              ((isempty(message) && isempty(errors)) ?
+               ("\tBody: $body",) :
+               ("\tMessage: $message\n",
+                "\tDocs URL: $docs_url\n",
+                "\tErrors: $errors"))...)
     end
 end
