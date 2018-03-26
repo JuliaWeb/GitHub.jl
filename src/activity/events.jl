@@ -43,7 +43,7 @@ sig_header(request::HTTP.Request) = HTTP.header(request, "X-Hub-Signature")
 
 function has_valid_secret(request::HTTP.Request, secret)
     if has_sig_header(request)
-        secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, HTTP.load(request), secret))
+        secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, HTTP.payload(request, String), secret))
         return sig_header(request) == secret_sha
     end
     return false
@@ -97,7 +97,7 @@ function handle_event_request(request, handle;
         return HTTP.Response(204, "event ignored")
     end
 
-    event = event_from_payload!(event_header(request), JSON.parse(HTTP.load(request)))
+    event = event_from_payload!(event_header(request), JSON.parse(HTTP.payload(request, String)))
 
     if !(isa(repos, Nothing)) && !(from_valid_repo(event, repos))
         return HTTP.Response(400, "invalid repo")

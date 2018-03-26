@@ -25,5 +25,5 @@ end
     headers["Accept"] = "application/vnd.github.machine-man-preview+json"
     results, page_data = github_paged_get(api, "/installation/repositories";
         headers=headers, options...)
-    mapreduce(x->map(Repo, JSON.parse(HTTP.load(x))["repositories"]), vcat, Repo[], results), page_data
+    mapreduce(x->map(Repo, JSON.parse(HTTP.payload(x, String))["repositories"]), vcat, Repo[], results), page_data
 end
