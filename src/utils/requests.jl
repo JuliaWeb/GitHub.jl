@@ -58,7 +58,8 @@ function github_request(api::GitHubAPI, request_method, endpoint;
     if request_method == HTTP.get
         r = request_method(merge(api_endpoint, query = params), _headers, redirect = allowredirects, status_exception = false)
     else
-        r = request_method(string(api_endpoint), _headers, JSON.json(params), redirect = allowredirects, status_exception = false)
+        # TODO: Should check if post request was non-successful and only then retry the request.
+        r = request_method(string(api_endpoint), _headers, JSON.json(params), redirect = allowredirects, status_exception = false; retry_non_idempotent=true)
     end
     handle_error && handle_response_error(r)
     return r
