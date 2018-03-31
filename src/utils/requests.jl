@@ -70,11 +70,11 @@ gh_put(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.put
 gh_delete(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.delete, endpoint; options...)
 gh_patch(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.patch, endpoint; options...)
 
-gh_get_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.load((gh_get(api, endpoint; options...))))
-gh_post_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.load((gh_post(api, endpoint; options...))))
-gh_put_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.load((gh_put(api, endpoint; options...))))
-gh_delete_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.load((gh_delete(api, endpoint; options...))))
-gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.load((gh_patch(api, endpoint; options...))))
+gh_get_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_get(api, endpoint; options...), String))
+gh_post_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_post(api, endpoint; options...), String))
+gh_put_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_put(api, endpoint; options...), String))
+gh_delete_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_delete(api, endpoint; options...), String))
+gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_patch(api, endpoint; options...), String))
 
 #################
 # Rate Limiting #
@@ -137,7 +137,7 @@ end
 
 function gh_get_paged_json(api, endpoint = ""; options...)
     results, page_data = github_paged_get(api, endpoint; options...)
-    return mapreduce(r -> JSON.parse(HTTP.load(r)), vcat, results), page_data
+    return mapreduce(r -> JSON.parse(HTTP.payload(r, String)), vcat, results), page_data
 end
 
 ##################
@@ -147,7 +147,7 @@ end
 function handle_response_error(r::HTTP.Response)
     if r.status >= 400
         message, docs_url, errors = "", "", ""
-        body = HTTP.load(r)
+        body = HTTP.payload(r, String)
         try
             data = JSON.parse(body)
             message = get(data, "message", "")

@@ -1,6 +1,6 @@
 include("commit_comment.jl")
 event_request = create_event()
-event_json = JSON.parse(HTTP.load(event_request))
+event_json = JSON.parse(HTTP.payload(event_request, String))
 event = GitHub.event_from_payload!("commit_comment", event_json)
 
 @testset "WebhookEvent" begin
