@@ -82,7 +82,7 @@ end
 @generated function json2github(::Type{G}, data::Dict) where {G<:GitHubType}
     types = G.types
     fields = fieldnames(G)
-    args = Vector{Expr}(length(fields))
+    args = Vector{Expr}(undef, length(fields))
     for i in eachindex(fields)
         field, T = fields[i], first(types[i].parameters)
         key = field == :typ ? "type" : string(field)
@@ -125,27 +125,27 @@ end
 ###################
 
 function Base.show(io::IO, g::GitHubType)
-    print(io, "$(typeof(g)) (all fields are Nullable):")
-    for field in fieldnames(typeof(g))
-        val = getfield(g, field)
-        if !(isnull(val))
-            gotval = get(val)
-            println(io)
-            print(io, "  $field: ")
-            if isa(gotval, Vector)
-                print(io, typeof(gotval))
-            else
-                showcompact(io, gotval)
+    if get(io, :compact, false)
+        uri_id = namefield(g)
+        if isnull(uri_id)
+            print(io, typeof(g), "(…)")
+        else
+            print(io, typeof(g), "($(repr(get(uri_id))))")
+        end
+    else
+        print(io, "$(typeof(g)) (all fields are Nullable):")
+        for field in fieldnames(typeof(g))
+            val = getfield(g, field)
+            if !(isnull(val))
+                gotval = get(val)
+                println(io)
+                print(io, "  $field: ")
+                if isa(gotval, Vector)
+                    print(io, typeof(gotval))
+                else
+                    show(IOContext(io, :compact => true), gotval)
+                end
             end
         end
-    end
-end
-
-function Base.showcompact(io::IO, g::GitHubType)
-    uri_id = namefield(g)
-    if isnull(uri_id)
-        print(io, typeof(g), "(…)")
-    else
-        print(io, typeof(g), "($(repr(get(uri_id))))")
     end
 end

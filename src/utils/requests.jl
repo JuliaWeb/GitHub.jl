@@ -92,7 +92,7 @@ get_page_links(r) = split(HTTP.header(r, "Link",), ",")
 function find_page_link(links, rel)
     relstr = "rel=\"$(rel)\""
     for i in 1:length(links)
-        if contains(links[i], relstr)
+        if occursin(relstr, links[i])
             return i
         end
     end
