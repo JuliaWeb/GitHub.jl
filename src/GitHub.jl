@@ -242,6 +242,7 @@ export # events/listeners.jl
 
 include("apps/apps.jl")
 include("apps/installations.jl")
+include("apps/checks/runs.jl")
 
 # export -------
 
@@ -253,6 +254,10 @@ export # installations.jl
        Installation,
        create_access_token,
        installations
+
+export # runs.jl
+       Checks,
+       create_check_run
 
 #######
 # Git #
