@@ -12,7 +12,7 @@ function test_show(g::GitHub.GitHubType)
     @test repr(g) == String(take!(tmpio))
 
     tmpio = IOBuffer()
-    showcompact(tmpio, g)
+    show(IOContext(tmpio, :compact => true), g)
 
     @test "$(typeof(g))($(repr(name(g))))" == String(take!(tmpio))
 end
@@ -540,7 +540,7 @@ end
 
     test_show(hook_result)
 end
-  
+
 @testset "Gist" begin
     gist_json = JSON.parse("""
       {
@@ -734,7 +734,7 @@ end
         "updated_at": "2017-07-08T16:18:44"
       }
     """)
-    
+
     app_result = App(app_json)
     @test name(app_result) == Int(app_json["id"])
 end

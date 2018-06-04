@@ -56,9 +56,9 @@ function github_request(api::GitHubAPI, request_method, endpoint;
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
     if request_method == HTTP.get
-        r = request_method(merge(api_endpoint, query = params), _headers, redirect = allowredirects, status_exception = false)
+        r = request_method(merge(api_endpoint, query = params), _headers, redirect = allowredirects, status_exception = false, idle_timeout=20)
     else
-        r = request_method(string(api_endpoint), _headers, JSON.json(params), redirect = allowredirects, status_exception = false)
+        r = request_method(string(api_endpoint), _headers, JSON.json(params), redirect = allowredirects, status_exception = false, idle_timeout=20)
     end
     handle_error && handle_response_error(r)
     return r
@@ -92,7 +92,7 @@ get_page_links(r) = split(HTTP.header(r, "Link",), ",")
 function find_page_link(links, rel)
     relstr = "rel=\"$(rel)\""
     for i in 1:length(links)
-        if contains(links[i], relstr)
+        if occursin(relstr, links[i])
             return i
         end
     end
