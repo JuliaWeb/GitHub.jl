@@ -44,7 +44,7 @@ struct CheckRun <: GitHubType
     started_at::Nullable{DateTime}
     completed_at::Nullable{DateTime}
     app::Nullable{App}
-    pull_requests::Vector{PullRequest}
+    pull_requests::Nullable{Vector{PullRequest}}
 end
 CheckRun(data::Dict) = json2github(CheckRun, data)
 namefield(cr::CheckRun) = cr.id
@@ -52,5 +52,11 @@ namefield(cr::CheckRun) = cr.id
 @api_default function create_check_run(api::GitHubAPI, repo::Repo; headers = Dict(), kwargs...)
     headers["Accept"] = "application/vnd.github.antiope-preview+json"
     result = gh_post_json(api, "/repos/$(name(repo))/check-runs"; headers=headers, kwargs...)
+    return CheckRun(result)
+end
+
+@api_default function update_check_run(api::GitHubAPI, repo::Repo, id::Int; headers = Dict(), kwargs...)
+    headers["Accept"] = "application/vnd.github.antiope-preview+json"
+    result = gh_patch_json(api, "/repos/$(name(repo))/check-runs/$(id)"; headers=headers, kwargs...)
     return CheckRun(result)
 end

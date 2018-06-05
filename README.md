@@ -222,6 +222,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | method                                   | return type                        | documentation                                                                                                                                                                                               |
 |------------------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `create_check_run(repo; params=...)`     | `CheckRun`                         | [Create a new check run](https://developer.github.com/v3/checks/runs/#create-a-check-run)   |
+| `update_check_run(repo, id::Int; params=...)`     | `CheckRun`                | [Update the check run with the given `id`](https://developer.github.com/v3/checks/runs/#update-a-check-run)   |
 
 
 #### Miscellaneous
