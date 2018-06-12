@@ -4,8 +4,14 @@
 
 abstract type Authorization end
 
+# TODO: SecureString on 0.7
 struct OAuth2 <: Authorization
     token::String
+end
+
+struct UsernamePassAuth <: Authorization
+    username::String
+    password::String
 end
 
 struct AnonymousAuth <: Authorization end
@@ -68,6 +74,10 @@ function authenticate_headers!(headers, auth::JWTAuth)
     return headers
 end
 
+function authenticate_headers!(headers, auth::UsernamePassAuth)
+    headers["Authorization"] = "Basic $(base64encode(string(auth.username, ':', auth.password)))"
+    return headers
+end
 
 ###################
 # Pretty Printing #
