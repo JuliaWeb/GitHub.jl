@@ -1,4 +1,6 @@
 module Checks
+    using Nullables
+
     export Action, Image, Annotation, Output
 
     struct Action
