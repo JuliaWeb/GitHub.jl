@@ -3,33 +3,33 @@
 ####################
 
 mutable struct PullRequest <: GitHubType
-    base::Nullable{Branch}
-    head::Nullable{Branch}
-    number::Nullable{Int}
-    id::Nullable{Int}
-    comments::Nullable{Int}
-    commits::Nullable{Int}
-    additions::Nullable{Int}
-    deletions::Nullable{Int}
-    changed_files::Nullable{Int}
-    state::Nullable{String}
-    title::Nullable{String}
-    body::Nullable{String}
-    merge_commit_sha::Nullable{String}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    closed_at::Nullable{Dates.DateTime}
-    merged_at::Nullable{Dates.DateTime}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    assignee::Nullable{Owner}
-    user::Nullable{Owner}
-    merged_by::Nullable{Owner}
-    milestone::Nullable{Dict}
-    _links::Nullable{Dict}
-    mergeable::Nullable{Bool}
-    merged::Nullable{Bool}
-    locked::Nullable{Bool}
+    base::Union{Branch, Nothing}
+    head::Union{Branch, Nothing}
+    number::Union{Int, Nothing}
+    id::Union{Int, Nothing}
+    comments::Union{Int, Nothing}
+    commits::Union{Int, Nothing}
+    additions::Union{Int, Nothing}
+    deletions::Union{Int, Nothing}
+    changed_files::Union{Int, Nothing}
+    state::Union{String, Nothing}
+    title::Union{String, Nothing}
+    body::Union{String, Nothing}
+    merge_commit_sha::Union{String, Nothing}
+    created_at::Union{Dates.DateTime, Nothing}
+    updated_at::Union{Dates.DateTime, Nothing}
+    closed_at::Union{Dates.DateTime, Nothing}
+    merged_at::Union{Dates.DateTime, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    html_url::Union{HTTP.URI, Nothing}
+    assignee::Union{Owner, Nothing}
+    user::Union{Owner, Nothing}
+    merged_by::Union{Owner, Nothing}
+    milestone::Union{Dict, Nothing}
+    _links::Union{Dict, Nothing}
+    mergeable::Union{Bool, Nothing}
+    merged::Union{Bool, Nothing}
+    locked::Union{Bool, Nothing}
 end
 
 PullRequest(data::Dict) = json2github(PullRequest, data)

@@ -73,7 +73,7 @@ end
     # test GitHub.file, GitHub.directory, GitHub.readme, GitHub.permalink
     readme_file = file(ghjl, "README.md"; auth = auth)
     src_dir = first(directory(ghjl, "src"; auth = auth))
-    owners_dir = src_dir[findfirst(c -> get(c.path) == "src/owners", src_dir)]
+    owners_dir = src_dir[findfirst(c -> c.path == "src/owners", src_dir)]
     test_sha = "eab14e1ab7b4de848ef6390101b6d40b489d5d08"
     readme_permalink = string(permalink(readme_file, test_sha))
     owners_permalink = string(permalink(owners_dir, test_sha))
@@ -83,7 +83,7 @@ end
     @test hasghobj("src/GitHub.jl", src_dir)
 
     # test GitHub.status, GitHub.statuses
-    @test get(status(ghjl, testcommit; auth = auth).sha) == name(testcommit)
+    @test status(ghjl, testcommit; auth = auth).sha == name(testcommit)
     @test !(isempty(first(statuses(ghjl, testcommit; auth = auth))))
 
     # test GitHub.comment, GitHub.comments
@@ -99,11 +99,11 @@ end
     state_param = Dict("state" => "all")
 
     # test GitHub.pull_request, GitHub.pull_requests
-    @test get(pull_request(ghjl, 37; auth = auth).title) == "Fix dep warnings"
+    @test pull_request(ghjl, 37; auth = auth).title == "Fix dep warnings"
     @test hasghobj(37, first(pull_requests(ghjl; auth = auth, params = state_param)))
 
     # test GitHub.issue, GitHub.issues
-    @test get(issue(ghjl, 40; auth = auth).title) == "Needs test"
+    @test issue(ghjl, 40; auth = auth).title == "Needs test"
     @test hasghobj(40, first(issues(ghjl; auth = auth, params = state_param)))
 end
 
@@ -111,18 +111,18 @@ end
     kc_gists, page_data = gists("KristofferC"; page_limit=1, params=Dict("per_page" => 5), auth = auth)
     @test typeof(kc_gists) == Vector{Gist}
     @test length(kc_gists) != 0
-    @test get(get(kc_gists[1].owner).login) == "KristofferC"
+    @test kc_gists[1].owner.login == "KristofferC"
 
     gist_obj = gist("0cb70f50a28d79905aae907e12cbe58e"; auth = auth)
-    @test length(get(gist_obj.files)) == 2
-    @test get(gist_obj.files)["file1.jl"]["content"] == "Hello World!"
+    @test length(gist_obj.files) == 2
+    @test gist_obj.files["file1.jl"]["content"] == "Hello World!"
 end
 
 @testset "Reviews" begin
     pr = pull_request(ghjl, 59; auth = auth)
     review = first(reviews(ghjl, pr; auth=auth)[1])
 
-    @test get(review.state) == "CHANGES_REQUESTED"
+    @test review.state == "CHANGES_REQUESTED"
 end
 
 @testset "Activity" begin
@@ -165,13 +165,13 @@ testbot_key =
       "MW1IcklTCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg=="
 
 @testset "Apps" begin
-    @test get(app(4123; auth=auth).name) == "femtocleaner"
-    @test get(app("femtocleaner"; auth=auth).name) == "femtocleaner"
+    @test app(4123; auth=auth).name == "femtocleaner"
+    @test app("femtocleaner"; auth=auth).name == "femtocleaner"
 
     key = MbedTLS.PKContext()
     MbedTLS.parse_key!(key, base64decode(testbot_key))
     jwt = GitHub.JWTAuth(4484, key)
-    @test get(app(; auth=jwt).name) == "juliawebtestbot"
+    @test app(; auth=jwt).name == "juliawebtestbot"
 
     @test length(installations(jwt)[1]) == 1
 end
@@ -180,16 +180,16 @@ end
     github_jl = Repo("JuliaWeb/GitHub.jl")
 
     g = gitcommit(github_jl, "0d9f04ce4be061d3c2b12644316a232c8f889b44"; auth=auth)
-    @test get(g.tree)["sha"] == "e22fee36cb13d9a1850b242f79938458221a5d2e"
+    @test g.tree["sha"] == "e22fee36cb13d9a1850b242f79938458221a5d2e"
 
-    t = tree(github_jl, get(g.tree)["sha"]; auth=auth)
-    for entry in get(t.tree)
+    t = tree(github_jl, g.tree["sha"]; auth=auth)
+    for entry in t.tree
         if entry["path"] == "README.md"
             @test entry["sha"] == "95c8d1aa2a7b1e6d672e15b67e0df4abbe57dcbe"
             @test entry["type"] == "blob"
 
             b = blob(github_jl, entry["sha"]; auth=auth)
-            @test occursin("GitHub.jl", String(base64decode(replace(get(b.content),"\n" => ""))))
+            @test occursin("GitHub.jl", String(base64decode(replace(b.content,"\n" => ""))))
 
             break
         end
@@ -199,7 +199,7 @@ end
 @testset "Tags and References" begin
     github_jl = Repo("JuliaWeb/GitHub.jl")
     ref = reference(github_jl, "heads/master"; auth=auth)
-    @test get(ref.object)["type"] == "commit"
+    @test ref.object["type"] == "commit"
 
     # All tags in this repo are lightweight tags which are not covered by the API
     # Maybe test in the future when we have a use case

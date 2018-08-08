@@ -1,11 +1,11 @@
 mutable struct Tag <: GitHubType
-    tag::Nullable{String}
-    sha::Nullable{String}
-    url::Nullable{HTTP.URI}
-    message::Nullable{String}
-    tagger::Nullable{Dict}
-    object::Nullable{Dict}
-    verification::Nullable{Dict}
+    tag::Union{String, Nothing}
+    sha::Union{String, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    message::Union{String, Nothing}
+    tagger::Union{Dict, Nothing}
+    object::Union{Dict, Nothing}
+    verification::Union{Dict, Nothing}
 end
 
 Tag(data::Dict) = json2github(Tag, data)

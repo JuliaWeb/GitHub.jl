@@ -1,23 +1,23 @@
 mutable struct Gist <: GitHubType
-    url::Nullable{HTTP.URI}
-    forks_url::Nullable{HTTP.URI}
-    commits_url::Nullable{HTTP.URI}
-    id::Nullable{String}
-    description::Nullable{String}
-    public::Nullable{Bool}
-    owner::Nullable{Owner}
-    user::Nullable{Owner}
-    truncated::Nullable{Bool}
-    comments::Nullable{Int}
-    comments_url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    git_pull_url::Nullable{HTTP.URI}
-    git_push_url::Nullable{HTTP.URI}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    forks::Nullable{Vector{Gist}}
-    files::Nullable{Dict}
-    history::Nullable{Vector{Dict}}
+    url::Union{HTTP.URI, Nothing}
+    forks_url::Union{HTTP.URI, Nothing}
+    commits_url::Union{HTTP.URI, Nothing}
+    id::Union{String, Nothing}
+    description::Union{String, Nothing}
+    public::Union{Bool, Nothing}
+    owner::Union{Owner, Nothing}
+    user::Union{Owner, Nothing}
+    truncated::Union{Bool, Nothing}
+    comments::Union{Int, Nothing}
+    comments_url::Union{HTTP.URI, Nothing}
+    html_url::Union{HTTP.URI, Nothing}
+    git_pull_url::Union{HTTP.URI, Nothing}
+    git_push_url::Union{HTTP.URI, Nothing}
+    created_at::Union{Dates.DateTime, Nothing}
+    updated_at::Union{Dates.DateTime, Nothing}
+    forks::Union{Vector{Gist}, Nothing}
+    files::Union{Dict, Nothing}
+    history::Union{Vector{Dict}, Nothing}
 end
 
 Gist(data::Dict) = json2github(Gist, data)

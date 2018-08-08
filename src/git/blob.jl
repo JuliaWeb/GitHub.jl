@@ -1,9 +1,9 @@
 mutable struct Blob <: GitHubType
-    content::Nullable{String}
-    encoding::Nullable{String}
-    url::Nullable{HTTP.URI}
-    sha::Nullable{String}
-    size::Nullable{Int}
+    content::Union{String, Nothing}
+    encoding::Union{String, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    sha::Union{String, Nothing}
+    size::Union{Int, Nothing}
 end
 
 Blob(data::Dict) = json2github(Blob, data)

@@ -153,6 +153,7 @@ function handle_response_error(r::HTTP.Response)
             message = get(data, "message", "")
             docs_url = get(data, "documentation_url", "")
             errors = get(data, "errors", "")
+        catch
         end
         error("Error found in GitHub reponse:\n",
               "\tStatus Code: $(r.status)\n",

@@ -3,22 +3,22 @@
 ################
 
 mutable struct Comment <: GitHubType
-    body::Nullable{String}
-    path::Nullable{String}
-    diff_hunk::Nullable{String}
-    original_commit_id::Nullable{String}
-    commit_id::Nullable{String}
-    id::Nullable{Int}
-    original_position::Nullable{Int}
-    position::Nullable{Int}
-    line::Nullable{Int}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    issue_url::Nullable{HTTP.URI}
-    pull_request_url::Nullable{HTTP.URI}
-    user::Nullable{Owner}
+    body::Union{String, Nothing}
+    path::Union{String, Nothing}
+    diff_hunk::Union{String, Nothing}
+    original_commit_id::Union{String, Nothing}
+    commit_id::Union{String, Nothing}
+    id::Union{Int, Nothing}
+    original_position::Union{Int, Nothing}
+    position::Union{Int, Nothing}
+    line::Union{Int, Nothing}
+    created_at::Union{Dates.DateTime, Nothing}
+    updated_at::Union{Dates.DateTime, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    html_url::Union{HTTP.URI, Nothing}
+    issue_url::Union{HTTP.URI, Nothing}
+    pull_request_url::Union{HTTP.URI, Nothing}
+    user::Union{Owner, Nothing}
 end
 
 Comment(data::Dict) = json2github(Comment, data)

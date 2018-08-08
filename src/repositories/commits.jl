@@ -3,18 +3,18 @@
 ###############
 
 mutable struct Commit <: GitHubType
-    sha::Nullable{String}
-    message::Nullable{String}
-    author::Nullable{Owner}
-    committer::Nullable{Owner}
-    commit::Nullable{Commit}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    comments_url::Nullable{HTTP.URI}
-    parents::Nullable{Vector{Commit}}
-    stats::Nullable{Dict}
-    files::Nullable{Vector{Content}}
-    comment_count::Nullable{Int}
+    sha::Union{String, Nothing}
+    message::Union{String, Nothing}
+    author::Union{Owner, Nothing}
+    committer::Union{Owner, Nothing}
+    commit::Union{Commit, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    html_url::Union{HTTP.URI, Nothing}
+    comments_url::Union{HTTP.URI, Nothing}
+    parents::Union{Vector{Commit}, Nothing}
+    stats::Union{Dict, Nothing}
+    files::Union{Vector{Content}, Nothing}
+    comment_count::Union{Int, Nothing}
 end
 
 Commit(data::Dict) = json2github(Commit, data)

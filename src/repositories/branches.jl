@@ -3,21 +3,21 @@
 ###############
 
 mutable struct Branch <: GitHubType
-    name::Nullable{String}
-    label::Nullable{String}
-    ref::Nullable{String}
-    sha::Nullable{String}
-    commit::Nullable{Commit}
-    user::Nullable{Owner}
-    repo::Nullable{Repo}
-    _links::Nullable{Dict}
-    protection::Nullable{Dict}
+    name::Union{String, Nothing}
+    label::Union{String, Nothing}
+    ref::Union{String, Nothing}
+    sha::Union{String, Nothing}
+    commit::Union{Commit, Nothing}
+    user::Union{Owner, Nothing}
+    repo::Union{Repo, Nothing}
+    _links::Union{Dict, Nothing}
+    protection::Union{Dict, Nothing}
 end
 
 Branch(data::Dict) = json2github(Branch, data)
 Branch(name::AbstractString) = Branch(Dict("name" => name))
 
-namefield(branch::Branch) = isnull(branch.name) ? branch.ref : branch.name
+namefield(branch::Branch) = (branch.name === nothing) ? branch.ref : branch.name
 
 ###############
 # API Methods #

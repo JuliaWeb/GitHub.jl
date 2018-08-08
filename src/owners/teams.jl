@@ -1,10 +1,10 @@
 mutable struct Team <: GitHubType
-    name::Nullable{String}
-    description::Nullable{String}
-    privacy::Nullable{String}
-    permission::Nullable{String}
-    slug::Nullable{String}
-    id::Nullable{Int}
+    name::Union{String, Nothing}
+    description::Union{String, Nothing}
+    privacy::Union{String, Nothing}
+    permission::Union{String, Nothing}
+    slug::Union{String, Nothing}
+    id::Union{Int, Nothing}
 end
 
 namefield(t::Team) = t.id

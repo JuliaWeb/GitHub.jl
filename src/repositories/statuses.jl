@@ -3,19 +3,19 @@
 ###############
 
 mutable struct Status <: GitHubType
-    id::Nullable{Int}
-    total_count::Nullable{Int}
-    state::Nullable{String}
-    description::Nullable{String}
-    context::Nullable{String}
-    sha::Nullable{String}
-    url::Nullable{HTTP.URI}
-    target_url::Nullable{HTTP.URI}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    creator::Nullable{Owner}
-    repository::Nullable{Repo}
-    statuses::Nullable{Vector{Status}}
+    id::Union{Int, Nothing}
+    total_count::Union{Int, Nothing}
+    state::Union{String, Nothing}
+    description::Union{String, Nothing}
+    context::Union{String, Nothing}
+    sha::Union{String, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    target_url::Union{HTTP.URI, Nothing}
+    created_at::Union{Dates.DateTime, Nothing}
+    updated_at::Union{Dates.DateTime, Nothing}
+    creator::Union{Owner, Nothing}
+    repository::Union{Repo, Nothing}
+    statuses::Union{Vector{Status}, Nothing}
 end
 
 Status(data::Dict) = json2github(Status, data)
