@@ -3,27 +3,27 @@
 ##############
 
 mutable struct Issue <: GitHubType
-    id::Nullable{Int}
-    number::Nullable{Int}
-    comments::Nullable{Int}
-    title::Nullable{String}
-    state::Nullable{String}
-    body::Nullable{String}
-    user::Nullable{Owner}
-    assignee::Nullable{Owner}
-    closed_by::Nullable{Owner}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    closed_at::Nullable{Dates.DateTime}
-    labels::Nullable{Vector{Dict}}
-    milestone::Nullable{Dict}
-    pull_request::Nullable{PullRequest}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    labels_url::Nullable{HTTP.URI}
-    comments_url::Nullable{HTTP.URI}
-    events_url::Nullable{HTTP.URI}
-    locked::Nullable{Bool}
+    id::Union{Int, Nothing}
+    number::Union{Int, Nothing}
+    comments::Union{Int, Nothing}
+    title::Union{String, Nothing}
+    state::Union{String, Nothing}
+    body::Union{String, Nothing}
+    user::Union{Owner, Nothing}
+    assignee::Union{Owner, Nothing}
+    closed_by::Union{Owner, Nothing}
+    created_at::Union{Dates.DateTime, Nothing}
+    updated_at::Union{Dates.DateTime, Nothing}
+    closed_at::Union{Dates.DateTime, Nothing}
+    labels::Union{Vector{Dict}, Nothing}
+    milestone::Union{Dict, Nothing}
+    pull_request::Union{PullRequest, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    html_url::Union{HTTP.URI, Nothing}
+    labels_url::Union{HTTP.URI, Nothing}
+    comments_url::Union{HTTP.URI, Nothing}
+    events_url::Union{HTTP.URI, Nothing}
+    locked::Union{Bool, Nothing}
 end
 
 Issue(data::Dict) = json2github(Issue, data)

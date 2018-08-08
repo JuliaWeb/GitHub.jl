@@ -1,12 +1,12 @@
 mutable struct GitCommit <: GitHubType
-    sha::Nullable{String}
-    url::Nullable{HTTP.URI}
-    author::Nullable{Dict}
-    commiter::Nullable{Dict}
-    message::Nullable{String}
-    tree::Nullable{Dict}
-    parents::Nullable{Vector}
-    verification::Nullable{Dict}
+    sha::Union{String, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    author::Union{Dict, Nothing}
+    commiter::Union{Dict, Nothing}
+    message::Union{String, Nothing}
+    tree::Union{Dict, Nothing}
+    parents::Union{Vector, Nothing}
+    verification::Union{Dict, Nothing}
 end
 
 GitCommit(data::Dict) = json2github(GitCommit, data)

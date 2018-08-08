@@ -3,34 +3,34 @@
 #############
 
 mutable struct Repo <: GitHubType
-    name::Nullable{String}
-    full_name::Nullable{String}
-    description::Nullable{String}
-    language::Nullable{String}
-    default_branch::Nullable{String}
-    owner::Nullable{Owner}
-    parent::Nullable{Repo}
-    source::Nullable{Repo}
-    id::Nullable{Int}
-    size::Nullable{Int}
-    subscribers_count::Nullable{Int}
-    forks_count::Nullable{Int}
-    stargazers_count::Nullable{Int}
-    watchers_count::Nullable{Int}
-    open_issues_count::Nullable{Int}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    homepage::Nullable{HTTP.URI}
-    pushed_at::Nullable{Dates.DateTime}
-    created_at::Nullable{Dates.DateTime}
-    updated_at::Nullable{Dates.DateTime}
-    has_issues::Nullable{Bool}
-    has_wiki::Nullable{Bool}
-    has_downloads::Nullable{Bool}
-    has_pages::Nullable{Bool}
-    private::Nullable{Bool}
-    fork::Nullable{Bool}
-    permissions::Nullable{Dict}
+    name::Union{String, Nothing}
+    full_name::Union{String, Nothing}
+    description::Union{String, Nothing}
+    language::Union{String, Nothing}
+    default_branch::Union{String, Nothing}
+    owner::Union{Owner, Nothing}
+    parent::Union{Repo, Nothing}
+    source::Union{Repo, Nothing}
+    id::Union{Int, Nothing}
+    size::Union{Int, Nothing}
+    subscribers_count::Union{Int, Nothing}
+    forks_count::Union{Int, Nothing}
+    stargazers_count::Union{Int, Nothing}
+    watchers_count::Union{Int, Nothing}
+    open_issues_count::Union{Int, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    html_url::Union{HTTP.URI, Nothing}
+    homepage::Union{HTTP.URI, Nothing}
+    pushed_at::Union{Dates.DateTime, Nothing}
+    created_at::Union{Dates.DateTime, Nothing}
+    updated_at::Union{Dates.DateTime, Nothing}
+    has_issues::Union{Bool, Nothing}
+    has_wiki::Union{Bool, Nothing}
+    has_downloads::Union{Bool, Nothing}
+    has_pages::Union{Bool, Nothing}
+    private::Union{Bool, Nothing}
+    fork::Union{Bool, Nothing}
+    permissions::Union{Dict, Nothing}
 end
 
 Repo(data::Dict) = json2github(Repo, data)

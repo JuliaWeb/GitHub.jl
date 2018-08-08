@@ -3,31 +3,31 @@
 ##############
 
 mutable struct Owner <: GitHubType
-    typ::Nullable{String}
-    email::Nullable{String}
-    name::Nullable{String}
-    login::Nullable{String}
-    bio::Nullable{String}
-    company::Nullable{String}
-    location::Nullable{String}
-    gravatar_id::Nullable{String}
-    id::Nullable{Int}
-    public_repos::Nullable{Int}
-    owned_private_repos::Nullable{Int}
-    total_private_repos::Nullable{Int}
-    public_gists::Nullable{Int}
-    private_gists::Nullable{Int}
-    followers::Nullable{Int}
-    following::Nullable{Int}
-    collaborators::Nullable{Int}
-    blog::Nullable{HTTP.URI}
-    url::Nullable{HTTP.URI}
-    html_url::Nullable{HTTP.URI}
-    updated_at::Nullable{Dates.DateTime}
-    created_at::Nullable{Dates.DateTime}
-    date::Nullable{Dates.DateTime}
-    hireable::Nullable{Bool}
-    site_admin::Nullable{Bool}
+    typ::Union{String, Nothing}
+    email::Union{String, Nothing}
+    name::Union{String, Nothing}
+    login::Union{String, Nothing}
+    bio::Union{String, Nothing}
+    company::Union{String, Nothing}
+    location::Union{String, Nothing}
+    gravatar_id::Union{String, Nothing}
+    id::Union{Int, Nothing}
+    public_repos::Union{Int, Nothing}
+    owned_private_repos::Union{Int, Nothing}
+    total_private_repos::Union{Int, Nothing}
+    public_gists::Union{Int, Nothing}
+    private_gists::Union{Int, Nothing}
+    followers::Union{Int, Nothing}
+    following::Union{Int, Nothing}
+    collaborators::Union{Int, Nothing}
+    blog::Union{HTTP.URI, Nothing}
+    url::Union{HTTP.URI, Nothing}
+    html_url::Union{HTTP.URI, Nothing}
+    updated_at::Union{Dates.DateTime, Nothing}
+    created_at::Union{Dates.DateTime, Nothing}
+    date::Union{Dates.DateTime, Nothing}
+    hireable::Union{Bool, Nothing}
+    site_admin::Union{Bool, Nothing}
 end
 
 Owner(data::Dict) = json2github(Owner, data)
@@ -41,7 +41,7 @@ typprefix(isorg) = isorg ? "orgs" : "users"
 # Owner API #
 #############
 
-isorg(owner::Owner) = get(owner.typ, "") == "Organization"
+isorg(owner::Owner) = something(owner.typ, "") == "Organization"
 
 @api_default owner(api::GitHubAPI, owner_obj::Owner; options...) = owner(api, name(owner_obj), isorg(owner_obj); options...)
 

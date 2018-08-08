@@ -1,6 +1,4 @@
 module Checks
-    using Nullables
-
     export Action, Image, Annotation, Output
 
     struct Action
@@ -12,7 +10,7 @@ module Checks
     struct Image
         alt::String
         image_url::String
-        caption::Nullable{String}
+        caption::Union{String, Nothing}
     end
 
     struct Annotation
@@ -22,14 +20,14 @@ module Checks
         end_line::Int
         warning_level::String
         message::String
-        title::Nullable{String}
-        raw_details::String # Documented as Nullable{String}, but that errors
+        title::Union{String, Nothing}
+        raw_details::String # Documented as Union{String, Nothing}, but that errors
     end
 
     struct Output
         title::String
         summary::String
-        text::String # Documented as Nullable{String}, but that errors
+        text::String # Documented as Union{String, Nothing}, but that errors
         annotations::Vector{Annotation}
         images::Vector{Image}
     end
@@ -38,15 +36,15 @@ end
 using .Checks
 
 struct CheckRun <: GitHubType
-    id::Nullable{Int}
-    head_sha::Nullable{String}
-    external_id::Nullable{String}
-    status::Nullable{String}
-    conclusion::Nullable{String}
-    started_at::Nullable{DateTime}
-    completed_at::Nullable{DateTime}
-    app::Nullable{App}
-    pull_requests::Nullable{Vector{PullRequest}}
+    id::Union{Int, Nothing}
+    head_sha::Union{String, Nothing}
+    external_id::Union{String, Nothing}
+    status::Union{String, Nothing}
+    conclusion::Union{String, Nothing}
+    started_at::Union{DateTime, Nothing}
+    completed_at::Union{DateTime, Nothing}
+    app::Union{App, Nothing}
+    pull_requests::Union{Vector{PullRequest}, Nothing}
 end
 CheckRun(data::Dict) = json2github(CheckRun, data)
 namefield(cr::CheckRun) = cr.id

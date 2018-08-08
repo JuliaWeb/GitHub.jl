@@ -1,4 +1,4 @@
-using GitHub, JSON, HTTP, MbedTLS, Nullables
+using GitHub, JSON, HTTP, MbedTLS
 using Compat, Compat.Dates, Compat.Test
 using GitHub: Branch, name
 

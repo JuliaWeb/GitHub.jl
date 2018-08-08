@@ -13,7 +13,7 @@
 #   example, `name` called on an `Owner` will return the owner's login, while
 #   `name` called on a `Commit` will return the commit's sha.
 #
-# - A GitHubType's field types should be Nullables of either concrete types, a
+# - A GitHubType's field types should be Union{Nothing, T} of either concrete types, a
 #   Vectors of concrete types, or Dicts.
 
 @compat abstract type GitHubType end
@@ -25,8 +25,8 @@ function Base.:(==)(a::GitHubType, b::GitHubType)
 
     for field in fieldnames(typeof(a))
         aval, bval = getfield(a, field), getfield(b, field)
-        if isnull(aval) == isnull(bval)
-            if !(isnull(aval)) && get(aval) != get(bval)
+        if (aval === nothing) == (bval === nothing)
+            if aval !== nothing && aval != bval
                 return false
             end
         else
@@ -40,27 +40,37 @@ end
 # `namefield` is overloaded by various GitHubTypes to allow for more generic
 # input to AP functions that require a name to construct URI paths via `name`
 name(val) = val
-name(g::GitHubType) = get(namefield(g))
+name(g::GitHubType) = namefield(g)
 
 ########################################
 # Converting JSON Dicts to GitHubTypes #
 ########################################
 
+# Unwrap Union{Nothing, Foo} to just Foo
+unwrap_union_types(T) = T
+function unwrap_union_types(T::Union)
+    if T.a == Nothing
+        return T.b
+    end
+    return T.a
+end
+
 function extract_nullable(data::Dict, key, ::Type{T}) where {T}
     if haskey(data, key)
         val = data[key]
-        if !(isa(val, Nothing))
+        if val !== nothing
             if T <: Vector
                 V = eltype(T)
-                return Nullable{T}(V[prune_github_value(v, V) for v in val])
+                return V[prune_github_value(v, unwrap_union_types(V)) for v in val]
             else
-                return Nullable{T}(prune_github_value(val, T))
+                return prune_github_value(val, unwrap_union_types(T))
             end
         end
     end
-    return Nullable{T}()
+    return nothing
 end
 
+prune_github_value(val::T, ::Type{Any}) where {T} = T(val)
 prune_github_value(val, ::Type{T}) where {T} = T(val)
 prune_github_value(val::AbstractString, ::Type{Dates.DateTime}) = Dates.DateTime(chopz(val))
 
@@ -80,11 +90,11 @@ end
 # `G` are keys of `data`, and the corresponding values can be converted to the
 # given field types.
 @generated function json2github(::Type{G}, data::Dict) where {G<:GitHubType}
-    types = G.types
+    types = unwrap_union_types.(collect(G.types))
     fields = fieldnames(G)
     args = Vector{Expr}(undef, length(fields))
     for i in eachindex(fields)
-        field, T = fields[i], first(types[i].parameters)
+        field, T = fields[i], types[i]
         key = field == :typ ? "type" : string(field)
         args[i] = :(extract_nullable(data, $key, $T))
     end
@@ -104,9 +114,9 @@ function github2json(g::GitHubType)
     results = Dict()
     for field in fieldnames(typeof(g))
         val = getfield(g, field)
-        if !(isnull(val))
+        if !(val == nothing)
             key = field == :typ ? "type" : string(field)
-            results[key] = github2json(get(val))
+            results[key] = github2json(val)
         end
     end
     return results
@@ -127,23 +137,22 @@ end
 function Base.show(io::IO, g::GitHubType)
     if get(io, :compact, false)
         uri_id = namefield(g)
-        if isnull(uri_id)
+        if uri_id === nothing
             print(io, typeof(g), "(…)")
         else
-            print(io, typeof(g), "($(repr(get(uri_id))))")
+            print(io, typeof(g), "($(repr(uri_id)))")
         end
     else
-        print(io, "$(typeof(g)) (all fields are Nullable):")
+        print(io, "$(typeof(g)) (all fields are Union{Nothing, T}):")
         for field in fieldnames(typeof(g))
             val = getfield(g, field)
-            if !(isnull(val))
-                gotval = get(val)
+            if !(val === nothing)
                 println(io)
                 print(io, "  $field: ")
-                if isa(gotval, Vector)
-                    print(io, typeof(gotval))
+                if isa(val, Vector)
+                    print(io, typeof(val))
                 else
-                    show(IOContext(io, :compact => true), gotval)
+                    show(IOContext(io, :compact => true), val)
                 end
             end
         end

@@ -29,7 +29,7 @@ Here's a table of contents for this rather lengthy README:
 
 GitHub's JSON responses are parsed and returned to the caller as types of the form `G<:GitHub.GitHubType`. Here's some useful information about these types:
 
-- All fields are `Nullable`.
+- All fields are `Union{Nothing, T}`.
 - Field names generally match the corresponding field in GitHub's JSON representation (the exception is `"type"`, which has the corresponding field name `typ` to avoid the obvious language conflict).
 - `GitHubType`s can be passed as arguments to API methods in place of (and in combination with) regular identifying properties. For example, `create_status(repo, commit)` could be called as:
 
@@ -488,14 +488,14 @@ listener = GitHub.CommentListener(trigger; auth = myauth, secret = mysecret) do 
         reply_to = event.payload["issue"]["number"]
     elseif event.kind == "commit_comment"
         comment_kind = :commit
-        reply_to = get(comment.commit_id)
+        reply_to = comment.commit_id
     elseif event.kind == "pull_request_review_comment"
         comment_kind = :review
         reply_to = event.payload["pull_request"]["number"]
         # load required query params for review comment creation
-        comment_params["commit_id"] = get(comment.commit_id)
-        comment_params["path"] = get(comment.path)
-        comment_params["position"] = get(comment.position)
+        comment_params["commit_id"] = comment.commit_id
+        comment_params["path"] = comment.path
+        comment_params["position"] = comment.position
     end
 
     # send the comment creation request to GitHub
