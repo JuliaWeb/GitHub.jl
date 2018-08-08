@@ -16,7 +16,7 @@
 # - A GitHubType's field types should be Union{Nothing, T} of either concrete types, a
 #   Vectors of concrete types, or Dicts.
 
-@compat abstract type GitHubType end
+abstract type GitHubType end
 
 function Base.:(==)(a::GitHubType, b::GitHubType)
     if typeof(a) != typeof(b)

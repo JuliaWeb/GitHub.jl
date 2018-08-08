@@ -1,10 +1,8 @@
 using GitHub, JSON, HTTP, MbedTLS
-using Compat, Compat.Dates, Compat.Test
+using Compat, Dates, Test
 using GitHub: Branch, name
 
-if VERSION >= v"0.7.0-DEV.2338"
-    using Base64
-end
+using Base64
 
 include("ghtype_tests.jl")
 include("event_tests.jl")
