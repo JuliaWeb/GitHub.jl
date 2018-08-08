@@ -1,13 +1,9 @@
-__precompile__()
-
 module GitHub
 
 using Compat
-using Compat.Dates
+using Dates
 
-if VERSION >= v"0.7.0-DEV.2338"
-    using Base64
-end
+using Base64
 
 ##########
 # import #
