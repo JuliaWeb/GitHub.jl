@@ -50,8 +50,8 @@ namefield(repo::Repo) = repo.full_name
     return Repo(result)
 end
 
-@api_default function create_repo(api::GitHubAPI, owner, name::String, params=Dict{String,Any}(); options...)
-    params["name"] = name
+@api_default function create_repo(api::GitHubAPI, owner, repo_name::String, params=Dict{String,Any}(); options...)
+    params["name"] = repo_name
     if isorg(owner)
         result = gh_post_json(api, "/orgs/$(name(owner))/repos"; params=params, options...)
     else
