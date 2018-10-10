@@ -198,9 +198,8 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `create_gitcommit(repo)`                         | `GitCommit`                              | [Create a commit in the `repo`](https://developer.github.com/v3/git/commits/#create-a-commit)   |
 | `tree(repo, sha)`                                | `Tree`                              | [Look up a tree in the `repo` by its SHA](https://developer.github.com/v3/git/trees/#get-a-tree)   |
 | `create_tree(repo)`                              | `Tree`                              | [Create a tree in the `repo`](https://developer.github.com/v3/git/trees/create-a-tree) |
-| `tag(repo, sha)`                                | `Tag`                              | [Look up a tag in the `repo` by its name](https://developer.github.com/v3/git/tag/#get-a-tag)   |
-| `create_tag(repo)`                              | `Tag`                              | [Create a tag in the `repo`](
-   https://developer.github.com/v3/git/tag/#create-a-tag) |
+| `tag(repo, name)`                                | `Tag`                              | [Look up a tag in the `repo` by its name](https://developer.github.com/v3/git/tag/#get-a-tag)   |
+| `create_tag(repo)`                              | `Tag`                              | [Create a tag in the `repo`](https://developer.github.com/v3/git/tag/#create-a-tag) |
 | `reference(repo, name)`                           | `Reference`                              | [Look up a ref in the `repo` by its name](https://developer.github.com/v3/git/refs/#get-a-reference)   |
 | `references(repo)`                           | `Vector{Reference}`                              | [Get all `refs ` of the repo](https://developer.github.com/v3/git/refs/#get-all-references)   |
 | `create_reference(repo)`                         | `Reference`                              | [Create a reference in the `repo`](https://developer.github.com/v3/git/refs/#create-a-reference)   |
