@@ -197,10 +197,15 @@ end
 end
 
 @testset "Tags and References" begin
+    # All tags in this repo are lightweight tags which are not covered by the API
+    # Maybe test in the future when we have a use case
     github_jl = Repo("JuliaWeb/GitHub.jl")
     ref = reference(github_jl, "heads/master"; auth=auth)
     @test ref.object["type"] == "commit"
 
-    # All tags in this repo are lightweight tags which are not covered by the API
-    # Maybe test in the future when we have a use case
+    # Tag API
+    reponame = "QuantEcon/Expectations.jl"
+    version = "v1.0.1"
+    exptag = tag(reponame, version)
+    @test isa(exptag, Tag)
 end
