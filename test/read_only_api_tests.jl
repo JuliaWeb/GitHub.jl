@@ -47,6 +47,9 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
     # test membership queries
     @test GitHub.check_membership(julweb, testuser; auth = auth)
     @test !GitHub.check_membership("JuliaLang", testuser; auth = auth, public_only=true)
+
+    @test GitHub.isorg(julweb)
+    @test !GitHub.isorg(testuser)
 end
 
 @testset "Repositories" begin
