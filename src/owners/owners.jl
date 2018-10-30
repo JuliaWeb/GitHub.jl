@@ -31,7 +31,7 @@ mutable struct Owner <: GitHubType
 end
 
 Owner(data::Dict) = json2github(Owner, data)
-Owner(login::AbstractString, isorg = false) = Owner(Dict("login" => login, "typ" => isorg ? "User" : "Organization"))
+Owner(login::AbstractString, isorg = false) = Owner(Dict("login" => login, "type" => isorg ? "Organization" : "User"))
 
 namefield(owner::Owner) = owner.login
 
