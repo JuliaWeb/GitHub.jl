@@ -102,11 +102,12 @@ end
 extract_page_url(link) = match(r"<.*?>", link).match[2:end-1]
 
 function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", handle_error = true,
-                          headers = Dict(), params = Dict(), options...)
+                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), options...)
+    authenticate_headers!(headers, auth)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
     if isempty(start_page)
-        r = gh_get(api, endpoint; handle_error = handle_error, headers = _headers, params = params, options...)
+        r = gh_get(api, endpoint; handle_error = handle_error, headers = _headers, params = params, auth=auth, options...)
     else
         @assert isempty(params) "`start_page` kwarg is incompatible with `params` kwarg"
         r = HTTP.get(start_page, headers = _headers)
