@@ -34,8 +34,24 @@ end
 
 PullRequest(data::Dict) = json2github(PullRequest, data)
 PullRequest(number::Real) = PullRequest(Dict("number" => number))
-
 namefield(pr::PullRequest) = pr.number
+
+mutable struct PullRequestFile <: GitHubType
+    raw_url::Union{String, Nothing}
+    status::Union{String, Nothing}
+    patch::Union{String, Nothing}
+    changes::Union{Int, Nothing}
+    sha::Union{String, Nothing}
+    filename::Union{String, Nothing}
+    additions::Union{Int, Nothing}
+    deletions::Union{Int, Nothing}
+    blob_url::Union{String, Nothing}
+    contents_url::Union{String, Nothing}
+end
+
+PullRequestFile(data::Dict) = json2github(PullRequestFile, data)
+PullRequestFile(fname::String) = PullRequestFile(Dict("filename" => fname))
+namefield(prf::PullRequestFile) = prf.filename
 
 ###############
 # API Methods #
@@ -49,6 +65,11 @@ end
 @api_default function pull_request(api::GitHubAPI, repo, pr; options...)
     result = gh_get_json(api, "/repos/$(name(repo))/pulls/$(name(pr))"; options...)
     return PullRequest(result)
+end
+
+@api_default function pull_request_files(api::GitHubAPI, repo, pr; options...)
+    result = gh_get_json(api, "/repos/$(name(repo))/pulls/$(name(pr))/files"; options...)
+    return [PullRequestFile(f) for f in result]
 end
 
 @api_default function update_pull_request(api::GitHubAPI, repo, pr; options...)

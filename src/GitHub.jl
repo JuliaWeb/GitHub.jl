@@ -149,11 +149,13 @@ include("issues/reviews.jl")
 
 export # pull_requests.jl
        PullRequest,
+       PullRequestFile,
        pull_requests,
        pull_request,
        create_pull_request,
        update_pull_request,
        close_pull_request,
+       pull_request_files,
        Review
 
 export # issues.jl
