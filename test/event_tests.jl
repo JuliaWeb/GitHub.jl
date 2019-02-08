@@ -32,7 +32,7 @@ end # testset
 end
 
 @testset "CommentListener" begin
-    result = GitHub.handle_comment((e, m) -> m, event, GitHub.AnonymousAuth(), r"`RunBenchmarks\(.*?\)`", false)
+    result = GitHub.handle_comment((e, m) -> m, event, GitHub.AnonymousAuth(), r"`RunBenchmarks\(.*?\)`", false, false)
     @test result.match == "`RunBenchmarks(\"binary\", \"unary\")`"
     @test begin
         listener = CommentListener((x, y) -> true, r"trigger";

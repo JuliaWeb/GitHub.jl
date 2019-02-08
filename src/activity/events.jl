@@ -141,13 +141,14 @@ struct CommentListener
     function CommentListener(handle, trigger::Regex;
                              auth::Authorization = AnonymousAuth(),
                              check_collab::Bool = true,
+                             use_access_token::Bool = false,
                              secret = nothing,
                              repos = nothing,
                              forwards = nothing)
         listener = EventListener(auth=auth, secret=secret,
                                  events=COMMENT_EVENTS, repos=repos,
                                  forwards=forwards) do event
-            return handle_comment(handle, event, auth, trigger, check_collab)
+            return handle_comment(handle, event, auth, trigger, check_collab, use_access_token)
         end
         return new(listener)
     end
@@ -158,7 +159,7 @@ function Base.run(listener::CommentListener, args...; kwargs...)
 end
 
 function handle_comment(handle, event::WebhookEvent, auth::Authorization,
-                        trigger::Regex, check_collab::Bool)
+                        trigger::Regex, check_collab::Bool, use_access_token::Bool)
     kind, payload = event.kind, event.payload
 
     if (kind == "pull_request" || kind == "issues") && payload["action"] == "opened"
@@ -172,7 +173,15 @@ function handle_comment(handle, event::WebhookEvent, auth::Authorization,
     if check_collab
         repo = event.repository
         user = body_container["user"]["login"]
-        if !(iscollaborator(repo, user; auth = auth))
+
+        if use_access_token
+            t = create_access_token(Installation(event.payload["installation"]), auth)
+            iscollab = iscollaborator(repo, user; auth = t)
+        else
+            iscollab = iscollaborator(repo, user; auth = auth)
+        end
+
+        if !iscollab
             return HTTP.Response(204, "commenter is not collaborator")
         end
     end
