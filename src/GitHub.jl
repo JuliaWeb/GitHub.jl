@@ -11,7 +11,8 @@ using Base64
 
 import HTTP,
        JSON,
-       MbedTLS
+       MbedTLS,
+       Sockets
 
 ########
 # init #
