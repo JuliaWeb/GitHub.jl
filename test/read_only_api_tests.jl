@@ -209,6 +209,6 @@ end
     # Tag API
     reponame = "QuantEcon/Expectations.jl"
     version = "v1.0.1"
-    exptag = tag(reponame, version)
+    exptag = tag(reponame, version; auth=auth)
     @test isa(exptag, Tag)
 end

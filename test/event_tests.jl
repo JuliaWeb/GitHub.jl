@@ -69,7 +69,6 @@ end
         end
     end
 
-    event_request = create_event()
     resp = HTTP.request("POST", "http://$host:$port", event_request.headers, event_request.body)
     @test resp.status == 200
 
