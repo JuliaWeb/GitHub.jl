@@ -421,6 +421,43 @@ end
     test_show(pr_result)
 end
 
+@testset "PullRequestFile" begin
+    prf_json = JSON.parse(
+    """
+    {
+        "sha": "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "filename": "abc",
+        "status": "added",
+        "additions": 0,
+        "deletions": 0,
+        "changes": 0,
+        "blob_url": "https://github.com/nkottary/Example.jl/blob/d0f13113dddaf6bdce58f98f210ae734e4dcd67f/abc",
+        "raw_url": "https://github.com/nkottary/Example.jl/raw/d0f13113dddaf6bdce58f98f210ae734e4dcd67f/abc",
+        "contents_url": "https://api.github.com/repos/nkottary/Example.jl/contents/abc?ref=d0f13113dddaf6bdce58f98f210ae734e4dcd67f"
+    }
+    """
+    )
+
+    prf_result = PullRequestFile(
+        "https://github.com/nkottary/Example.jl/raw/d0f13113dddaf6bdce58f98f210ae734e4dcd67f/abc",
+        "added",
+        nothing,
+        0,
+        "e69de29bb2d1d6434b8b29ae775ad8c2e48c5391",
+        "abc",
+        0,
+        0,
+        "https://github.com/nkottary/Example.jl/blob/d0f13113dddaf6bdce58f98f210ae734e4dcd67f/abc",
+        "https://api.github.com/repos/nkottary/Example.jl/contents/abc?ref=d0f13113dddaf6bdce58f98f210ae734e4dcd67f"
+    )
+
+    @test PullRequestFile(prf_json) == prf_result
+    @test name(PullRequestFile(prf_json["filename"])) == name(prf_result)
+    @test GitHub.github2json(prf_result) == prf_json
+
+    test_show(prf_result)
+end
+
 @testset "Issue" begin
     issue_json = JSON.parse(
     """
