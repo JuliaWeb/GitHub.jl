@@ -123,7 +123,12 @@ function Base.run(listener::EventListener, host::HTTP.IPAddr, port::Int, args...
     println("Listening for GitHub events sent to $port;")
     println("Whitelisted events: $(isa(listener.events, Nothing) ? "All" : listener.events)")
     println("Whitelisted repos: $(isa(listener.repos, Nothing) ? "All" : listener.repos)")
-    HTTP.listen(listener.handle_request, host, port; kwargs...)
+    sock = Sockets.listen(Sockets.InetAddr(host, port))
+    run(listener, sock, host, port, args...; kwargs...)
+end
+
+function Base.run(listener::EventListener, sock::Sockets.TCPServer, host::HTTP.IPAddr, port::Int, args...; kwargs...)
+    HTTP.serve(listener.handle_request, host, port; server=sock, kwargs...)
 end
 
 ###################
