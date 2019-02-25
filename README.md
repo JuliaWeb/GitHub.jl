@@ -448,6 +448,7 @@ The `CommentListener` constructor takes the following keyword arguments:
 - `repos`: same as `EventListener`
 - `forwards`: same as `EventListener`
 - `check_collab`: If `true`, only acknowledge comments made by repository collaborators. Note that, if `check_collab` is `true`, `auth` must have the appropriate permissions to query the comment's repository for the collaborator status of the commenter. `check_collab` is `true` by default.
+- `use_access_token`: If `check_collab` is set to `true` and `auth` is using JWT authentication for GitHub Apps, then set this to `true`.
 
 For example, let's set up a silly `CommentListener` that responds to the commenter with a greeting. To give a demonstration of the desired behavior, if a collaborator makes a comment like:
 
