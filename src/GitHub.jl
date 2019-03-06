@@ -156,6 +156,7 @@ export # pull_requests.jl
        create_pull_request,
        update_pull_request,
        close_pull_request,
+       merge_pull_request,
        pull_request_files,
        Review
 
@@ -291,6 +292,7 @@ export # tree.jl
 export # tag.jl
     Tag,
     tag,
+    tags,
     create_tag
 
 export # gitcommit.jl
@@ -298,6 +300,15 @@ export # gitcommit.jl
     gitcommit,
     create_gitcommit
 
+############
+# Releases #
+############
 
+include("releases/releases.jl")
+
+export
+    Release,
+    create_release,
+    releases
 
 end # module GitHub

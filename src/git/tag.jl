@@ -16,6 +16,11 @@ namefield(tag::Tag) = tag.sha
     return Tag(result)
 end
 
+@api_default function tags(api::GitHubAPI, repo; options...)
+    result, paged_data = gh_get_paged_json(api, "/repos/$(name(repo))/git/refs/tags"; options...)
+    return map(Tag, result), paged_data
+end
+
 @api_default function create_tag(api::GitHubAPI, repo; options...)
     result = gh_post_json(api, "/repos/$(name(repo))/git/tags"; options...)
     return Tag(result)
