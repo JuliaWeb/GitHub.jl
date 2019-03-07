@@ -83,6 +83,10 @@ end
     ), options...)
 end
 
+@api_default function merge_pull_request(api::GitHubAPI, repo, pr; options...)
+    gh_put_json(api, "/repos/$(name(repo))/pulls/$(name(pr))/merge"; options...)
+end
+
 @api_default function create_pull_request(api::GitHubAPI, repo; options...)
     result = gh_post_json(api, "/repos/$(name(repo))/pulls"; options...)
     return PullRequest(result)
