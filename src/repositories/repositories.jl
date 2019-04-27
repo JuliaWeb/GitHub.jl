@@ -111,6 +111,11 @@ end
     return gh_delete(api, path; options...)
 end
 
+@api_default function collaboratorpermission(api::GitHubAPI, repo, user; options...)
+    results, page_data = gh_get_json(api, "/repos/$(name(repo))/collaborators/$(name(user))/permission"; options...)
+    return results[2]
+end
+
 # stats #
 #-------#
 
