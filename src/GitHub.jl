@@ -1,6 +1,5 @@
 module GitHub
 
-using Compat
 using Dates
 
 using Base64
