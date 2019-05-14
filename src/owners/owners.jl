@@ -103,6 +103,12 @@ end
     return output, page_data
 end
 
+@api_default function gpgkeys(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/gpg_keys"; options...)
+    output = convert(Vector{Dict{String,Any}}, results)
+    return output, page_data
+end
+
 repos(api::GitHubAPI, owner::Owner; options...) = repos(api, name(owner), isorg(owner); options...)
 
 @api_default function repos(api::GitHubAPI, owner, isorg = false; options...)
