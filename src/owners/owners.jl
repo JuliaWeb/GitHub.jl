@@ -90,8 +90,16 @@ end
 end
 
 @api_default function pubkeys(api::GitHubAPI, owner; options...)
-    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/keys"; options...)
+    Base.depwarn("`pubkeys` is deprecated in favor of `sshkeys`, " *
+        "which return a vector of keys, instead of a Dict from key-id to key.", :pubkeys)
+    results, page_data = sshkeys(api, owner; options...)
     output = Dict{Int,String}([(key["id"], key["key"]) for key in results])
+    return output, page_data
+end
+
+@api_default function sshkeys(api::GitHubAPI, owner; options...)
+    results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/keys"; options...)
+    output = convert(Vector{Dict{String,Any}}, results)
     return output, page_data
 end
 
