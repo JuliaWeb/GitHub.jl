@@ -1,8 +1,6 @@
 using GitHub, JSON, HTTP, MbedTLS
-using Compat, Dates, Test
+using Dates, Test, Base64
 using GitHub: Branch, name
-
-using Base64
 
 include("ghtype_tests.jl")
 include("event_tests.jl")
