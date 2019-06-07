@@ -5,7 +5,7 @@ testuser = Owner("julia-github-test-bot")
 julweb = Owner("JuliaWeb", true)
 ghjl = Repo("JuliaWeb/GitHub.jl")
 testcommit = Commit("3a90e7d64d6184b877f800570155c502b1119c15")
-testuser_pubkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVDBxFza4BmQTCTFeTyK"*
+testuser_sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVDBxFza4BmQTCTFeTyK"*
     "3xT+T98dmiMWXC2lM/esw3MCRHg7cynLWr/jUgjs72DO2nqlCTKI88yd2gcbW5/pBP6NVumc"*
     "pM7eJzZJ3TKKwdGUD49nahncg5imHZUQbCqtQbAYEj+uFfqa9QNm6NkZdAdPdB6dJG2+QEuk"*
     "rIGWKsmihP7vGzRLdebGwng2aNUfdAyVwq5Af4g5qfyRT9MtOXXM/7tDAVfC/g4QjkQ52giG"*
@@ -41,8 +41,10 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
     # test GitHub.repos
     @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
 
-    # test pubkey retrieval
-    @test first(values(GitHub.pubkeys(testuser; auth = auth)[1])) == testuser_pubkey
+    # test sshkey/gpgkey retrieval
+    @test GitHub.sshkeys(testuser; auth = auth)[1][1]["key"] == testuser_sshkey
+    @test startswith(GitHub.gpgkeys("JuliaTagBot"; auth = auth)[1][1]["raw_key"],
+                     "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
     # test membership queries
     @test GitHub.check_membership(julweb, testuser; auth = auth)

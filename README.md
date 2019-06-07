@@ -77,6 +77,8 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `following(owner)`                       | `Tuple{Vector{Owner}, Dict}`       | [get the users followed by `owner`](https://developer.github.com/v3/users/followers/#list-users-followed-by-another-user)                                                                                   |
 | `repos(owner[, isorg = false])`          | `Tuple{Vector{Repo}, Dict}`        | [get the `owner`'s repositories](https://developer.github.com/v3/repos/#list-user-repositories)/[get an organization's repositories](https://developer.github.com/v3/repos/#list-organization-repositories) |
 | `teams(owner)`                           | `Tuple{Vector{Team}, Dict}`        | [get the `organizations`'s teams repositories](https://developer.github.com/v3/orgs/teams/#list-teams) |
+| `sshkeys(owner)`                         | `Tuple{Vector{Dict}, Dict}`        | [get the `owner`'s public ssh keys](https://developer.github.com/v3/users/keys/#list-public-keys-for-a-user) |
+| `gpgkeys(owner)`                         | `Tuple{Vector{Dict}, Dict}`        | [get the `owner`'s public gpg keys](https://developer.github.com/v3/users/gpg_keys/#list-gpg-keys-for-a-user) |
 
 
 #### Teams
