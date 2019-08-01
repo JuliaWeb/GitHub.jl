@@ -20,6 +20,7 @@ end
 
 Content(data::Dict) = json2github(Content, data)
 Content(path::AbstractString) = Content(Dict("path" => path))
+Content(::Nothing) = nothing
 
 namefield(content::Content) = content.path
 
