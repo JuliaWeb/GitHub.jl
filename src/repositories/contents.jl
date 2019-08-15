@@ -20,7 +20,6 @@ end
 
 Content(data::Dict) = json2github(Content, data)
 Content(path::AbstractString) = Content(Dict("path" => path))
-Content(::Nothing) = nothing
 
 namefield(content::Content) = content.path
 
@@ -75,6 +74,6 @@ content_uri(repo, path) = "/repos/$(name(repo))/contents/$(name(path))"
 function build_content_response(json::Dict)
     results = Dict()
     haskey(json, "commit") && setindex!(results, Commit(json["commit"]), "commit")
-    haskey(json, "content") && setindex!(results, Content(json["content"]), "content")
+    haskey(json, "content") && setindex!(results, isnothing(json["content"]) ? nothing : Content(json["content"]), "content")
     return results
 end
