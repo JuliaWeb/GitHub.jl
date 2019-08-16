@@ -74,6 +74,6 @@ content_uri(repo, path) = "/repos/$(name(repo))/contents/$(name(path))"
 function build_content_response(json::Dict)
     results = Dict()
     haskey(json, "commit") && setindex!(results, Commit(json["commit"]), "commit")
-    haskey(json, "content") && setindex!(results, Content(json["content"]), "content")
+    haskey(json, "content") && setindex!(results, isnothing(json["content"]) ? nothing : Content(json["content"]), "content")
     return results
 end
