@@ -42,7 +42,7 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
     @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
 
     # test sshkey/gpgkey retrieval
-    @test GitHub.sshkeys(testuser; auth = auth)[1][1]["key"] == testuser_sshkey
+    @test_broken GitHub.sshkeys(testuser; auth = auth)[1][1]["key"] == testuser_sshkey
     @test startswith(GitHub.gpgkeys("JuliaTagBot"; auth = auth)[1][1]["raw_key"],
                      "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
