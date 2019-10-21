@@ -15,8 +15,13 @@ end
 const DEFAULT_API = GitHubWebAPI(HTTP.URI("https://api.github.com"))
 
 using Base.Meta
+
 """
-For a method taking an API argument, add a new method without the API argument
+    @api_default function f(api, args...)
+    ...
+    end
+
+For a method taking an `api` argument, add a new method without the `api` argument
 that just calls the method with DEFAULT_API.
 """
 macro api_default(func)
@@ -30,7 +35,7 @@ macro api_default(func)
         @assert isa(expr, Symbol)
         return expr
     end
-    esc(Expr(:toplevel, func,
+    esc(Expr(:toplevel, :(Base.@__doc__ $func),
         Expr(:function, newcall, Expr(:block,
             :($(call.args[1])(DEFAULT_API, $(argnames...);kwargs...))
         ))))

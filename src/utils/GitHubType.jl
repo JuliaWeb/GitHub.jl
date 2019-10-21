@@ -148,7 +148,7 @@ function github2json(g::GitHubType)
     results = Dict()
     for field in fieldnames(typeof(g))
         val = getfield(g, field)
-        if !(val == nothing)
+        if val !== nothing
             key = field == :typ ? "type" : string(field)
             results[key] = github2json(val)
         end
