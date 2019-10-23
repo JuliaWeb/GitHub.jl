@@ -2,7 +2,7 @@
 # Repo Type #
 #############
 
-mutable struct Repo <: GitHubType
+@ghdef mutable struct Repo
     name::Union{String, Nothing}
     full_name::Union{String, Nothing}
     description::Union{String, Nothing}
@@ -33,7 +33,6 @@ mutable struct Repo <: GitHubType
     permissions::Union{Dict, Nothing}
 end
 
-Repo(data::Dict) = json2github(Repo, data)
 Repo(full_name::AbstractString) = Repo(Dict("full_name" => full_name))
 
 namefield(repo::Repo) = repo.full_name

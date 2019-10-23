@@ -2,7 +2,7 @@
 # Owner Type #
 ##############
 
-mutable struct Owner <: GitHubType
+@ghdef mutable struct Owner
     typ::Union{String, Nothing}
     email::Union{String, Nothing}
     name::Union{String, Nothing}
@@ -30,7 +30,6 @@ mutable struct Owner <: GitHubType
     site_admin::Union{Bool, Nothing}
 end
 
-Owner(data::Dict) = json2github(Owner, data)
 Owner(login::AbstractString, isorg = false) = Owner(Dict("login" => login, "type" => isorg ? "Organization" : "User"))
 
 namefield(owner::Owner) = owner.login

@@ -2,7 +2,7 @@
 # Issue type #
 ##############
 
-mutable struct Issue <: GitHubType
+@ghdef mutable struct Issue
     id::Union{Int, Nothing}
     number::Union{Int, Nothing}
     comments::Union{Int, Nothing}
@@ -26,7 +26,6 @@ mutable struct Issue <: GitHubType
     locked::Union{Bool, Nothing}
 end
 
-Issue(data::Dict) = json2github(Issue, data)
 Issue(number::Real) = Issue(Dict("number" => number))
 
 namefield(issue::Issue) = issue.number

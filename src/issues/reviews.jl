@@ -1,4 +1,4 @@
-mutable struct Review <: GitHubType
+@ghdef mutable struct Review
     pr::Union{PullRequest, Nothing}
     id::Union{Int, Nothing}
     user::Union{Owner, Nothing}
@@ -7,7 +7,7 @@ mutable struct Review <: GitHubType
 end
 
 function Review(pr::PullRequest, data::Dict)
-    rev = json2github(Review, data)
+    rev = Review(data)
     rev.pr = pr
     rev
 end

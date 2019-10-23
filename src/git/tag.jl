@@ -1,4 +1,4 @@
-mutable struct Tag <: GitHubType
+@ghdef mutable struct Tag
     tag::Union{String, Nothing}
     sha::Union{String, Nothing}
     url::Union{HTTP.URI, Nothing}
@@ -8,7 +8,6 @@ mutable struct Tag <: GitHubType
     verification::Union{Dict, Nothing}
 end
 
-Tag(data::Dict) = json2github(Tag, data)
 namefield(tag::Tag) = tag.sha
 
 @api_default function tag(api::GitHubAPI, repo, tag_obj; options...)

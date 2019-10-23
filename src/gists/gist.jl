@@ -1,4 +1,4 @@
-mutable struct Gist <: GitHubType
+@ghdef mutable struct Gist
     url::Union{HTTP.URI, Nothing}
     forks_url::Union{HTTP.URI, Nothing}
     commits_url::Union{HTTP.URI, Nothing}
@@ -20,7 +20,6 @@ mutable struct Gist <: GitHubType
     history::Union{Vector{Dict}, Nothing}
 end
 
-Gist(data::Dict) = json2github(Gist, data)
 Gist(id::AbstractString) = Gist(Dict("id" => id))
 
 namefield(gist::Gist) = gist.id

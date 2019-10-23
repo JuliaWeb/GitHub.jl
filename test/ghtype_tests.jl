@@ -31,7 +31,7 @@ end
     """
     )
 
-    owner_result = Owner(
+    owner_result = Owner(        
         nothing,
         nothing,
         nothing,
@@ -59,7 +59,15 @@ end
         nothing
     )
 
+    owner_kw = Owner(
+      id         = 1,
+      html_url   = "https://github.com/octocat",
+      login      = "octocat",
+      updated_at = "2008-01-14T04:33:35Z",
+      hireable   = false)
+
     @test Owner(owner_json) == owner_result
+    @test Owner(owner_json) == owner_kw
     @test name(Owner(owner_json["login"])) == name(owner_result)
     @test setindex!(GitHub.github2json(owner_result), nothing, "email") == owner_json
 
@@ -122,7 +130,23 @@ end
         repo_json["permissions"]
     )
 
+    repo_kw = Repo(
+        id          = 1296269,
+        owner       = Owner(login= "octocat"),
+        parent      = Repo(name= "test-parent"),
+        full_name   = "octocat/Hello-World",
+        private     = false,
+        url         = "https://api.github.com/repos/octocat/Hello-World",
+        pushed_at   = "2011-01-26T19:06:43Z",
+        permissions = Dict(
+            "admin" => false,
+            "push"  => false,
+            "pull"  => true
+        )
+    )
+    
     @test Repo(repo_json) == repo_result
+    @test Repo(repo_json) == repo_kw
     @test name(Repo(repo_json["full_name"])) == name(repo_result)
     @test setindex!(GitHub.github2json(repo_result), nothing, "language") == repo_json
 

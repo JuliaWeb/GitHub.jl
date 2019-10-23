@@ -1,10 +1,9 @@
-mutable struct Reference <: GitHubType
+@ghdef mutable struct Reference
     ref::Union{String, Nothing}
     url::Union{HTTP.URI, Nothing}
     object::Union{Dict, Nothing}
 end
 
-Reference(data::Dict) = json2github(Reference, data)
 
 name(ref::Reference) = String(split(ref.ref, "refs/")[2])
 

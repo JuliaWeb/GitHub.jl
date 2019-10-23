@@ -2,7 +2,7 @@
 # Comment Type #
 ################
 
-mutable struct Comment <: GitHubType
+@ghdef mutable struct Comment
     body::Union{String, Nothing}
     path::Union{String, Nothing}
     diff_hunk::Union{String, Nothing}
@@ -21,7 +21,6 @@ mutable struct Comment <: GitHubType
     user::Union{Owner, Nothing}
 end
 
-Comment(data::Dict) = json2github(Comment, data)
 Comment(id::Real) = Comment(Dict("id" => id))
 
 namefield(comment::Comment) = comment.id

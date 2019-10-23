@@ -1,4 +1,4 @@
-mutable struct GitCommit <: GitHubType
+@ghdef mutable struct GitCommit
     sha::Union{String, Nothing}
     url::Union{HTTP.URI, Nothing}
     author::Union{Dict, Nothing}
@@ -9,7 +9,6 @@ mutable struct GitCommit <: GitHubType
     verification::Union{Dict, Nothing}
 end
 
-GitCommit(data::Dict) = json2github(GitCommit, data)
 namefield(gitcommit::GitCommit) = gitcommit.sha
 
 @api_default function gitcommit(api::GitHubAPI, repo, commit_obj; options...)
