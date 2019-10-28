@@ -30,8 +30,8 @@ end
 namefield(ann::Annotation) = ann.filename
 
 @ghdef mutable struct Output
-    title::String
-    summary::String
+    title::Union{String, Nothing}
+    summary::Union{String, Nothing}
     text::Union{String, Nothing}
     annotations::Union{Vector{Annotation}, Nothing}
     images::Union{Vector{Image}, Nothing}
