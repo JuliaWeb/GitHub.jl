@@ -141,9 +141,22 @@ function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", hand
     return results, page_data
 end
 
+# for APIs which return just a list
 function gh_get_paged_json(api, endpoint = ""; options...)
     results, page_data = github_paged_get(api, endpoint; options...)
     return mapreduce(r -> JSON.parse(HTTP.payload(r, String)), vcat, results), page_data
+end
+
+# for APIs which return a Dict(key => list, "total_count" => count)
+function gh_get_paged_json(api, endpoint, key; options...)
+    results, page_data = github_paged_get(api, endpoint; options...)
+    local total_count
+    list = mapreduce(vcat, results) do r
+        dict = JSON.parse(HTTP.payload(r, String))
+        total_count = dict["total_count"]
+        dict[key]
+    end
+    list, page_data, total_count
 end
 
 ##################

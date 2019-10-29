@@ -52,9 +52,9 @@ List the `CheckRun`s for `ref`
 """
 @api_default function check_runs(api::GitHubAPI, repo::Repo, ref; headers = Dict(), options...)
     headers["Accept"] = "application/vnd.github.antiope-preview+json"
-    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/commits/$(ref)/check-runs";
-        headers=headers, options...)
-    map(CheckRun, results["check_runs"]), page_data, results["total_count"]
+    results, page_data, total_count = gh_get_paged_json(api, "/repos/$(name(repo))/commits/$(ref)/check-runs", "check_runs";
+                                           headers=headers, options...)
+    map(CheckRun, results), page_data, total_count
 end
 
 
