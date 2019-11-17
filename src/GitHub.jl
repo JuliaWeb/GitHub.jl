@@ -89,6 +89,7 @@ include("repositories/commits.jl")
 include("repositories/branches.jl")
 include("repositories/statuses.jl")
 include("repositories/webhooks.jl")
+include("repositories/deploykeys.jl")
 
 # export -------
 
@@ -133,6 +134,13 @@ export # statuses.jl
 export # webhooks.jl
        Webhook,
        create_webhook
+
+export # deploykeys.jl
+       DeployKey,
+       deploykey,
+       deploykeys,
+       create_deploykey,
+       delete_deploykey
 
 ##########
 # Issues #
