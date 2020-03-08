@@ -1,4 +1,4 @@
-mutable struct Blob <: GitHubType
+@ghdef mutable struct Blob
     content::Union{String, Nothing}
     encoding::Union{String, Nothing}
     url::Union{HTTP.URI, Nothing}
@@ -6,7 +6,6 @@ mutable struct Blob <: GitHubType
     size::Union{Int, Nothing}
 end
 
-Blob(data::Dict) = json2github(Blob, data)
 Blob(sha::AbstractString) = Blob(Dict("sha" => sha))
 
 namefield(blob::Blob) = blob.sha

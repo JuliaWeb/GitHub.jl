@@ -1,22 +1,54 @@
-##############
-# GitHubType #
-##############
-# A `GitHubType` is a Julia type representation of a JSON object defined by the
-# GitHub API. Generally:
-#
-# - The fields of these types should correspond to keys in the JSON object. In
-#   the event the JSON object has a "type" key, the corresponding field name
-#   used should be `typ` (since `type` is a reserved word in Julia).
-#
-# - The method `name` should be defined on every GitHubType. This method
-#   returns the type's identity in the form used for URI construction. For
-#   example, `name` called on an `Owner` will return the owner's login, while
-#   `name` called on a `Commit` will return the commit's sha.
-#
-# - A GitHubType's field types should be Union{Nothing, T} of either concrete types, a
-#   Vectors of concrete types, or Dicts.
+"""
+    abstract type GitHubType end
 
+A `GitHubType` is a Julia type representation of a JSON object defined by the GitHub
+API. Generally:
+
+ - The fields of these types should correspond to keys in the JSON object. In the event
+   the JSON object has a "type" key, the corresponding field name used should be `typ`
+   (since `type` is a reserved word in Julia).
+
+ - The method `name` should be defined on every `GitHubType`. This method returns the
+   type's identity in the form used for URI construction. For example, `name` called on an
+   `Owner` will return the owner's login, while `name` called on a `Commit` will return
+   the commit's sha.
+
+ - A GitHubType's field types should be Union{Nothing, T} of either: concrete types, a
+   Vectors of concrete types, or Dicts.
+
+"""
 abstract type GitHubType end
+
+"""
+    @ghdef typeexpr
+
+Define a new `GitHubType` specified by `typeexpr`, adding default constructors for
+conversions from `Dict`s and keyword arguments.
+"""
+macro ghdef(expr)
+    # a very simplified form of Base.@kwdef
+    expr = macroexpand(__module__, expr) # to expand @static
+    expr isa Expr && expr.head == :struct && expr.args[2] isa Symbol || error("Invalid usage of @ghtype")
+    T = expr.args[2]
+    expr.args[2] = :($T <: GitHubType)
+
+    params_ex = Expr(:parameters)
+    call_args = Any[]
+
+    for ei in expr.args[3].args
+        if ei isa Expr && ei.head == :(::)
+            var = ei.args[1]
+            S  = ei.args[2]
+            push!(params_ex.args, Expr(:kw, var, nothing))
+            push!(call_args, :($var === nothing ? $var : prune_github_value($var, unwrap_union_types($S))))
+        end
+    end
+    quote
+        Base.@__doc__($(esc(expr)))
+        ($(esc(T)))($params_ex) = ($(esc(T)))($(call_args...))
+        $(esc(T))(data::Dict) = json2github($T, data)
+    end
+end
 
 function Base.:(==)(a::GitHubType, b::GitHubType)
     if typeof(a) != typeof(b)
@@ -70,7 +102,8 @@ function extract_nullable(data::Dict, key, ::Type{T}) where {T}
     return nothing
 end
 
-prune_github_value(val::T, ::Type{Any}) where {T} = T(val)
+prune_github_value(val::T, ::Type{Any}) where {T} = val
+prune_github_value(val::T, ::Type{T}) where {T} = val
 prune_github_value(val, ::Type{T}) where {T} = T(val)
 prune_github_value(val::AbstractString, ::Type{Dates.DateTime}) = Dates.DateTime(chopz(val))
 
@@ -100,6 +133,7 @@ end
     end
     return :(G($(args...))::G)
 end
+
 
 #############################################
 # Converting GitHubType Dicts to JSON Dicts #

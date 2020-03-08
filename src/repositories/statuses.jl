@@ -2,7 +2,7 @@
 # Status type #
 ###############
 
-mutable struct Status <: GitHubType
+@ghdef mutable struct Status
     id::Union{Int, Nothing}
     total_count::Union{Int, Nothing}
     state::Union{String, Nothing}
@@ -18,7 +18,6 @@ mutable struct Status <: GitHubType
     statuses::Union{Vector{Status}, Nothing}
 end
 
-Status(data::Dict) = json2github(Status, data)
 Status(id::Real) = Status(Dict("id" => id))
 
 namefield(status::Status) = status.id

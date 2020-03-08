@@ -1,11 +1,10 @@
-mutable struct Tree <: GitHubType
+@ghdef mutable struct Tree
     sha::Union{String, Nothing}
     url::Union{HTTP.URI, Nothing}
     tree::Union{Vector, Nothing}
     truncated::Union{Bool, Nothing}
 end
 
-Tree(data::Dict) = json2github(Tree, data)
 namefield(tree::Tree) = tree.sha
 
 @api_default function tree(api::GitHubAPI, repo, tree_obj; options...)

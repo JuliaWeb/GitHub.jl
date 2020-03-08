@@ -1,10 +1,9 @@
-mutable struct Installation <: GitHubType
+@ghdef mutable struct Installation
     id::Union{Int, Nothing}
 end
 
 namefield(i::Installation) = i.id
 
-Installation(data::Dict) = json2github(Installation, data)
 
 @api_default function create_access_token(api::GitHubAPI, i::Installation, auth::JWTAuth; headers = Dict(), options...)
     headers["Accept"] = "application/vnd.github.machine-man-preview+json"

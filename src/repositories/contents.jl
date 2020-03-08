@@ -2,7 +2,7 @@
 # Content Type #
 ################
 
-mutable struct Content <: GitHubType
+@ghdef mutable struct Content
     typ::Union{String, Nothing}
     filename::Union{String, Nothing}
     name::Union{String, Nothing}
@@ -18,7 +18,6 @@ mutable struct Content <: GitHubType
     size::Union{Int, Nothing}
 end
 
-Content(data::Dict) = json2github(Content, data)
 Content(path::AbstractString) = Content(Dict("path" => path))
 
 namefield(content::Content) = content.path

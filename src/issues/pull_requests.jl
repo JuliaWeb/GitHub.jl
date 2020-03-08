@@ -2,7 +2,7 @@
 # PullRequest Type #
 ####################
 
-mutable struct PullRequest <: GitHubType
+@ghdef mutable struct PullRequest
     base::Union{Branch, Nothing}
     head::Union{Branch, Nothing}
     number::Union{Int, Nothing}
@@ -32,11 +32,10 @@ mutable struct PullRequest <: GitHubType
     locked::Union{Bool, Nothing}
 end
 
-PullRequest(data::Dict) = json2github(PullRequest, data)
 PullRequest(number::Real) = PullRequest(Dict("number" => number))
 namefield(pr::PullRequest) = pr.number
 
-mutable struct PullRequestFile <: GitHubType
+@ghdef mutable struct PullRequestFile
     raw_url::Union{String, Nothing}
     status::Union{String, Nothing}
     patch::Union{String, Nothing}
@@ -49,7 +48,6 @@ mutable struct PullRequestFile <: GitHubType
     contents_url::Union{String, Nothing}
 end
 
-PullRequestFile(data::Dict) = json2github(PullRequestFile, data)
 PullRequestFile(fname::String) = PullRequestFile(Dict("filename" => fname))
 namefield(prf::PullRequestFile) = prf.filename
 

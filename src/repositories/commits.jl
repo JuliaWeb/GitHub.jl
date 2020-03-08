@@ -2,7 +2,7 @@
 # Commit Type #
 ###############
 
-mutable struct Commit <: GitHubType
+@ghdef mutable struct Commit
     sha::Union{String, Nothing}
     message::Union{String, Nothing}
     author::Union{Owner, Nothing}
@@ -17,7 +17,6 @@ mutable struct Commit <: GitHubType
     comment_count::Union{Int, Nothing}
 end
 
-Commit(data::Dict) = json2github(Commit, data)
 Commit(sha::AbstractString) = Commit(Dict("sha" => sha))
 
 namefield(commit::Commit) = commit.sha

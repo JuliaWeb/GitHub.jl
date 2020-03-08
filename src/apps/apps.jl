@@ -1,4 +1,4 @@
-mutable struct App <: GitHubType
+@ghdef mutable struct App
     id::Union{Int, Nothing}
     owner::Union{Owner, Nothing}
     name::Union{String, Nothing}
@@ -8,7 +8,6 @@ mutable struct App <: GitHubType
 end
 
 namefield(a::App) = a.id
-App(data::Dict) = json2github(App, data)
 
 @api_default function app(api::GitHubAPI; headers = Dict(), kwargs...)
     headers["Accept"] = "application/vnd.github.machine-man-preview+json"

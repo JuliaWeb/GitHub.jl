@@ -1,4 +1,4 @@
-mutable struct Release <: GitHubType
+@ghdef mutable struct Release
     url::Union{Nothing, HTTP.URI}
     html_url::Union{Nothing, HTTP.URI}
     assets_url::Union{Nothing, HTTP.URI}
@@ -19,7 +19,6 @@ mutable struct Release <: GitHubType
     assets::Union{Nothing, Array{Any, 1}}
 end
 
-Release(data::Dict) = json2github(Release, data)
 namefield(r::Release) = r.id
 
 @api_default function create_release(api::GitHubAPI, repo; options...)

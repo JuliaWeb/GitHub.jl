@@ -248,6 +248,7 @@ export # events/listeners.jl
 
 include("apps/apps.jl")
 include("apps/installations.jl")
+include("apps/checks/checks.jl")
 include("apps/checks/runs.jl")
 
 # export -------

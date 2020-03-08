@@ -2,7 +2,7 @@
 # Branch Type #
 ###############
 
-mutable struct Branch <: GitHubType
+@ghdef mutable struct Branch
     name::Union{String, Nothing}
     label::Union{String, Nothing}
     ref::Union{String, Nothing}
@@ -14,7 +14,6 @@ mutable struct Branch <: GitHubType
     protection::Union{Dict, Nothing}
 end
 
-Branch(data::Dict) = json2github(Branch, data)
 Branch(name::AbstractString) = Branch(Dict("name" => name))
 
 namefield(branch::Branch) = (branch.name === nothing) ? branch.ref : branch.name
