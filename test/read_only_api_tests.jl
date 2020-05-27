@@ -218,6 +218,6 @@ end
 @testset "URI constructions" begin
     public_gh = GitHub.DEFAULT_API
     enterprise_gh = GitHub.GitHubWebAPI(HTTP.URI("https://git.company.com/api/v3"))
-    @test  GitHub.api_uri(public_gh, "/rate_limit") == "https://api.github.com/rate_limit"
-    @test  GitHub.api_uri(enterprise_gh, "/rate_limit") == "https://git.company.com/api/v3/rate_limit"
+    @test  GitHub.api_uri(public_gh, "/rate_limit") == HTTP.URI("https://api.github.com/rate_limit")
+    @test  GitHub.api_uri(enterprise_gh, "/rate_limit") == HTTP.URI("https://git.company.com/api/v3/rate_limit")
 end
