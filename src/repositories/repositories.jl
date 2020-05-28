@@ -20,6 +20,8 @@
     open_issues_count::Union{Int, Nothing}
     url::Union{HTTP.URI, Nothing}
     html_url::Union{HTTP.URI, Nothing}
+    clone_url::Union{HTTP.URI, Nothing}
+    ssh_url::Union{HTTP.URI, Nothing}
     homepage::Union{HTTP.URI, Nothing}
     pushed_at::Union{Dates.DateTime, Nothing}
     created_at::Union{Dates.DateTime, Nothing}
