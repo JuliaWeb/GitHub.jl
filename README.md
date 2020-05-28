@@ -22,6 +22,8 @@ Here's a table of contents for this rather lengthy README:
 
 [5. Handling Webhook Events](#handling-webhook-events)
 
+[6. GitHub Enterprise](#github-enterprise)
+
 ## Response Types
 
 GitHub's JSON responses are parsed and returned to the caller as types of the form `G<:GitHub.GitHubType`. Here's some useful information about these types:
