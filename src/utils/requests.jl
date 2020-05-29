@@ -15,8 +15,13 @@ end
 const DEFAULT_API = GitHubWebAPI(HTTP.URI("https://api.github.com"))
 
 using Base.Meta
+
 """
-For a method taking an API argument, add a new method without the API argument
+    @api_default function f(api, args...)
+    ...
+    end
+
+For a method taking an `api` argument, add a new method without the `api` argument
 that just calls the method with DEFAULT_API.
 """
 macro api_default(func)
@@ -30,7 +35,7 @@ macro api_default(func)
         @assert isa(expr, Symbol)
         return expr
     end
-    esc(Expr(:toplevel, func,
+    esc(Expr(:toplevel, :(Base.@__doc__ $func),
         Expr(:function, newcall, Expr(:block,
             :($(call.args[1])(DEFAULT_API, $(argnames...);kwargs...))
         ))))
@@ -136,9 +141,22 @@ function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", hand
     return results, page_data
 end
 
+# for APIs which return just a list
 function gh_get_paged_json(api, endpoint = ""; options...)
     results, page_data = github_paged_get(api, endpoint; options...)
     return mapreduce(r -> JSON.parse(HTTP.payload(r, String)), vcat, results), page_data
+end
+
+# for APIs which return a Dict(key => list, "total_count" => count)
+function gh_get_paged_json(api, endpoint, key; options...)
+    results, page_data = github_paged_get(api, endpoint; options...)
+    local total_count
+    list = mapreduce(vcat, results) do r
+        dict = JSON.parse(HTTP.payload(r, String))
+        total_count = dict["total_count"]
+        dict[key]
+    end
+    list, page_data, total_count
 end
 
 ##################

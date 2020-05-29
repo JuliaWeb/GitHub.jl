@@ -1,6 +1,7 @@
 using GitHub, JSON, HTTP, MbedTLS
 using Dates, Test, Base64
 using GitHub: Branch, name
+using GitHub.Checks
 
 include("ghtype_tests.jl")
 include("event_tests.jl")

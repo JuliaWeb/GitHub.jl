@@ -1,7 +1,6 @@
 module GitHub
 
 using Dates
-
 using Base64
 
 ##########
@@ -249,6 +248,7 @@ export # events/listeners.jl
 include("apps/apps.jl")
 include("apps/installations.jl")
 include("apps/checks/checks.jl")
+include("apps/checks/suites.jl")
 include("apps/checks/runs.jl")
 
 # export -------
@@ -264,6 +264,8 @@ export # installations.jl
 
 export # runs.jl
        Checks,
+       CheckRun,
+       CheckSuite,
        create_check_run,
        update_check_run
 
