@@ -264,6 +264,8 @@ export # installations.jl
 
 export # runs.jl
        Checks,
+       CheckRun,
+       CheckSuite,
        create_check_run,
        update_check_run
 

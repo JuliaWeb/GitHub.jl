@@ -18,11 +18,12 @@ end
 namefield(img::Image) = img.alt
 
 @ghdef mutable struct Annotation
-    filename::String
-    blob_href::String
+    path::String
     start_line::Int
     end_line::Int
-    warning_level::String
+    start_column::Union{Int, Nothing}
+    end_column::Union{Int, Nothing}
+    annotation_level::String
     message::String
     title::Union{String, Nothing}
     raw_details::Union{String, Nothing}
@@ -30,8 +31,8 @@ end
 namefield(ann::Annotation) = ann.filename
 
 @ghdef mutable struct Output
-    title::Union{String, Nothing}
-    summary::Union{String, Nothing}
+    title::String
+    summary::String
     text::Union{String, Nothing}
     annotations::Union{Vector{Annotation}, Nothing}
     images::Union{Vector{Image}, Nothing}
