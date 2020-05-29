@@ -88,6 +88,7 @@ end
       "full_name": "octocat/Hello-World",
       "private": false,
       "url": "https://api.github.com/repos/octocat/Hello-World",
+      "ssh_url": "git@github.com:octocat/Hello-World.git",
       "language": null,
       "pushed_at": "2011-01-26T19:06:43Z",
       "permissions": {
@@ -118,6 +119,8 @@ end
         HTTP.URI(repo_json["url"]),
         nothing,
         nothing,
+        HTTP.URI(repo_json["ssh_url"]),
+        nothing,
         Dates.DateTime(chop(repo_json["pushed_at"])),
         nothing,
         nothing,
@@ -137,6 +140,7 @@ end
         full_name   = "octocat/Hello-World",
         private     = false,
         url         = "https://api.github.com/repos/octocat/Hello-World",
+        ssh_url     = "git@github.com:octocat/Hello-World.git",
         pushed_at   = "2011-01-26T19:06:43Z",
         permissions = Dict(
             "admin" => false,

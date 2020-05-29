@@ -22,6 +22,8 @@ Here's a table of contents for this rather lengthy README:
 
 [5. Handling Webhook Events](#handling-webhook-events)
 
+[6. GitHub Enterprise](#github-enterprise)
+
 ## Response Types
 
 GitHub's JSON responses are parsed and returned to the caller as types of the form `G<:GitHub.GitHubType`. Here's some useful information about these types:
@@ -506,4 +508,19 @@ end
 
 # Start the listener on localhost at port 8000
 GitHub.run(listener, IPv4(127,0,0,1), 8000)
+```
+
+## GitHub Enterprise
+
+This library work with github.com, and also with self-hosted github, a.k.a. GitHub Enterprise. 
+
+To use it with self-hosted github, you need to create `GitHubWebAPI` structure and pass it to functions when needed.
+Following example shows obtaining repository info `private/Package.jl` on github instance with API `https://git.company.com/api/v3`.
+
+```julia
+import GitHub
+
+api = GitHub.GitHubWebAPI(HTTP.URI("https://git.company.com/api/v3"))
+myauth = GitHub.authenticate(api, ENV["GITHUB_AUTH"])
+myrepo = GitHub.repo(env, "private/Package.jl", auth=myauth)
 ```
