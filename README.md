@@ -522,5 +522,5 @@ import GitHub
 
 api = GitHub.GitHubWebAPI(HTTP.URI("https://git.company.com/api/v3"))
 myauth = GitHub.authenticate(api, ENV["GITHUB_AUTH"])
-myrepo = GitHub.repo(env, "private/Package.jl", auth=myauth)
+myrepo = GitHub.repo(api, "private/Package.jl", auth=myauth)
 ```
