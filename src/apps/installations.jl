@@ -16,7 +16,7 @@ requests to the installation `inst` on an organization or individual account.
 """
 @api_default function create_access_token(api::GitHubAPI, inst::Installation; auth::JWTAuth, headers = Dict(), options...)
     headers["Accept"] = "application/vnd.github.machine-man-preview+json"
-    payload = gh_post_json(api, "/installations/$(inst.id)/access_tokens", auth = auth,
+    payload = gh_post_json(api, "/app/installations/$(inst.id)/access_tokens", auth = auth,
         headers=headers, options...)
     OAuth2(payload["token"])
 end
