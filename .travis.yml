@@ -18,6 +18,7 @@ branches:
 jobs:
     allow_failures:
         - julia: nightly
+          os: windows
 
 sudo: false
 #script:
