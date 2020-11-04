@@ -44,6 +44,11 @@ isorg(owner::Owner) = something(owner.typ, "") == "Organization"
 
 @api_default owner(api::GitHubAPI, owner_obj::Owner; options...) = owner(api, name(owner_obj), isorg(owner_obj); options...)
 
+@api_default function owner(api::GitHubAPI; options...)
+    result = gh_get_json(api, "/user"; options...)
+    return Owner(result)
+end
+
 @api_default function owner(api::GitHubAPI, owner_obj, isorg = false; options...)
     result = gh_get_json(api, "/$(typprefix(isorg))/$(name(owner_obj))"; options...)
     return Owner(result)
@@ -119,5 +124,3 @@ end
     results, page_data = gh_get_paged_json(api, "/orgs/$(name(owner))/teams"; options...)
     return map(Team, results), page_data
 end
-
-
