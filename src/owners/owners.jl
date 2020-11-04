@@ -42,12 +42,12 @@ typprefix(isorg) = isorg ? "orgs" : "users"
 
 isorg(owner::Owner) = something(owner.typ, "") == "Organization"
 
-@api_default owner(api::GitHubAPI, owner_obj::Owner; options...) = owner(api, name(owner_obj), isorg(owner_obj); options...)
-
-@api_default function owner(api::GitHubAPI; options...)
+@api_default function whoami(api::GitHubAPI; options...)
     result = gh_get_json(api, "/user"; options...)
     return Owner(result)
 end
+
+@api_default owner(api::GitHubAPI, owner_obj::Owner; options...) = owner(api, name(owner_obj), isorg(owner_obj); options...)
 
 @api_default function owner(api::GitHubAPI, owner_obj, isorg = false; options...)
     result = gh_get_json(api, "/$(typprefix(isorg))/$(name(owner_obj))"; options...)
