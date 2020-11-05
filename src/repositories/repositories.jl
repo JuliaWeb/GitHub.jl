@@ -61,6 +61,10 @@ end
     return Repo(result)
 end
 
+@api_default function delete_repo(api::GitHubAPI, repo; options...)
+    return gh_delete(api, "/repos/$(name(repo))"; options...)
+end
+
 # forks #
 #-------#
 
