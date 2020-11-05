@@ -55,6 +55,7 @@ include("owners/owners.jl")
 
 export # owners.jl
        Owner,
+       whoami,
        owner,
        orgs,
        users,
