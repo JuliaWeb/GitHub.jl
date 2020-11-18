@@ -96,6 +96,8 @@ include("repositories/deploykeys.jl")
 export # repositories.jl
        Repo,
        repo,
+       create_repo,
+       delete_repo,
        create_fork,
        forks,
        contributors,
