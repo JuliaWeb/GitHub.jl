@@ -31,11 +31,12 @@ end
     """
     )
 
-    owner_result = Owner(        
+    owner_result = Owner(
         nothing,
         nothing,
         nothing,
         String(owner_json["login"]),
+        nothing,
         nothing,
         nothing,
         nothing,
@@ -148,7 +149,7 @@ end
             "pull"  => true
         )
     )
-    
+
     @test Repo(repo_json) == repo_result
     @test Repo(repo_json) == repo_kw
     @test name(Repo(repo_json["full_name"])) == name(repo_result)
@@ -1140,7 +1141,7 @@ end
     }
     """)
     response_result = CheckRun(response_json)
-                              
+
     @test response_result.id == 4
     @test response_result.external_id == "42"
     @test response_result.output.title == "Mighty Readme Report"
@@ -1293,12 +1294,9 @@ end
     """)
 
     response_result = CheckRun(response_json)
-                              
+
     @test response_result.id == 4
     @test response_result.output.title == "Mighty Readme report"
 
 
 end
-
-
-
