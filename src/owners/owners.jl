@@ -10,6 +10,7 @@
     bio::Union{String, Nothing}
     company::Union{String, Nothing}
     location::Union{String, Nothing}
+    avatar_url::Union{HTTP.URI, Nothing}
     gravatar_id::Union{String, Nothing}
     id::Union{Int, Nothing}
     public_repos::Union{Int, Nothing}
