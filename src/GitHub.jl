@@ -105,6 +105,7 @@ export # repositories.jl
        iscollaborator,
        add_collaborator,
        remove_collaborator,
+       collaborator_permission,
        stats
 
 export # contents.jl
