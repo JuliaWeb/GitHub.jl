@@ -16,6 +16,7 @@
     html_url::Union{HTTP.URI, Nothing}
     download_url::Union{HTTP.URI, Nothing}
     size::Union{Int, Nothing}
+    license::Union{License, Nothing}
 end
 
 Content(path::AbstractString) = Content(Dict("path" => path))
