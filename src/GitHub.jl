@@ -77,6 +77,22 @@ export # teams.jl
        Team,
        members
 
+############
+# Licenses #
+############
+
+# include -------
+
+include("licenses/license.jl")
+
+# export -------
+
+export # license.jl
+    License,    
+    licenses,
+    license,
+    repo_license
+
 ################
 # Repositories #
 ################
@@ -324,17 +340,5 @@ export
     Release,
     create_release,
     releases
-
-############
-# Licenses #
-############
-
-include("licences/license.jl")
-
-export
-    License,    
-    licenses,
-    license,
-    repo_license
 
 end # module GitHub

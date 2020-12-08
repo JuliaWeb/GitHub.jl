@@ -15,6 +15,10 @@
     body::Union{String, Nothing}
 end
 
+License(spdx_id::AbstractString) = License(Dict("spdx_id" => spdx_id))
+
+namefield(license::License) = license.spdx_id
+
 ###############
 # API Methods #
 ###############
