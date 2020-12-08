@@ -227,6 +227,13 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `update_check_run(repo, id::Int; params=...)` | `CheckRun`  | [Update the check run with the given `id`](https://developer.github.com/v3/checks/runs/#update-a-check-run) |
 
 
+#### Licenses
+| method                            | return type       | documentation                                                                                                                                 |
+| --------------------------------- | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `licenses(; params=...)`          | `Vector{License}` | [Get all commonly used licenses](https://docs.github.com/en/free-pro-team@latest/rest/reference/licenses#get-all-commonly-used-licenses)      |
+| `license(license_id; params=...)` | `License`         | [Get a license](https://docs.github.com/en/free-pro-team@latest/rest/reference/licenses#get-a-license)                                        |
+| `repo_license(repo; params=...)`  | `Content`         | [Get the license for a respository](https://docs.github.com/en/free-pro-team@latest/rest/reference/licenses#get-the-license-for-a-repository) |
+
 #### Miscellaneous
 
 | method                | return type | documentation                                                                                                |
