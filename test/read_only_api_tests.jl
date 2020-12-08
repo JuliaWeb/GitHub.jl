@@ -241,5 +241,5 @@ end
     @test name(repo_license_obj.license) == "MIT"
     @test name(repo_license_obj) == "LICENSE.md"
     @test repo_license_obj.path == "LICENSE.md"
-    @test repo_license_obj.type == "file"
+    @test repo_license_obj.typ == "file"
 end
