@@ -36,6 +36,6 @@ end
 end
 
 @api_default function repo_license(api::GitHubAPI, repo_obj; options...)
-    result = gh_get_json(api, "repos/$(name(repo_obj))/license"; options...)
+    result = gh_get_json(api, "/repos/$(name(repo_obj))/license"; options...)
     return Content(result)
 end
