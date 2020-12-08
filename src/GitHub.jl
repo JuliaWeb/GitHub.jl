@@ -325,4 +325,16 @@ export
     create_release,
     releases
 
+############
+# Licenses #
+############
+
+include("licences/license.jl")
+
+export
+    License,    
+    licenses,
+    license,
+    repo_license
+
 end # module GitHub
