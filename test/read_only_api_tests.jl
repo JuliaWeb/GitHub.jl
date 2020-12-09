@@ -56,7 +56,10 @@ end
 
 @testset "Repositories" begin
     # test GitHub.repo
-    @test name(repo(ghjl; auth = auth)) == name(ghjl)
+    repo_obj = repo(ghjl; auth = auth)
+    @test name(repo_obj) == name(ghjl)
+    @test typeof(repo_obj.license) == License
+    @test name(repo_obj.license) == "MIT"
 
     # test GitHub.forks
     @test length(first(forks(ghjl; auth = auth))) > 0
