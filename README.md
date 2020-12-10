@@ -57,7 +57,9 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Blob`        | sha, e.g. `"95c8d1aa2a7b1e6d672e15b67e0df4abbe57dcbe"`            | [raw git blobs](https://developer.github.com/v3/git/blobs/)                                                                                                                                                   |
 | `Tree`        | sha, e.g. `"78e524d5e979e326a7c144ce195bf94ca9b04fa0"`            | [raw git trees](https://developer.github.com/v3/git/trees/)                                                                                                                                                   |
 | `Tag`         | tag name, e.g. `v1.0`                                             | [git tags](https://developer.github.com/v3/git/tags/)                                                                                                                                                         |
-| `References`  | reference name, e.g. `heads/master` (note: omits leading `refs/`) | [git tags](https://developer.github.com/v3/git/refs/)                                                                                                                                                         |
+| `References`  | reference name, e.g. `heads/master` (note: omits leading `refs/`) | [references](https://developer.github.com/v3/git/refs/)                                                                                                                                                         |
+| `Secrets`     | secret name, e.g. `TAGBOT_SECRET`                                 | [secrets](https://developer.github.com/v3/actions/secrets
+)                                                                                                                                                         |
 
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
@@ -117,6 +119,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `statuses(repo, ref)`                                    | `Tuple{Vector{Status}, Dict}`  | [get the statuses posted to `ref`](https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref)                            |
 | `status(repo, ref)`                                      | `Status`                       | [get the combined status for `ref`](https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref)                 |
 | `create_webhook(owner, repo)`                            | `Webhook`                      | [create a webhook for `repo`](https://developer.github.com/v3/repos/hooks/#create-a-hook)                                                       |
+| `create_secret(repo, name)`                              | `Secret`                       | [create a secret for `repo`](https://developer.github.com/v3/actions/secrets/#create-or-update-a-repository-secret)                                                       |
 
 #### Pull Requests and Issues
 
@@ -513,7 +516,7 @@ GitHub.run(listener, IPv4(127,0,0,1), 8000)
 
 ## GitHub Enterprise
 
-This library work with github.com, and also with self-hosted github, a.k.a. GitHub Enterprise. 
+This library work with github.com, and also with self-hosted github, a.k.a. GitHub Enterprise.
 
 To use it with self-hosted github, you need to create `GitHubWebAPI` structure and pass it to functions when needed.
 Following example shows obtaining repository info `private/Package.jl` on github instance with API `https://git.company.com/api/v3`.

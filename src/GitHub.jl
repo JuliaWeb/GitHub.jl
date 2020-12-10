@@ -10,7 +10,8 @@ using Base64
 import HTTP,
        JSON,
        MbedTLS,
-       Sockets
+       Sockets,
+       SodiumSeal
 
 ########
 # init #
@@ -90,6 +91,7 @@ include("repositories/branches.jl")
 include("repositories/statuses.jl")
 include("repositories/webhooks.jl")
 include("repositories/deploykeys.jl")
+include("repositories/secrets.jl")
 
 # export -------
 
@@ -144,6 +146,13 @@ export # deploykeys.jl
        deploykeys,
        create_deploykey,
        delete_deploykey
+
+export # secrets.jl
+       Secret,
+       secret,
+       secrets,
+       create_secret,
+       delete_secret
 
 ##########
 # Issues #
