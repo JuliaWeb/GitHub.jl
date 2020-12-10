@@ -119,7 +119,10 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `statuses(repo, ref)`                                    | `Tuple{Vector{Status}, Dict}`  | [get the statuses posted to `ref`](https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref)                            |
 | `status(repo, ref)`                                      | `Status`                       | [get the combined status for `ref`](https://developer.github.com/v3/repos/statuses/#get-the-combined-status-for-a-specific-ref)                 |
 | `create_webhook(owner, repo)`                            | `Webhook`                      | [create a webhook for `repo`](https://developer.github.com/v3/repos/hooks/#create-a-hook)                                                       |
-| `create_secret(repo, name)`                              | `Secret`                       | [create a secret for `repo`](https://developer.github.com/v3/actions/secrets/#create-or-update-a-repository-secret)                                                       |
+| `secrets(repo; auth)`                                    | `Tuple{Vector{Secret}, Dict}`  | [get names of all secrets for `repo`](https://developer.github.com/v3/actions/secrets/#list-repository-secrets)                                                       |
+| `secret(repo, name; auth)`                               | `Secret`                       | [get status of secret in `repo`](https://developer.github.com/v3/actions/secrets/#get-a-repository-secret)                                                       |
+| `create_secret(repo, name; value, auth)`                 | `nothing`                      | [create a secret for `repo`](https://developer.github.com/v3/actions/secrets/#create-or-update-a-repository-secret)                                                       |
+| `delete_secret(repo, name; auth)`                        | `nothing`                      | [delete a secret for `repo`](https://developer.github.com/v3/actions/secrets/#delete-a-repository-secret)                                                       |
 
 #### Pull Requests and Issues
 

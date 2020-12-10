@@ -53,7 +53,8 @@ end
 end
 
 @api_default function delete_secret(api::GitHubAPI, repo, secretname; options...)
-    return gh_delete(api, "/repos/$(name(repo))/actions/secrets/$(name(secretname))"; options...)
+    gh_delete(api, "/repos/$(name(repo))/actions/secrets/$(name(secretname))"; options...)
+    return nothing
 end
 
 
