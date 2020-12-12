@@ -35,6 +35,7 @@ end
 include("utils/requests.jl")
 include("utils/GitHubType.jl")
 include("utils/auth.jl")
+include("utils/ssh-keys.jl")
 
 # export -------
 

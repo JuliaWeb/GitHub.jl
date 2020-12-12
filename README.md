@@ -58,8 +58,8 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Tree`        | sha, e.g. `"78e524d5e979e326a7c144ce195bf94ca9b04fa0"`            | [raw git trees](https://developer.github.com/v3/git/trees/)                                                                                                                                                   |
 | `Tag`         | tag name, e.g. `v1.0`                                             | [git tags](https://developer.github.com/v3/git/tags/)                                                                                                                                                         |
 | `References`  | reference name, e.g. `heads/master` (note: omits leading `refs/`) | [references](https://developer.github.com/v3/git/refs/)                                                                                                                                                         |
-| `Secrets`     | secret name, e.g. `TAGBOT_SECRET`                                 | [secrets](https://developer.github.com/v3/actions/secrets
-)                                                                                                                                                         |
+| `Secrets`     | secret name, e.g. `TAGBOT_SECRET`                                 | [secrets](https://developer.github.com/v3/actions/secrets/)                                                                                                                                                         |
+| `DeployKeys`  | id, e.g., 12345                                                   | [deploy keys](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#deploy-keys)                                                                                                                                        |
 
 
 You can inspect which fields are available for a type `G<:GitHubType` by calling `fieldnames(G)`.
@@ -123,6 +123,10 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `secret(repo, name; auth)`                               | `Secret`                       | [get status of secret in `repo`](https://developer.github.com/v3/actions/secrets/#get-a-repository-secret)                                                       |
 | `create_secret(repo, name; value, auth)`                 | `nothing`                      | [create a secret for `repo`](https://developer.github.com/v3/actions/secrets/#create-or-update-a-repository-secret)                                                       |
 | `delete_secret(repo, name; auth)`                        | `nothing`                      | [delete a secret for `repo`](https://developer.github.com/v3/actions/secrets/#delete-a-repository-secret)                                                       |
+| `deploykeys(repo; auth)`                                 | `Tuple{Vector{DeployKey}, Dict}`| [get all deploy keys for `repo`](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#list-deploy-keys)                                                       |
+| `deploykey(repo, key; auth)`                             | `DeployKey`                    | [get the deploy `key` in `repo`](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#get-a-deploy-key)                                                       |
+| `create_deploykey(repo; params=..., auth)`               | `nothing`                      | [create a deploy key for `repo`](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-a-deploy-key)                                                       |
+| `delete_deploykey(repo, key; auth)`                      | `nothing`                      | [delete a deploy key for `repo`](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#delete-a-deploy-key)                                                       |
 
 #### Pull Requests and Issues
 
@@ -531,3 +535,17 @@ api = GitHub.GitHubWebAPI(HTTP.URI("https://git.company.com/api/v3"))
 myauth = GitHub.authenticate(api, ENV["GITHUB_AUTH"])
 myrepo = GitHub.repo(api, "private/Package.jl", auth=myauth)
 ```
+
+## SSH keys
+
+You can generate public-private key pairs with `GitHub.genkeys`. Here's an example adding a deploy key and secret, in this case to deploy documentation via GitHub Actions:
+
+```julia
+pubkey, privkey = GitHub.genkeys()
+create_deploykey(repo; auth, params=Dict("key"=>pubkey, "title"=>"Documenter", "read_only"=>false))
+create_secret(repo, "DOCUMENTER_KEY"; auth, value=privkey)
+```
+
+`privkey` is sent in encrypted form to GitHub. Do **not** share `privkey` with others or post it publicly;
+doing so breaches the security of your repository.
+You can [read more](https://www.ssh.com/ssh/public-key-authentication) about the meaning of SSH keys and their security implications.
