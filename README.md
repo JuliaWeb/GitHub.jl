@@ -84,9 +84,10 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 
 
 #### Teams
-| method          | return type                  | documentation                                                                                |
-|-----------------|------------------------------|----------------------------------------------------------------------------------------------|
-| `members(team)` | `Tuple{Vector{Owner}, Dict}` | get team members as [users](https://developer.github.com/v3/orgs/teams/#get-team-membership) |
+| method               | return type                  | documentation                                                                                            |
+|----------------------|------------------------------|----------------------------------------------------------------------------------------------------------|
+| `members(team)`      | `Tuple{Vector{Owner}, Dict}` | get team members as [users](https://developer.github.com/v3/orgs/teams/#get-team-membership)             |
+| `repos(owner, team)` | `Tuple{Vector{Repo}, Dict}`  | get team repositories as [users](https://docs.github.com/en/rest/reference/teams#list-team-repositories) |
 
 
 #### Repositories
