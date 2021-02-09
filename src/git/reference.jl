@@ -14,7 +14,7 @@ end
 
 @api_default function references(api::GitHubAPI, repo; options...)
     results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/git/refs"; options...)
-    return Reference.((results,)), page_data
+    return Reference.(results), page_data
 end
 
 @api_default function create_reference(api::GitHubAPI, repo; options...)
