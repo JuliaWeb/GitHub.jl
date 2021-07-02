@@ -88,7 +88,7 @@ end
 end
 
 @api_default function collaborators(api::GitHubAPI, repo; options...)
-    results, page_data = gh_get_json(api, "/repos/$(name(repo))/collaborators"; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/collaborators"; options...)
     return map(Owner, results), page_data
 end
 
@@ -112,8 +112,8 @@ end
 end
 
 @api_default function collaborator_permission(api::GitHubAPI, repo, user; options...)
-    results, page_data = gh_get_json(api, "/repos/$(name(repo))/collaborators/$(name(user))/permission"; options...)
-    return results[2]
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/collaborators/$(name(user))/permission"; options...)
+    return results["permission"]
 end
 
 # stats #
