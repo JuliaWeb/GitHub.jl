@@ -56,7 +56,10 @@ end
 
 @testset "Repositories" begin
     # test GitHub.repo
-    @test name(repo(ghjl; auth = auth)) == name(ghjl)
+    repo_obj = repo(ghjl; auth = auth)
+    @test name(repo_obj) == name(ghjl)
+    @test typeof(repo_obj.license) == License
+    @test name(repo_obj.license) == "MIT"
 
     # test GitHub.forks
     @test length(first(forks(ghjl; auth = auth))) > 0
@@ -220,4 +223,26 @@ end
     enterprise_gh = GitHub.GitHubWebAPI(HTTP.URI("https://git.company.com/api/v3"))
     @test  GitHub.api_uri(public_gh, "/rate_limit") == HTTP.URI("https://api.github.com/rate_limit")
     @test  GitHub.api_uri(enterprise_gh, "/rate_limit") == HTTP.URI("https://git.company.com/api/v3/rate_limit")
+end
+
+@testset "Licenses" begin
+    # test GitHub.licenses
+    licenses_obj, page_data = licenses(; page_limit = 1, auth = auth)
+    @test typeof(licenses_obj) == Vector{License}
+    @test length(licenses_obj) != 0
+
+    # test GitHub.license
+    license_obj = license("MIT"; auth = auth)
+    @test typeof(license_obj) == License
+    @test name(license_obj) == "MIT"
+    @test license_obj.name == "MIT License"
+    @test startswith(license_obj.body, "MIT License\n\nCopyright (c) [year] [fullname]\n\nPermission is hereby granted,")
+
+    # test GitHub.repo_license
+    repo_license_obj = repo_license(ghjl; auth = auth)
+    @test typeof(repo_license_obj) == Content
+    @test name(repo_license_obj.license) == "MIT"
+    @test name(repo_license_obj) == "LICENSE.md"
+    @test repo_license_obj.path == "LICENSE.md"
+    @test repo_license_obj.typ == "file"
 end

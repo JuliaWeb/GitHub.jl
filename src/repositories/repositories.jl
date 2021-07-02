@@ -30,6 +30,7 @@
     has_wiki::Union{Bool, Nothing}
     has_downloads::Union{Bool, Nothing}
     has_pages::Union{Bool, Nothing}
+    license::Union{License, Nothing}
     private::Union{Bool, Nothing}
     fork::Union{Bool, Nothing}
     permissions::Union{Dict, Nothing}
