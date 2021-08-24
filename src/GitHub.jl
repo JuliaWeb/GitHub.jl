@@ -1,4 +1,4 @@
-module GitHub
+module GitHub #
 
 using Dates
 using Base64
