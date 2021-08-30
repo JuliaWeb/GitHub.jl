@@ -48,6 +48,7 @@ Here's a table that matches up the provided `GitHubType`s with their correspondi
 | `Branch`      | name, e.g. `master`                                               | [repository branches](https://developer.github.com/v3/repos/#get-branch)                                                                                                                                      |
 | `Content`     | path, e.g. `"src/owners/owners.jl"`                               | [repository contents](https://developer.github.com/v3/repos/contents/)                                                                                                                                        |
 | `Comment`     | id, e.g. `162224613`                                              | [commit comments](https://developer.github.com/v3/repos/comments/), [issue comments](https://developer.github.com/v3/issues/comments/), [PR review comments](https://developer.github.com/v3/pulls/comments/) |
+| `Label`      | name, e.g. `bug`                                              | [issue labels](https://docs.github.com/en/rest/reference/issues#labels)
 | `Status`      | id, e.g. `366961773`                                              | [commit statuses](https://developer.github.com/v3/repos/statuses/)                                                                                                                                            |
 | `PullRequest` | number, e.g. `44`                                                 | [pull requests](https://developer.github.com/v3/pulls/)                                                                                                                                                       |
 | `Issue`       | number, e.g. `31`                                                 | [issues](https://developer.github.com/v3/issues/)                                                                                                                                                             |
@@ -171,6 +172,17 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `delete_comment(repo, comment, :commit)` | `HTTP.Response`                | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                    |
 | `delete_comment(repo, comment, :commit)` | `HTTP.Response`                | [delete the commit`comment` from `repo`](https://developer.github.com/v3/repos/comments/#delete-a-commit-comment)                                                    |
 | `reply_to(repo, review, comment, body)`  | `HTTP.Response`                | [reply to the `comment` (of `review` in `repo`) creating a new comment with the specified `body`](https://developer.github.com/v3/pulls/comments/#alternative-input) |
+
+#### Labels
+
+
+| method                                   | return type                    | documentation                                                                                                                                                        |
+|------------------------------------------|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `labels(repo,issue)`         | `Vector{Label}`                      | [list labels from `issue`](https://docs.github.com/en/rest/reference/issues#list-labels-for-an-issue)                                                          |
+| `add_labels(repo, issue, labels)`            | `Vector{Label}`                      | [add labels to an `issue`](https://docs.github.com/en/rest/reference/issues#add-labels-to-an-issue)                                                              |
+| `set_labels(repo, issue, labels)`        | `Vector{Label}`                      | [set the labels for an `issue`](https://docs.github.com/en/rest/reference/issues#set-labels-for-an-issue) 
+| `remove_all_labels(repo, issue)`        | `HTTP.Response`                      | [remove all labels from an `issue`](https://docs.github.com/en/rest/reference/issues#remove-all-labels-from-an-issue) 
+| `remove_label(repo, issue, label)`        | `HTTP.Response`                      | [remove a label from an `issue`](https://docs.github.com/en/rest/reference/issues#remove-a-label-from-an-issue)
 
 #### Social Activity
 

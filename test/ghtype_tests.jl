@@ -305,6 +305,35 @@ end
     test_show(comment_result)
 end
 
+@testset "Label" begin
+    label_json = JSON.parse(
+        """
+        {
+            "id": 208045946,
+            "node_id": "MDU6TGFiZWwyMDgwNDU5NDY=",
+            "url": "https://api.github.com/repos/octocat/Hello-World/labels/bug",
+            "name": "bug",
+            "description": "Something isn't working",
+            "color": "f29513",
+            "default": true
+          }
+        """
+    )
+
+    label_result = Label(String(label_json["name"]),
+                         Bool(label_json["default"]),
+                         Int(label_json["id"]),
+                         String(label_json["color"]),
+                         String(label_json["node_id"]),
+                         String(label_json["url"]),
+                         String(label_json["description"]))
+
+    
+    @test Label(label_json) == label_result
+    @test name(Label(label_json["name"])) == name(label_result)
+    test_show(label_result)
+end
+
 @testset "Content" begin
     content_json = JSON.parse(
     """
