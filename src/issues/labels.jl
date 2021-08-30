@@ -18,14 +18,14 @@ Label(name::AbstractString) = Label(Dict("name" => name))
 end
 
 @api_default function add_labels(api::GitHubAPI, repo, issue, labels; options...)
-    params = Dict("labels" => name.(labels))
-    result = gh_post_json(api, "/repos/$(name(repo))/issues/$(name(issue))/labels"; params, options...)
+    result = gh_post_json(api, "/repos/$(name(repo))/issues/$(name(issue))/labels";
+                          params=Dict("labels" => name.(labels)), options...)
     return Label.(result)
 end
 
 @api_default function set_labels(api::GitHubAPI, repo, issue, labels; options...)
-    params = Dict("labels" => name.(labels))
-    result = gh_put_json(api, "/repos/$(name(repo))/issues/$(name(issue))/labels"; params, options...)
+    result = gh_put_json(api, "/repos/$(name(repo))/issues/$(name(issue))/labels";
+                         params=Dict("labels" => name.(labels)), options...)
     return Label.(result)
 end
 
