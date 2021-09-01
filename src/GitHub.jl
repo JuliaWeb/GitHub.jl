@@ -181,6 +181,7 @@ include("issues/pull_requests.jl")
 include("issues/issues.jl")
 include("issues/comments.jl")
 include("issues/reviews.jl")
+include("issues/labels.jl")
 
 # export -------
 
@@ -217,6 +218,13 @@ export # reviews.jl
        reply_to,
        dismiss_review
 
+export # labels.jl
+       Label,
+       labels,
+       add_labels,
+       set_labels,
+       remove_all_labels,
+       remove_label
 
 #########
 # Gists #
