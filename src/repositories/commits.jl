@@ -34,3 +34,8 @@ end
     result = gh_get_json(api, "/repos/$(name(repo))/commits/$(name(sha))"; options...)
     return Commit(result)
 end
+
+@api_default function commits(api::GitHubAPI, repo, pr; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/pulls/$(name(pr))/commits"; options...)
+    return map(Commit, results), page_data
+end
