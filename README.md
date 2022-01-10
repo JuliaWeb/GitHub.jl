@@ -115,7 +115,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `create_file(repo, path)`                                | `Dict`                         | [create a file at `path` in `repo`](https://developer.github.com/v3/repos/contents/#create-a-file)                                              |
 | `update_file(repo, path)`                                | `Dict`                         | [update a file at `path` in `repo`](https://developer.github.com/v3/repos/contents/#update-a-file)                                              |
 | `delete_file(repo, path)`                                | `Dict`                         | [delete a file at `path` in `repo`](https://developer.github.com/v3/repos/contents/#delete-a-file)                                              |
-| `permalink(content::Content, commit)`                    | `HTTP.URI`                     | [get a permalink for `content` at the SHA specified by `commit`](https://help.github.com/articles/getting-permanent-links-to-files/)            |
+| `permalink(content::Content, commit)`                    | `URIs.URI`                     | [get a permalink for `content` at the SHA specified by `commit`](https://help.github.com/articles/getting-permanent-links-to-files/)            |
 | `readme(repo)`                                           | `Content`                      | [get `repo`'s README](https://developer.github.com/v3/repos/contents/#get-the-readme)                                                           |
 | `create_status(repo, sha)`                               | `Status`                       | [create a status for the commit specified by `sha`](https://developer.github.com/v3/repos/statuses/#create-a-status)                            |
 | `statuses(repo, ref)`                                    | `Tuple{Vector{Status}, Dict}`  | [get the statuses posted to `ref`](https://developer.github.com/v3/repos/statuses/#list-statuses-for-a-specific-ref)                            |
@@ -397,19 +397,19 @@ The `EventListener` constructor takes the following keyword arguments:
 - `secret`: A string used to verify the event source. If the event is from a GitHub Webhook, it's the Webhook's secret. If a secret is not provided, the server won't validate the secret signature of incoming requests.
 - `repos`: A vector of `Repo`s (or fully qualified repository names) listing all acceptable repositories. All repositories are whitelisted by default.
 - `events`: A vector of [event names](https://developer.github.com/webhooks/#events) listing all acceptable events (e.g. ["commit_comment", "pull_request"]). All events are whitelisted by default.
-- `forwards`: A vector of `HTTP.URI`s (or URI strings) to which any incoming requests should be forwarded (after being validated by the listener)
+- `forwards`: A vector of `URIs.URI`s (or URI strings) to which any incoming requests should be forwarded (after being validated by the listener)
 
 Here's an example that demonstrates how to construct and run an `EventListener` that does benchmarking on every commit and PR:
 
 ```julia
 import GitHub
-
+import URIs
 # EventListener settings
 myauth = GitHub.authenticate(ENV["GITHUB_AUTH"])
 mysecret = ENV["MY_SECRET"]
 myevents = ["pull_request", "push"]
 myrepos = [GitHub.Repo("owner1/repo1"), "owner2/repo2"] # can be Repos or repo names
-myforwards = [HTTP.URI("http://myforward1.com"), "http://myforward2.com"] # can be HTTP.URIs or URI strings
+myforwards = [URIs.URI("http://myforward1.com"), "http://myforward2.com"] # can be URIs.URIs or URI strings
 
 # Set up Status parameters
 pending_params = Dict(
@@ -550,8 +550,9 @@ Following example shows obtaining repository info `private/Package.jl` on github
 
 ```julia
 import GitHub
+import URIs
 
-api = GitHub.GitHubWebAPI(HTTP.URI("https://git.company.com/api/v3"))
+api = GitHub.GitHubWebAPI(URIs.URI("https://git.company.com/api/v3"))
 myauth = GitHub.authenticate(api, ENV["GITHUB_AUTH"])
 myrepo = GitHub.repo(api, "private/Package.jl", auth=myauth)
 ```
