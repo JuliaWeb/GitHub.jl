@@ -45,7 +45,7 @@ end
 # Default API URIs #
 ####################
 
-api_uri(api::GitHubWebAPI, path) = URI(api.endpoint, path = api.endpoint.path * path)
+api_uri(api::GitHubWebAPI, path) = HTTP.URI(api.endpoint, path = api.endpoint.path * path)
 api_uri(api::GitHubAPI, path) = error("URI retrieval not implemented for this API type")
 
 #######################
