@@ -10,7 +10,7 @@
     bio::Union{String, Nothing}
     company::Union{String, Nothing}
     location::Union{String, Nothing}
-    avatar_url::Union{HTTP.URI, Nothing}
+    avatar_url::Union{URIs.URI, Nothing}
     gravatar_id::Union{String, Nothing}
     id::Union{Int, Nothing}
     public_repos::Union{Int, Nothing}
@@ -21,9 +21,9 @@
     followers::Union{Int, Nothing}
     following::Union{Int, Nothing}
     collaborators::Union{Int, Nothing}
-    blog::Union{HTTP.URI, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
+    blog::Union{URIs.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
     updated_at::Union{Dates.DateTime, Nothing}
     created_at::Union{Dates.DateTime, Nothing}
     date::Union{Dates.DateTime, Nothing}

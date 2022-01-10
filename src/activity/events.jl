@@ -69,7 +69,7 @@ struct EventListener
                            secret = nothing, events = nothing,
                            repos = nothing, forwards = nothing)
         if !(isa(forwards, Nothing))
-            forwards = map(HTTP.URI, forwards)
+            forwards = map(URIs.URI, forwards)
         end
 
         if !(isa(repos, Nothing))

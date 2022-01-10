@@ -1,7 +1,7 @@
 mutable struct DeployKey <: GitHubType
     id::Union{Int, Nothing}
     key::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
     title::Union{String, Nothing}
     verified::Union{Bool, Nothing}
     created_at::Union{Dates.DateTime, Nothing}

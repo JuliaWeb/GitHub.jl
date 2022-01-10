@@ -1,7 +1,7 @@
 @ghdef mutable struct Gist
-    url::Union{HTTP.URI, Nothing}
-    forks_url::Union{HTTP.URI, Nothing}
-    commits_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    forks_url::Union{URIs.URI, Nothing}
+    commits_url::Union{URIs.URI, Nothing}
     id::Union{String, Nothing}
     description::Union{String, Nothing}
     public::Union{Bool, Nothing}
@@ -9,10 +9,10 @@
     user::Union{Owner, Nothing}
     truncated::Union{Bool, Nothing}
     comments::Union{Int, Nothing}
-    comments_url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
-    git_pull_url::Union{HTTP.URI, Nothing}
-    git_push_url::Union{HTTP.URI, Nothing}
+    comments_url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
+    git_pull_url::Union{URIs.URI, Nothing}
+    git_push_url::Union{URIs.URI, Nothing}
     created_at::Union{Dates.DateTime, Nothing}
     updated_at::Union{Dates.DateTime, Nothing}
     forks::Union{Vector{Gist}, Nothing}

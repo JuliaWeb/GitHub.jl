@@ -1,10 +1,10 @@
 @ghdef mutable struct Release
-    url::Union{Nothing, HTTP.URI}
-    html_url::Union{Nothing, HTTP.URI}
-    assets_url::Union{Nothing, HTTP.URI}
-    upload_url::Union{Nothing, HTTP.URI}
-    tarball_url::Union{Nothing, HTTP.URI}
-    zipball_url::Union{Nothing, HTTP.URI}
+    url::Union{Nothing, URIs.URI}
+    html_url::Union{Nothing, URIs.URI}
+    assets_url::Union{Nothing, URIs.URI}
+    upload_url::Union{Nothing, URIs.URI}
+    tarball_url::Union{Nothing, URIs.URI}
+    zipball_url::Union{Nothing, URIs.URI}
     id::Union{Nothing, Int}
     node_id::Union{Nothing, String}
     tag_name::Union{Nothing, String}

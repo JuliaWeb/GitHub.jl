@@ -1,6 +1,6 @@
 @ghdef mutable struct Tree
     sha::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
     tree::Union{Vector, Nothing}
     truncated::Union{Bool, Nothing}
 end

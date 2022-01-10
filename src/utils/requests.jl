@@ -9,10 +9,10 @@ or a mock API for testing purposes
 abstract type GitHubAPI end
 
 struct GitHubWebAPI <: GitHubAPI
-    endpoint::HTTP.URI
+    endpoint::URIs.URI
 end
 
-const DEFAULT_API = GitHubWebAPI(HTTP.URI("https://api.github.com"))
+const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 
 using Base.Meta
 
@@ -45,7 +45,7 @@ end
 # Default API URIs #
 ####################
 
-api_uri(api::GitHubWebAPI, path) = merge(api.endpoint, path = api.endpoint.path * path)
+api_uri(api::GitHubWebAPI, path) = URIs.URI(api.endpoint, path = api.endpoint.path * path)
 api_uri(api::GitHubAPI, path) = error("URI retrieval not implemented for this API type")
 
 #######################

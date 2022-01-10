@@ -11,10 +11,10 @@
     encoding::Union{String, Nothing}
     content::Union{String, Nothing}
     sha::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    git_url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
-    download_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    git_url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
+    download_url::Union{URIs.URI, Nothing}
     size::Union{Int, Nothing}
     license::Union{License, Nothing}
 end
@@ -62,7 +62,7 @@ function permalink(content::Content, commit)
     prefix = something(content.typ, "") == "file" ? "blob" : "tree"
     rgx = Regex(string("/", prefix, "/.*?/"))
     replacement = string("/", prefix, "/", name(commit), "/")
-    return HTTP.URI(replace(url, rgx => replacement))
+    return URIs.URI(replace(url, rgx => replacement))
 end
 
 ###########################

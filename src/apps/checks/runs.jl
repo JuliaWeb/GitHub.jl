@@ -15,7 +15,7 @@
     app::Union{App, Nothing}
     pull_requests::Union{Vector{PullRequest}, Nothing}
     check_suite::Union{CheckSuite, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
 end
 namefield(cr::CheckRun) = cr.id
 

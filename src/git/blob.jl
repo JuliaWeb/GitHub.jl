@@ -1,7 +1,7 @@
 @ghdef mutable struct Blob
     content::Union{String, Nothing}
     encoding::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
     sha::Union{String, Nothing}
     size::Union{Int, Nothing}
 end

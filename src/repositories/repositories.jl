@@ -18,11 +18,11 @@
     stargazers_count::Union{Int, Nothing}
     watchers_count::Union{Int, Nothing}
     open_issues_count::Union{Int, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
-    clone_url::Union{HTTP.URI, Nothing}
-    ssh_url::Union{HTTP.URI, Nothing}
-    homepage::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
+    clone_url::Union{URIs.URI, Nothing}
+    ssh_url::Union{URIs.URI, Nothing}
+    homepage::Union{URIs.URI, Nothing}
     pushed_at::Union{Dates.DateTime, Nothing}
     created_at::Union{Dates.DateTime, Nothing}
     updated_at::Union{Dates.DateTime, Nothing}

@@ -8,6 +8,7 @@ using Base64
 ##########
 
 import HTTP,
+       URIs,
        JSON,
        MbedTLS,
        Sockets,

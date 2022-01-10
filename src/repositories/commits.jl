@@ -8,9 +8,9 @@
     author::Union{Owner, Nothing}
     committer::Union{Owner, Nothing}
     commit::Union{Commit, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
-    comments_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
+    comments_url::Union{URIs.URI, Nothing}
     parents::Union{Vector{Commit}, Nothing}
     stats::Union{Dict, Nothing}
     files::Union{Vector{Content}, Nothing}

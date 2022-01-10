@@ -6,8 +6,8 @@
     key::Union{String, Nothing}
     name::Union{String, Nothing}
     spdx_id::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
     description::Union{String, Nothing}
     permissions::Union{Vector{String}, Nothing}
     conditions::Union{Vector{String}, Nothing}

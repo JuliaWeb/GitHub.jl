@@ -1,6 +1,6 @@
 @ghdef mutable struct Reference
     ref::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
     object::Union{Dict, Nothing}
 end
 

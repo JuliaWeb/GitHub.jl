@@ -4,9 +4,9 @@
 
 @ghdef mutable struct Webhook
     id::Union{Int, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    test_url::Union{HTTP.URI, Nothing}
-    ping_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    test_url::Union{URIs.URI, Nothing}
+    ping_url::Union{URIs.URI, Nothing}
     name::Union{String, Nothing}
     events::Union{Array{String}, Nothing}
     active::Union{Bool, Nothing}
