@@ -1,6 +1,6 @@
 @ghdef mutable struct GitCommit
     sha::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
     author::Union{Dict, Nothing}
     commiter::Union{Dict, Nothing}
     message::Union{String, Nothing}

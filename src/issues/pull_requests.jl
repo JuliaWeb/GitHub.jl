@@ -20,8 +20,8 @@
     updated_at::Union{Dates.DateTime, Nothing}
     closed_at::Union{Dates.DateTime, Nothing}
     merged_at::Union{Dates.DateTime, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
     assignee::Union{Owner, Nothing}
     user::Union{Owner, Nothing}
     merged_by::Union{Owner, Nothing}

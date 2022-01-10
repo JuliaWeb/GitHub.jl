@@ -14,10 +14,10 @@
     line::Union{Int, Nothing}
     created_at::Union{Dates.DateTime, Nothing}
     updated_at::Union{Dates.DateTime, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
-    issue_url::Union{HTTP.URI, Nothing}
-    pull_request_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
+    issue_url::Union{URIs.URI, Nothing}
+    pull_request_url::Union{URIs.URI, Nothing}
     user::Union{Owner, Nothing}
 end
 

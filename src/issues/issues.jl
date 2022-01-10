@@ -18,11 +18,11 @@
     labels::Union{Vector{Dict}, Nothing}
     milestone::Union{Dict, Nothing}
     pull_request::Union{PullRequest, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    html_url::Union{HTTP.URI, Nothing}
-    labels_url::Union{HTTP.URI, Nothing}
-    comments_url::Union{HTTP.URI, Nothing}
-    events_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    html_url::Union{URIs.URI, Nothing}
+    labels_url::Union{URIs.URI, Nothing}
+    comments_url::Union{URIs.URI, Nothing}
+    events_url::Union{URIs.URI, Nothing}
     locked::Union{Bool, Nothing}
 end
 

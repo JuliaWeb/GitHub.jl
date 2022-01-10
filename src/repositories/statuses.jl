@@ -9,8 +9,8 @@
     description::Union{String, Nothing}
     context::Union{String, Nothing}
     sha::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
-    target_url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
+    target_url::Union{URIs.URI, Nothing}
     created_at::Union{Dates.DateTime, Nothing}
     updated_at::Union{Dates.DateTime, Nothing}
     creator::Union{Owner, Nothing}

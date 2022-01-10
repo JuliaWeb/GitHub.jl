@@ -1,7 +1,7 @@
 @ghdef mutable struct Tag
     tag::Union{String, Nothing}
     sha::Union{String, Nothing}
-    url::Union{HTTP.URI, Nothing}
+    url::Union{URIs.URI, Nothing}
     message::Union{String, Nothing}
     tagger::Union{Dict, Nothing}
     object::Union{Dict, Nothing}
