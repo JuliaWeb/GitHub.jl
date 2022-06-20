@@ -113,7 +113,7 @@ function handle_event_request(request, handle;
 end
 
 function Base.run(listener, args...; host = nothing, port = nothing, kwargs...)
-    if host != nothing || port != nothing
+    if host !== nothing || port !== nothing
         Base.depwarn("The `host` and `port` keywords are deprecated, use `run(listener, host, port, args...; kwargs...)`", :run)
     end
     run(listener, host, port, args...; kwargs...)
@@ -127,7 +127,7 @@ function Base.run(listener::EventListener, host::HTTP.IPAddr, port::Int, args...
     run(listener, sock, host, port, args...; kwargs...)
 end
 
-function Base.run(listener::EventListener, sock::Sockets.TCPServer, host::HTTP.IPAddr, port::Int, args...; kwargs...)
+function Base.run(listener::EventListener, sock::Sockets.TCPServer, host, port, args...; kwargs...)
     HTTP.serve(listener.handle_request, host, port; server=sock, kwargs...)
 end
 
@@ -193,7 +193,7 @@ function handle_comment(handle, event::WebhookEvent, auth::Authorization,
 
     trigger_match = match(trigger, body_container["body"])
 
-    if trigger_match == nothing
+    if trigger_match === nothing
         return HTTP.Response(204, "trigger match not found")
     end
 
