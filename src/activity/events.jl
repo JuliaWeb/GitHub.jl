@@ -191,6 +191,10 @@ function handle_comment(handle, event::WebhookEvent, auth::Authorization,
         end
     end
 
+    if body_container["body"] === nothing
+        return HTTP.Response(204, "trigger match not found")
+    end
+
     trigger_match = match(trigger, body_container["body"])
 
     if trigger_match === nothing
