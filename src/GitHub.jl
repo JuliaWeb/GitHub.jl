@@ -360,4 +360,14 @@ export
     create_release,
     releases
 
+#################
+# Organizations #
+#################
+
+include("orgs/orgs.jl")
+
+export
+    invitations,
+    Invite
+
 end # module GitHub
