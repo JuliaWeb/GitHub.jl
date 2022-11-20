@@ -249,3 +249,10 @@ end
     @test repo_license_obj.path == "LICENSE.md"
     @test repo_license_obj.typ == "file"
 end
+
+@testset "Topics" begin
+    # test GitHub.topics
+    topics_obj, _ = topics(ghjl)
+    @test typeof(topics_obj) == Vector{Topic}
+    @test length(topics_obj) == 0
+end
