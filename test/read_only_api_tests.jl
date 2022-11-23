@@ -91,8 +91,11 @@ end
     @test hasghobj("src/GitHub.jl", src_dir)
 
     # test GitHub.status, GitHub.statuses
-    @test status(ghjl, testcommit; auth = auth).sha == name(testcommit)
-    @test !(isempty(first(statuses(ghjl, testcommit; auth = auth))))
+    # FIXME: for some reason, the GitHub API reports empty statuses on the GitHub.jl repo
+    let ghjl = Repo("JuliaLang/julia"), testcommit = Commit("3200219b1f7e2681ece9e4b99bda48586fab8a93")
+        @test status(ghjl, testcommit; auth = auth).sha == name(testcommit)
+        @test !(isempty(first(statuses(ghjl, testcommit; auth = auth))))
+    end
 
     # test GitHub.comment, GitHub.comments
     @test name(comment(ghjl, 154431956; auth = auth)) == 154431956
