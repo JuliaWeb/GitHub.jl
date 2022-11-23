@@ -4,7 +4,7 @@
 testuser = Owner("julia-github-test-bot")
 julweb = Owner("JuliaWeb", true)
 ghjl = Repo("JuliaWeb/GitHub.jl")
-testcommit = Commit("3a90e7d64d6184b877f800570155c502b1119c15")
+testcommit = Commit("627128970bbf09d27c526cb66a17891c389ab914")
 testuser_sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVDBxFza4BmQTCTFeTyK"*
     "3xT+T98dmiMWXC2lM/esw3MCRHg7cynLWr/jUgjs72DO2nqlCTKI88yd2gcbW5/pBP6NVumc"*
     "pM7eJzZJ3TKKwdGUD49nahncg5imHZUQbCqtQbAYEj+uFfqa9QNm6NkZdAdPdB6dJG2+QEuk"*
@@ -91,8 +91,11 @@ end
     @test hasghobj("src/GitHub.jl", src_dir)
 
     # test GitHub.status, GitHub.statuses
-    @test status(ghjl, testcommit; auth = auth).sha == name(testcommit)
-    @test !(isempty(first(statuses(ghjl, testcommit; auth = auth))))
+    # FIXME: for some reason, the GitHub API reports empty statuses on the GitHub.jl repo
+    let ghjl = Repo("JuliaLang/julia"), testcommit = Commit("3200219b1f7e2681ece9e4b99bda48586fab8a93")
+        @test status(ghjl, testcommit; auth = auth).sha == name(testcommit)
+        @test !(isempty(first(statuses(ghjl, testcommit; auth = auth))))
+    end
 
     # test GitHub.comment, GitHub.comments
     @test name(comment(ghjl, 154431956; auth = auth)) == 154431956
