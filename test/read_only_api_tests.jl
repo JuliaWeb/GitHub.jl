@@ -109,12 +109,12 @@ end
 
     # of a pull request
     let pr = pull_request(ghjl, 37; auth = auth)
-        commit_vec, page_data = commits(pr)
+        commit_vec, page_data = commits(pr; auth = auth)
         @test commit_vec isa Vector{Commit}
         @test length(commit_vec) == 1
     end
     let
-        commit_vec, page_data = commits(ghjl, 37)
+        commit_vec, page_data = commits(ghjl, 37; auth = auth)
         @test commit_vec isa Vector{Commit}
         @test length(commit_vec) == 1
     end
