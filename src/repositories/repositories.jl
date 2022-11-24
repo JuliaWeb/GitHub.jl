@@ -138,3 +138,9 @@ end
     results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/topics"; options...)
     return convert(Vector{String}, results["names"]), page_data
 end
+
+@api_default function set_topics(api::GitHubAPI, repo, topics; options...)
+    result = gh_put_json(api, "/repos/$(name(repo))/topics";
+                         params=Dict("names" => topics), options...)
+    return convert(Vector{String}, result["names"])
+end
