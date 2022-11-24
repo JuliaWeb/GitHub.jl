@@ -126,7 +126,9 @@ export # repositories.jl
        add_collaborator,
        remove_collaborator,
        collaborator_permission,
-       stats
+       stats,
+       topics,
+       set_topics
 
 export # contents.jl
        Content,

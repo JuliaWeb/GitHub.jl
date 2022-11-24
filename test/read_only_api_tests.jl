@@ -253,3 +253,14 @@ end
     @test repo_license_obj.path == "LICENSE.md"
     @test repo_license_obj.typ == "file"
 end
+
+@testset "Topics" begin
+    # test GitHub.topics
+    topics_obj, page_data = topics(ghjl; auth = auth)
+    @test typeof(topics_obj) == Vector{String}
+    @test length(topics_obj) == 0
+
+    # also test on a repository that _does_ have topics
+    topics_obj, page_data = topics("JuliaLang/julia"; auth = auth)
+    @test length(topics_obj) > 0
+end
