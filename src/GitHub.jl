@@ -91,7 +91,7 @@ include("licenses/license.jl")
 # export -------
 
 export # license.jl
-    License,    
+    License,
     licenses,
     license,
     repo_license

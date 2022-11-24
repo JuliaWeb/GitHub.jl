@@ -185,8 +185,8 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 |------------------------------------------|--------------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `labels(repo,issue)`         | `Vector{Label}`                      | [list labels from `issue`](https://docs.github.com/en/rest/reference/issues#list-labels-for-an-issue)                                                          |
 | `add_labels(repo, issue, labels)`            | `Vector{Label}`                      | [add labels to an `issue`](https://docs.github.com/en/rest/reference/issues#add-labels-to-an-issue)                                                              |
-| `set_labels(repo, issue, labels)`        | `Vector{Label}`                      | [set the labels for an `issue`](https://docs.github.com/en/rest/reference/issues#set-labels-for-an-issue) 
-| `remove_all_labels(repo, issue)`        | `HTTP.Response`                      | [remove all labels from an `issue`](https://docs.github.com/en/rest/reference/issues#remove-all-labels-from-an-issue) 
+| `set_labels(repo, issue, labels)`        | `Vector{Label}`                      | [set the labels for an `issue`](https://docs.github.com/en/rest/reference/issues#set-labels-for-an-issue)
+| `remove_all_labels(repo, issue)`        | `HTTP.Response`                      | [remove all labels from an `issue`](https://docs.github.com/en/rest/reference/issues#remove-all-labels-from-an-issue)
 | `remove_label(repo, issue, label)`        | `HTTP.Response`                      | [remove a label from an `issue`](https://docs.github.com/en/rest/reference/issues#remove-a-label-from-an-issue)
 
 #### Social Activity
