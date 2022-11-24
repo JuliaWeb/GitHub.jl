@@ -110,7 +110,6 @@ include("repositories/statuses.jl")
 include("repositories/webhooks.jl")
 include("repositories/deploykeys.jl")
 include("repositories/secrets.jl")
-include("repositories/topics.jl")
 
 # export -------
 
@@ -127,7 +126,8 @@ export # repositories.jl
        add_collaborator,
        remove_collaborator,
        collaborator_permission,
-       stats
+       stats,
+       topics
 
 export # contents.jl
        Content,
@@ -172,10 +172,6 @@ export # secrets.jl
        secrets,
        create_secret,
        delete_secret
-
-export # topics.jl
-       Topic,
-       topics
 
 ##########
 # Issues #

@@ -130,3 +130,11 @@ end
     end
     return r
 end
+
+# topics #
+#--------#
+
+@api_default function topics(api::GitHubAPI, repo; options...)
+    results, page_data = gh_get_paged_json(api, "/repos/$(name(repo))/topics"; options...)
+    return convert(Vector{String}, results["names"]), page_data
+end

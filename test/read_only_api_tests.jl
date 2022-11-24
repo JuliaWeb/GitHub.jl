@@ -253,7 +253,7 @@ end
 @testset "Topics" begin
     # test GitHub.topics
     topics_obj, page_data = topics(ghjl)
-    @test typeof(topics_obj) == Vector{Topic}
+    @test typeof(topics_obj) == Vector{String}
     @test length(topics_obj) == 0
 
     # also test on a repository that _does_ have topics
