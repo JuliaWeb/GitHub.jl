@@ -178,11 +178,11 @@ export # secrets.jl
 
 # include -------
 
+include("issues/labels.jl")
 include("issues/pull_requests.jl")
 include("issues/issues.jl")
 include("issues/comments.jl")
 include("issues/reviews.jl")
-include("issues/labels.jl")
 
 # export -------
 
