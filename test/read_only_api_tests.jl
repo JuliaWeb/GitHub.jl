@@ -74,6 +74,13 @@ end
     @test name(branch(ghjl, "master"; auth = auth)) == "master"
     @test hasghobj("master", first(branches(ghjl; auth = auth)))
 
+    # test GitHub.compare
+    @test compare(ghjl, "master", "master~"; auth = auth).behind_by == 1
+    let comparison = compare(ghjl, "master~", "master"; auth = auth)
+        @test comparison.ahead_by == 1
+        @test length(comparison.commits) == 1
+    end
+
     # test GitHub.file, GitHub.directory, GitHub.readme, GitHub.permalink
     readme_file = file(ghjl, "README.md"; auth = auth)
     src_dir = first(directory(ghjl, "src"; auth = auth))
