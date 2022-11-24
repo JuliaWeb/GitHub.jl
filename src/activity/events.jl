@@ -112,7 +112,7 @@ function handle_event_request(request, handle;
     return handle(event)
 end
 
-function Base.run(listener, args...; host = nothing, port = nothing, kwargs...)
+function Base.run(listener::EventListener, args...; host = nothing, port = nothing, kwargs...)
     if host !== nothing || port !== nothing
         Base.depwarn("The `host` and `port` keywords are deprecated, use `run(listener, host, port, args...; kwargs...)`", :run)
     end
