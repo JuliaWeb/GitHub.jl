@@ -22,17 +22,15 @@ testuser2_sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkj86sSo36bkgv+gKp"*
 
 hasghobj(obj, items) = any(x -> name(x) == name(obj), items)
 
-# This token has public, read-only access, and is required so that our
-# tests don't get rate-limited. The only way a malicious party could do harm
-# with this token is if they used it to abuse the rate limit associated with
-# the token (not too big of a deal). The token is hard-coded in an obsfucated
-# manner in an attempt to thwart token-stealing crawlers.
-auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
-                                      "c09", "363", "5f1", "bd3",
-                                      "fc6", "77b", '5', "9cf",
-                                      "868", "033"], 3)...))
+auth = if haskey(ENV, "GITHUB_TOKEN")
+    @info "Using GitHub token from ENV"
+    authenticate(ENV["GITHUB_TOKEN"])
+else
+    @warn "Using anonymous GitHub access. If you get rate-limited, please set the GITHUB_TOKEN env var to an appropriate value."
+    GitHub.AnonymousAuth()
+end
 
-@test rate_limit(; auth = auth)["rate"]["limit"] == 5000
+@test rate_limit(; auth = auth)["rate"]["limit"] > 0
 
 @testset "Owners" begin
     # test GitHub.owner
