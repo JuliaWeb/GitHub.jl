@@ -110,6 +110,7 @@ include("repositories/statuses.jl")
 include("repositories/webhooks.jl")
 include("repositories/deploykeys.jl")
 include("repositories/secrets.jl")
+include("repositories/compare.jl")
 
 # export -------
 
@@ -144,6 +145,10 @@ export # commits.jl
        Commit,
        commit,
        commits
+
+export # compare.jl
+       Comparison,
+       compare
 
 export # branches.jl
        Branch,
