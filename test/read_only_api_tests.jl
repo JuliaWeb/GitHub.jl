@@ -110,7 +110,11 @@ end
     state_param = Dict("state" => "all")
 
     # test GitHub.pull_request, GitHub.pull_requests
-    @test pull_request(ghjl, 37; auth = auth).title == "Fix dep warnings"
+    let pr = pull_request(ghjl, 37; auth = auth)
+        @test pr.title == "Fix dep warnings"
+        @test length(pr.labels) == 1
+        @test pr.labels[1].name == "enhancement"
+    end
     @test hasghobj(37, first(pull_requests(ghjl; auth = auth, params = state_param)))
 
     # test GitHub.issue, GitHub.issues

@@ -30,6 +30,7 @@
     mergeable::Union{Bool, Nothing}
     merged::Union{Bool, Nothing}
     locked::Union{Bool, Nothing}
+    labels::Union{Vector{Label}, Nothing}
 end
 
 PullRequest(number::Real) = PullRequest(Dict("number" => number))

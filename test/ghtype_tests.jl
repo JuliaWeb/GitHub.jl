@@ -471,7 +471,8 @@ end
         nothing,
         nothing,
         nothing,
-        pr_json["locked"]
+        pr_json["locked"],
+        nothing
     )
 
     @test PullRequest(pr_json) == pr_result
