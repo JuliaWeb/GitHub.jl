@@ -74,10 +74,6 @@ end
     @test name(branch(ghjl, "master"; auth = auth)) == "master"
     @test hasghobj("master", first(branches(ghjl; auth = auth)))
 
-    # test GitHub.commit, GitHub.commits
-    @test name(commit(ghjl, testcommit; auth = auth)) == name(testcommit)
-    @test hasghobj(testcommit, first(commits(ghjl; auth = auth)))
-
     # test GitHub.file, GitHub.directory, GitHub.readme, GitHub.permalink
     readme_file = file(ghjl, "README.md"; auth = auth)
     src_dir = first(directory(ghjl, "src"; auth = auth))
@@ -104,6 +100,24 @@ end
     # These require `auth` to have push-access (it's currently a read-only token)
     # @test hasghobj("jrevels", first(collaborators(ghjl; auth = auth)))
     # @test iscollaborator(ghjl, "jrevels"; auth = auth)
+end
+
+@testset "Commits" begin
+    # of a repo
+    @test name(commit(ghjl, testcommit; auth = auth)) == name(testcommit)
+    @test hasghobj(testcommit, first(commits(ghjl; auth = auth)))
+
+    # of a pull request
+    let pr = pull_request(ghjl, 37; auth = auth)
+        commit_vec, page_data = commits(pr; auth = auth)
+        @test commit_vec isa Vector{Commit}
+        @test length(commit_vec) == 1
+    end
+    let
+        commit_vec, page_data = commits(ghjl, 37; auth = auth)
+        @test commit_vec isa Vector{Commit}
+        @test length(commit_vec) == 1
+    end
 end
 
 @testset "Issues" begin
