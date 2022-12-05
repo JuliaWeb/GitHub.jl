@@ -226,7 +226,7 @@ end
             @test entry["type"] == "blob"
 
             b = blob(github_jl, entry["sha"]; auth=auth)
-            @test occursin("GitHub.jl", String(base64decode(replace(b.content,"\n" => ""))))
+            @test occursin("GitHub.jl", String(b))
 
             break
         end
