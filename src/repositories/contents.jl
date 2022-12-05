@@ -23,6 +23,11 @@ Content(path::AbstractString) = Content(Dict("path" => path))
 
 namefield(content::Content) = content.path
 
+function Base.String(content::Content)
+    @assert content.encoding == "base64"
+    String(base64decode(content.content))
+end
+
 ###############
 # API Methods #
 ###############
