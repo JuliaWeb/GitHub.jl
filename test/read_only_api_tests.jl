@@ -240,10 +240,17 @@ end
     @test ref.object["type"] == "commit"
 
     # Tag API
-    reponame = "QuantEcon/Expectations.jl"
-    version = "v1.0.1"
+    reponame = "JuliaGPU/Adapt.jl"
+    ## lightweight tag
+    version = "v0.1.0"
     exptag = tag(reponame, version; auth=auth)
     @test isa(exptag, Tag)
+    @test exptag.object["type"] == "commit"
+    ## lightweight tag pointing to an annotated tag (should return the annotated tag)
+    version = "v3.4.0"
+    exptag = tag(reponame, version; auth=auth)
+    @test isa(exptag, Tag)
+    @test exptag.object["type"] == "commit"
 end
 
 @testset "URI constructions" begin
