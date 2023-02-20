@@ -91,6 +91,7 @@ end
     @test readme_permalink == "https://github.com/JuliaWeb/GitHub.jl/blob/$(test_sha)/README.md"
     @test owners_permalink == "https://github.com/JuliaWeb/GitHub.jl/tree/$(test_sha)/src/owners"
     @test readme_file == readme(ghjl; auth = auth)
+    @test occursin("GitHub.jl", String(readme_file))
     @test hasghobj("src/GitHub.jl", src_dir)
 
     # test GitHub.status, GitHub.statuses
@@ -225,7 +226,7 @@ end
             @test entry["type"] == "blob"
 
             b = blob(github_jl, entry["sha"]; auth=auth)
-            @test occursin("GitHub.jl", String(base64decode(replace(b.content,"\n" => ""))))
+            @test occursin("GitHub.jl", String(b))
 
             break
         end
