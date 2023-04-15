@@ -1,6 +1,5 @@
 # GitHub.jl
 
-[![Build Status](https://travis-ci.org/JuliaWeb/GitHub.jl.svg?branch=master)](https://travis-ci.org/JuliaWeb/GitHub.jl)
 [![Coverage Status](https://coveralls.io/repos/JuliaWeb/GitHub.jl/badge.svg?branch=master&service=github)](https://coveralls.io/github/JuliaWeb/GitHub.jl?branch=master)
 
 GitHub.jl provides a Julia interface to the [GitHub API v3](https://developer.github.com/v3/). Using GitHub.jl, you can do things like:
