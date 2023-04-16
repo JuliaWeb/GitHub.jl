@@ -134,6 +134,7 @@ GitHub.jl implements a bunch of methods that make REST requests to GitHub's API.
 | `deploykey(repo, key; auth)`                             | `DeployKey`                    | [get the deploy `key` in `repo`](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#get-a-deploy-key)                         |
 | `create_deploykey(repo; params=..., auth)`               | `nothing`                      | [create a deploy key for `repo`](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#create-a-deploy-key)                      |
 | `delete_deploykey(repo, key; auth)`                      | `nothing`                      | [delete a deploy key for `repo`](https://docs.github.com/en/free-pro-team@latest/rest/reference/repos#delete-a-deploy-key)                      |
+| `releases(repo, key; auth)`                      | `nothing`                      | [get the releases for `repo`](https://docs.github.com/en/rest/releases/releases?apiVersion=2022-11-28#list-releases)                      |
 
 #### Pull Requests and Issues
 
