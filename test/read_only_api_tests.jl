@@ -2,15 +2,23 @@
 # API. They're all read-only, meaning none of them require authentication.
 
 testuser = Owner("julia-github-test-bot")
+testuser2 = Owner("julia-github-test-bot2")
 julweb = Owner("JuliaWeb", true)
 ghjl = Repo("JuliaWeb/GitHub.jl")
 testcommit = Commit("627128970bbf09d27c526cb66a17891c389ab914")
-testuser_sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDVDBxFza4BmQTCTFeTyK"*
-    "3xT+T98dmiMWXC2lM/esw3MCRHg7cynLWr/jUgjs72DO2nqlCTKI88yd2gcbW5/pBP6NVumc"*
-    "pM7eJzZJ3TKKwdGUD49nahncg5imHZUQbCqtQbAYEj+uFfqa9QNm6NkZdAdPdB6dJG2+QEuk"*
-    "rIGWKsmihP7vGzRLdebGwng2aNUfdAyVwq5Af4g5qfyRT9MtOXXM/7tDAVfC/g4QjkQ52giG"*
-    "3FRqehMHOfl4iw9cYggJ3owr+T/RhwBHhE9G+sIaq4cEjRxogf65xzJfRtxxM2RBYDM9GMyX"*
-    "6s2dFghew6MMc2x7OJM30W+OedhtZuk3Xp"
+
+# This is a public SSH key registered for the julia-github-test-bot2 user.
+# If this key breaks, please ask anyone with access to
+# subscriptions+githubtestbot@julialang.org to re-add or replace it.
+testuser2_sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkj86sSo36bkgv+gKp"*
+    "8sdvrDUzWrswx5rIBXxZblIZyflam0YU1jcma8wtij+mm7JCSZm0Z9jaLYX7TRKhYHOPlX"*
+    "RScbi5l+Hi1jAK744XX6fvuOyWctBsUy5vc2L7PkRxIh9pFm7aOEPQF863eYhuuuB8lcRq"*
+    "yKKs55NbUWDZJTkj5qBgV5INSwdwJyWu/gof0KxZxG5ovQ+NZvlillgjf36mEniijahbKj"*
+    "IVlgZ9dmTbJKTJFfOn8Q+JmNQiNLNJIb/MDJ/el/0Ai7C7Sg2xwyXvVHfc1c0DOMIf1J1W"*
+    "uU/LatiEUqhQiy31k4O9oGM4rtZKpWFfZl2t6ScBPcqwn48NnXlG/BaxpZRL+Q/St7yCtk"*
+    "KY6Gr/ZvRxQwE/1WAiBCBwEpSMMyhUzpfkWESsb1QX4dcPY7vJB9eA0t+8iaHlgMJel+aG"*
+    "K7KkjfdvZbAa9cvE5Yw3jQBgbp6goBsZjTxktPhsJWQCG0P62VGBic1gRKQlusM8M8q2uI"*
+    "d4PR8="
 
 hasghobj(obj, items) = any(x -> name(x) == name(obj), items)
 
@@ -42,7 +50,7 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
     @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
 
     # test sshkey/gpgkey retrieval
-    @test_broken GitHub.sshkeys(testuser; auth = auth)[1][1]["key"] == testuser_sshkey
+    @test GitHub.sshkeys(testuser2; auth = auth)[1][1]["key"] == testuser2_sshkey
     @test startswith(GitHub.gpgkeys("JuliaTagBot"; auth = auth)[1][1]["raw_key"],
                      "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
