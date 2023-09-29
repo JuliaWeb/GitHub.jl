@@ -79,6 +79,12 @@ end
     end
 end
 
+@api_default function members(api::GitHubAPI, org::Owner; public_only=false, options...)
+    scope = public_only ? "public_members" : "members"
+    results, page_data = gh_get_paged_json(api, "/orgs/$(name(org))/$scope"; options...)
+    map(Owner, results), page_data
+end
+
 @api_default function orgs(api::GitHubAPI, owner; options...)
     results, page_data = gh_get_paged_json(api, "/users/$(name(owner))/orgs"; options...)
     return map(Owner, results), page_data
