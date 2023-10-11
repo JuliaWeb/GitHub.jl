@@ -41,6 +41,8 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
 
     # test GitHub.orgs
     @test hasghobj("JuliaWeb", first(orgs("jrevels"; auth = auth)))
+    members, _ = GitHub.members(Owner("JuliaLang"); auth=auth)
+    @test length(members) > 1
 
     # test GitHub.followers, GitHub.following
     @test hasghobj("jrevels", first(followers(testuser; auth = auth)))
