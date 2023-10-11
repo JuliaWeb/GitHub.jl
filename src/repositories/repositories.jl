@@ -52,14 +52,19 @@ namefield(repo::Repo) = repo.full_name
     return Repo(result)
 end
 
-@api_default function create_repo(api::GitHubAPI, owner, repo_name::String, params=Dict{String,Any}(); options...)
-    params["name"] = repo_name
+@api_default function create_repo(api::GitHubAPI, owner, repo_name::String; params=Dict(), options...)
+    params = merge(params, Dict("name" => repo_name))
     if isorg(owner)
         result = gh_post_json(api, "/orgs/$(name(owner))/repos"; params=params, options...)
     else
         result = gh_post_json(api, "/user/repos"; params=params, options...)
     end
     return Repo(result)
+end
+
+@api_default function create_repo(api::GitHubAPI, owner, repo_name::String, params; options...)
+    Base.depwarn("params should be passed as a keyword argument instead of a positional argument", :create_repo)
+    return create_repo(api, owner, repo_name; params=params, options...)
 end
 
 @api_default function delete_repo(api::GitHubAPI, repo; options...)
