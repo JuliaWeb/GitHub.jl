@@ -21,3 +21,6 @@ auth2 = GitHub.JWTAuth(1234, key; iat = DateTime("2016-9-15T14:00"))
 # test to make sure things don't break.
 @test auth.JWT == correct_jwt
 @test auth2.JWT == correct_jwt
+
+@test_throws ArgumentError GitHub.OAuth2("ghp_\n")
+@test_throws ArgumentError GitHub.JWTAuth("ghp_\n")
