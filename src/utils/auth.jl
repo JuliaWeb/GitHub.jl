@@ -7,6 +7,13 @@ abstract type Authorization end
 # TODO: SecureString on 0.7
 struct OAuth2 <: Authorization
     token::String
+    function OAuth2(token)
+        token = convert(String, token)
+        if !all(c->isascii(c) && !isspace(c), token)
+            throw(ArgumentError("token `$token` has invalid whitespace or non-ascii character."))
+        end
+        new(token)
+    end
 end
 
 struct UsernamePassAuth <: Authorization
@@ -18,6 +25,13 @@ struct AnonymousAuth <: Authorization end
 
 struct JWTAuth <: Authorization
     JWT::String
+    function JWTAuth(token)
+        token = convert(String, token)
+        if !all(c->isascii(c) && !isspace(c), token)
+            throw(ArgumentError("ArgumentError token `$token` has invalid whitespace or non-ascii character."))
+        end
+        new(token)
+    end
 end
 
 ####################
