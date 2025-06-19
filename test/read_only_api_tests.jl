@@ -303,3 +303,9 @@ end
     topics_obj, page_data = topics("JuliaLang/julia"; auth = auth)
     @test length(topics_obj) > 0
 end
+
+@testset "Prevent Path Traversal" begin
+    @test_throws ArgumentError GitHub.api_uri(GitHub.DEFAULT_API, "/repos/foo/../bar")
+    @test_throws ArgumentError GitHub.api_uri(GitHub.DEFAULT_API, "/repos/foo/../bar")
+    @test string(GitHub.api_uri(GitHub.DEFAULT_API, "/repos/foo/bar")) == "https://api.github.com/repos/foo/bar"
+end

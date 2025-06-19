@@ -38,7 +38,7 @@ end
 
 Repo(full_name::AbstractString) = Repo(Dict("full_name" => full_name))
 
-namefield(repo::Repo) = repo.full_name
+namefield(repo::Repo) = check_disallowed_name_pattern(repo.full_name)
 
 ###############
 # API Methods #

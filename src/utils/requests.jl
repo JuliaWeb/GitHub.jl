@@ -45,7 +45,13 @@ end
 # Default API URIs #
 ####################
 
-api_uri(api::GitHubWebAPI, path) = URIs.URI(api.endpoint, path = api.endpoint.path * path)
+function api_uri(api::GitHubWebAPI, path)
+    # do not allow path traversal
+    if occursin(r"(^|/)\.\.(\/|$)", path)
+        throw(ArgumentError("Invalid API path: '$path'"))
+    end
+    return URIs.URI(api.endpoint, path = api.endpoint.path * path)
+end
 api_uri(api::GitHubAPI, path) = error("URI retrieval not implemented for this API type")
 
 #######################
@@ -182,4 +188,22 @@ function handle_response_error(r::HTTP.Response)
                 "\tDocs URL: $docs_url\n",
                 "\tErrors: $errors"))...)
     end
+end
+
+###############
+# Validations #
+###############
+
+check_disallowed_name_pattern(v) = v
+function check_disallowed_name_pattern(str::AbstractString)
+    # do not allow path traversal in names
+    if occursin(r"\.\.", str)
+        throw(ArgumentError("name cannot contain path traversal"))
+    end
+    # do not allow new lines or carriage returns or any other whitespace in names
+    if occursin(r"\s", str)
+        throw(ArgumentError("name cannot contain line breaks"))
+    end
+
+    return str
 end
