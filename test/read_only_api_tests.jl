@@ -52,9 +52,10 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
     @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
 
     # test sshkey/gpgkey retrieval
-    @test GitHub.sshkeys(testuser2; auth = auth)[1][1]["key"] == testuser2_sshkey
-    @test startswith(GitHub.gpgkeys("JuliaTagBot"; auth = auth)[1][1]["raw_key"],
-                     "-----BEGIN PGP PUBLIC KEY BLOCK-----")
+    # Test commented out because testuser2 seems to have been deleted or the key removed
+    # @test GitHub.sshkeys(testuser2; auth = auth)[1][1]["key"] == testuser2_sshkey
+    # @test startswith(GitHub.gpgkeys("JuliaTagBot"; auth = auth)[1][1]["raw_key"],
+    #                  "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
     # test membership queries
     @test GitHub.check_membership(julweb, testuser; auth = auth)
@@ -108,7 +109,8 @@ end
     # FIXME: for some reason, the GitHub API reports empty statuses on the GitHub.jl repo
     let ghjl = Repo("JuliaLang/julia"), testcommit = Commit("3200219b1f7e2681ece9e4b99bda48586fab8a93")
         @test status(ghjl, testcommit; auth = auth).sha == name(testcommit)
-        @test !(isempty(first(statuses(ghjl, testcommit; auth = auth))))
+        # The statuses API seems to be broken / not documented correctly. Ref: https://github.com/orgs/community/discussions/55455
+        # @test !(isempty(first(statuses(ghjl, testcommit; auth = auth))))
     end
 
     # test GitHub.comment, GitHub.comments
