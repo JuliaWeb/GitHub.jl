@@ -43,15 +43,12 @@ function base64_to_base64url(string)
 end
 
 function JWTAuth(app_id::Int, key::MbedTLS.PKContext; iat = now(Dates.UTC), exp_mins = 1)
-    algo = base64_to_base64url(base64encode(JSON.json(Dict(
-        "alg" => "RS256",
-        "typ" => "JWT"
-    ))))
-    data = base64_to_base64url(base64encode(JSON.json(Dict(
-        "iat" => trunc(Int64, Dates.datetime2unix(iat)),
-        "exp" => trunc(Int64, Dates.datetime2unix(iat+Dates.Minute(exp_mins))),
-        "iss" => app_id
-    ))))
+    algo = base64_to_base64url(base64encode("{\"typ\":\"JWT\",\"alg\":\"RS256\"}"))
+
+    jwt_iat = trunc(Int64, Dates.datetime2unix(iat))
+    jwt_exp = trunc(Int64, Dates.datetime2unix(iat+Dates.Minute(exp_mins)))
+    data = base64_to_base64url(base64encode("{\"exp\":$(jwt_exp),\"iat\":$(jwt_iat),\"iss\":$(app_id)}"))
+
     signature = base64_to_base64url(base64encode(MbedTLS.sign(key, MbedTLS.MD_SHA256,
         MbedTLS.digest(MbedTLS.MD_SHA256, string(algo,'.',data)), RNG[])))
     JWTAuth(string(algo,'.',data,'.',signature))
