@@ -33,7 +33,7 @@ end
 
 Owner(login::AbstractString, isorg = false) = Owner(Dict("login" => login, "type" => isorg ? "Organization" : "User"))
 
-namefield(owner::Owner) = owner.login
+namefield(owner::Owner) = check_disallowed_name_pattern(owner.login)
 
 typprefix(isorg) = isorg ? "orgs" : "users"
 

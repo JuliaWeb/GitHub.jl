@@ -1381,3 +1381,26 @@ end
     @test License(license_json) == license_result
     @test name(License(license_json["spdx_id"])) == name(license_result)
 end
+
+@testset "Disallowed Names" begin
+    testrepo = Repo(full_name="octocat/../julialang/julia")
+    @test_throws ArgumentError GitHub.name(testrepo)
+    testrepo = Repo(full_name="julialang/julia HTTP/1.1\r\nFoo: bar\r\nbaz:")
+    @test_throws ArgumentError GitHub.name(testrepo)
+    testrepo = Repo(full_name="julialang/julia")
+    @test GitHub.name(testrepo) == "julialang/julia"
+
+    testowner = Owner("julialang/../octocat")
+    @test_throws ArgumentError GitHub.name(testowner)
+    testowner = Owner("julialang HTTP/1.1\r\nFoo: bar\r\nbaz:")
+    @test_throws ArgumentError GitHub.name(testowner)
+    testowner = Owner("julialang")
+    @test GitHub.name(testowner) == "julialang"
+
+    testsecret = Secret("ABC/../octocat")
+    @test_throws ArgumentError GitHub.name(testsecret)
+    testsecret = Secret("ABC HTTP/1.1\r\nFoo: bar\r\nbaz:")
+    @test_throws ArgumentError GitHub.name(testsecret)
+    testsecret = Secret("ABC")
+    @test GitHub.name(testsecret) == "ABC"
+end

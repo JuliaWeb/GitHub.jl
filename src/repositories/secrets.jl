@@ -10,7 +10,7 @@ end
 
 Secret(name::AbstractString) = Secret(Dict("name" => name))
 
-namefield(secret::Secret) = secret.name
+namefield(secret::Secret) = check_disallowed_name_pattern(secret.name)
 
 ##################
 # PublicKey Type #
