@@ -150,7 +150,11 @@ end
 # for APIs which return just a list
 function gh_get_paged_json(api, endpoint = ""; options...)
     results, page_data = github_paged_get(api, endpoint; options...)
-    return mapreduce(r -> JSON.parse(HTTP.payload(r, String)), vcat, results), page_data
+    parsed_results = mapreduce(r -> JSON.parse(HTTP.payload(r, String)), vcat, results)
+    if !(isa(parsed_results, Vector))
+        parsed_results = [parsed_results]
+    end
+    return parsed_results, page_data
 end
 
 # for APIs which return a Dict(key => list, "total_count" => count)
