@@ -18,7 +18,7 @@ URIs = "1.6"  # Must be >= 1.6, see https://github.com/JuliaWeb/GitHub.jl/pull/2
 JSON = "0.19, 0.20, 0.21"
 MbedTLS = "0.6, 0.7, 1"
 SodiumSeal = "0.1"
-julia = "0.7, 1"
+julia = "1.6"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
