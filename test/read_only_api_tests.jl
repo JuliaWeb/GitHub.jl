@@ -86,10 +86,21 @@ end
     @test hasghobj("master", first(branches(ghjl; auth = auth)))
 
     # test GitHub.compare
-    @test compare(ghjl, "master", "master~"; auth = auth).behind_by == 1
-    let comparison = compare(ghjl, "master~", "master"; auth = auth)
-        @test comparison.ahead_by == 1
-        @test length(comparison.commits) == 1
+    # check if the latest commit is a merge commit
+    latest_commit = GitHub.branch(ghjl, "master"; auth=auth).commit
+    is_latest_commit_merge = length(latest_commit.parents) > 1
+    if is_latest_commit_merge
+        @test compare(ghjl, "master", "master~"; auth = auth).behind_by >= 1
+        let comparison = compare(ghjl, "master~", "master"; auth = auth)
+            @test comparison.ahead_by >= 1
+            @test length(comparison.commits) >= 1
+        end
+    else
+        @test compare(ghjl, "master", "master~"; auth = auth).behind_by == 1
+        let comparison = compare(ghjl, "master~", "master"; auth = auth)
+            @test comparison.ahead_by == 1
+            @test length(comparison.commits) == 1
+        end
     end
 
     # test GitHub.file, GitHub.directory, GitHub.readme, GitHub.permalink
