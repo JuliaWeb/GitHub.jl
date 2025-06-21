@@ -86,7 +86,7 @@ end
     @test hasghobj("master", first(branches(ghjl; auth = auth)))
 
     # test GitHub.compare
-    # check if the latest commit it a merge commit
+    # check if the latest commit is a merge commit
     latest_commit = GitHub.branch(ghjl, "master"; auth=auth).commit
     is_latest_commit_merge = length(latest_commit.parents) > 1
     if is_latest_commit_merge
