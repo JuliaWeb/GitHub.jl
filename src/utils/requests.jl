@@ -14,8 +14,8 @@ end
 
 const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 
-const WRITE_METHOD_LOCK = ReentrantLock()
-const LAST_WRITE_METHOD_TIMESTAMP = Ref{Float64}(0.0)
+const MUTATION_LOCK = ReentrantLock()
+const LAST_MUTATION_TIMESTAMP = Ref{Float64}(0.0)
 
 using Base.Meta
 
@@ -187,6 +187,22 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     return (true, delay_seconds)
 end
 
+function wait_for_mutation_delay(; sleep_fn=sleep)
+    while true
+        now = time()
+        # Checking & setting must be atomic to prevent races, so we use a lock
+        @lock MUTATION_LOCK begin
+            last_ts = LAST_MUTATION_TIMESTAMP[]
+            wait_time = last_ts == 0.0 ? 0.0 : (last_ts + 1.0 - now)
+            if wait_time <= 0 # good to go
+                LAST_MUTATION_TIMESTAMP[] = now
+                return nothing
+            end
+        end
+        sleep_fn(wait_time)
+    end
+end
+
 """
     with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep) -> Any
 
@@ -209,30 +225,18 @@ result = with_retries(method="GET", verbose=false) do
 end
 ```
 """
-function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep)
+function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep, respect_mutation_delay=true)
     backoff = Base.ExponentialBackOff(n = max_retries+1)
     method_upper = uppercase(method)
-    requires_write_throttle = method_upper in ("POST", "PATCH", "PUT", "DELETE")
+    requires_mutation_throttle = respect_mutation_delay && method_upper in ("POST", "PATCH", "PUT", "DELETE")
 
     for (attempt, exponential_delay) in enumerate(backoff)
         last_try = attempt > max_retries
+        if requires_mutation_throttle
+            wait_for_mutation_delay(; sleep_fn)
+        end
         local r, ex
         try
-            if requires_write_throttle
-                while true
-                    lock(WRITE_METHOD_LOCK)
-                    last_ts = LAST_WRITE_METHOD_TIMESTAMP[]
-                    now = time()
-                    wait_time = last_ts == 0.0 ? 0.0 : (last_ts + 1.0 - now)
-                    if wait_time <= 0
-                        LAST_WRITE_METHOD_TIMESTAMP[] = now
-                        unlock(WRITE_METHOD_LOCK)
-                        break
-                    end
-                    unlock(WRITE_METHOD_LOCK)
-                    sleep_fn(wait_time)
-                end
-            end
             r = f()
             ex = nothing
             if last_try
@@ -266,14 +270,14 @@ end
 function github_request(api::GitHubAPI, request_method::String, endpoint;
                         auth = AnonymousAuth(), handle_error = true,
                         headers = Dict(), params = Dict(), allowredirects = true,
-                        max_retries = 5, verbose = true)
+                        max_retries = 5, verbose = true, respect_mutation_delay = true)
     authenticate_headers!(headers, auth)
     params = github2json(params)
     api_endpoint = api_uri(api, endpoint)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
 
-    r = with_retries(; method = request_method, max_retries, verbose) do
+    r = with_retries(; method = request_method, max_retries, verbose, respect_mutation_delay) do
         if request_method == "GET"
             return HTTP.request(request_method, URIs.URI(api_endpoint, query = params), _headers;
                                redirect = allowredirects, status_exception = false,
@@ -327,20 +331,20 @@ end
 extract_page_url(link) = match(r"<.*?>", link).match[2:end-1]
 
 function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", handle_error = true,
-                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), max_retries = 5, verbose = true, options...)
+                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), max_retries = 5, verbose = true, respect_mutation_delay = true, options...)
     authenticate_headers!(headers, auth)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
 
     # Helper function to make a get request with retries
     function make_request_with_retries(url, headers)
-        return with_retries(; method = "GET", max_retries, verbose) do
+        return with_retries(; method = "GET", max_retries, verbose, respect_mutation_delay) do
             HTTP.request("GET", url, headers; status_exception = false, retry = false)
         end
     end
 
     if isempty(start_page)
-        r = gh_get(api, endpoint; handle_error, headers = _headers, params, auth, max_retries, verbose, options...)
+        r = gh_get(api, endpoint; handle_error, headers = _headers, params, auth, max_retries, verbose, respect_mutation_delay, options...)
     else
         @assert isempty(params) "`start_page` kwarg is incompatible with `params` kwarg"
         r = make_request_with_retries(start_page, _headers)
