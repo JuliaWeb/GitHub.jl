@@ -185,7 +185,6 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
         return (true, exponential_delay)
     end
 
-    # For client errors (400, 401, 404, 422), don't retry
     return (false, 0.0)
 end
 
@@ -212,10 +211,8 @@ end
 ```
 """
 function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep)
-    # Create ExponentialBackOff iterator
     backoff = Base.ExponentialBackOff(n = max_retries+1)
 
-    # Try the function, with retries on failure
     for (attempt, exponential_delay) in enumerate(backoff)
         last_try = attempt > max_retries
         local r, ex
@@ -237,7 +234,6 @@ function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbo
         should_retry, sleep_seconds = github_retry_decision(method, r, ex, exponential_delay; verbose=verbose)
 
         if !should_retry
-            # Don't retry - return response or throw exception
             if ex !== nothing
                 throw(ex)
             else
@@ -245,7 +241,6 @@ function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbo
             end
         end
 
-        # Sleep before the next attempt (at the end of the loop)
         if sleep_seconds > 0
             sleep_fn(sleep_seconds)
         end
@@ -262,7 +257,6 @@ function github_request(api::GitHubAPI, request_method::String, endpoint;
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
 
-    # Use with_retries helper to handle the retry logic
     r = with_retries(method = request_method, max_retries = max_retries) do
         if request_method == "GET"
             return HTTP.request(request_method, URIs.URI(api_endpoint, query = params), _headers;
@@ -322,9 +316,8 @@ function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", hand
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
 
-    # Helper function to make a single request with retries
+    # Helper function to make a get request with retries
     function make_request_with_retries(url, headers)
-        # Use with_retries helper to handle the retry logic
         return with_retries(method = "GET", max_retries = max_retries) do
             HTTP.request("GET", url, headers; status_exception = false, retry = false)
         end
