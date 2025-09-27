@@ -94,6 +94,8 @@ A tuple `(should_retry, sleep_seconds)` where:
      - If `retry-after` present: use that delay
      - If `x-ratelimit-remaining: 0`: wait until reset time
      - Otherwise: wait at least 1 minute, then use exponential backoff
+
+This follows the [documentation from GitHub](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#exceeding-the-rate-limit) as of 2025.
 """
 function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothing}, ex::Union{Exception, Nothing}, exponential_delay::Float64; verbose::Bool=true)
     # If we have a response, process it first (takes precedence over exceptions)
