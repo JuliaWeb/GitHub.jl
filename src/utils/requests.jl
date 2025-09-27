@@ -242,14 +242,14 @@ end
 function github_request(api::GitHubAPI, request_method::String, endpoint;
                         auth = AnonymousAuth(), handle_error = true,
                         headers = Dict(), params = Dict(), allowredirects = true,
-                        max_retries = 5)
+                        max_retries = 5, verbose = true)
     authenticate_headers!(headers, auth)
     params = github2json(params)
     api_endpoint = api_uri(api, endpoint)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
 
-    r = with_retries(method = request_method, max_retries = max_retries) do
+    r = with_retries(; method = request_method, max_retries, verbose) do
         if request_method == "GET"
             return HTTP.request(request_method, URIs.URI(api_endpoint, query = params), _headers;
                                redirect = allowredirects, status_exception = false,
@@ -303,20 +303,20 @@ end
 extract_page_url(link) = match(r"<.*?>", link).match[2:end-1]
 
 function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", handle_error = true,
-                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), max_retries = 5, options...)
+                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), max_retries = 5, verbose = true, options...)
     authenticate_headers!(headers, auth)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
 
     # Helper function to make a get request with retries
     function make_request_with_retries(url, headers)
-        return with_retries(method = "GET", max_retries = max_retries) do
+        return with_retries(; method = "GET", max_retries, verbose) do
             HTTP.request("GET", url, headers; status_exception = false, retry = false)
         end
     end
 
     if isempty(start_page)
-        r = gh_get(api, endpoint; handle_error = handle_error, headers = _headers, params = params, auth=auth, max_retries=max_retries, options...)
+        r = gh_get(api, endpoint; handle_error, headers = _headers, params, auth, max_retries, verbose, options...)
     else
         @assert isempty(params) "`start_page` kwarg is incompatible with `params` kwarg"
         r = make_request_with_retries(start_page, _headers)
