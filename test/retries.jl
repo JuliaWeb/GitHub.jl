@@ -146,7 +146,7 @@ using GitHub
     @testset "Invalid header values" begin
 
         # Test with invalid retry-after header (should fall back to secondary rate limit minimum)
-        resp1 = HTTP.Response(429, ["retry-after" => "invalid"])
+        resp1 = HTTP.Response(429, ["retry-after" => "invalid"], Vector{UInt8}("secondary rate limit"))
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp1, nothing, 2.0; verbose=false)
         @test should_retry == true
         @test sleep_seconds == 60.0  # Falls back to secondary rate limit minimum (1 minute)

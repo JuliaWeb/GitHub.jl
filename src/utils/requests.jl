@@ -120,72 +120,64 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     end
 
     # At this point we have a response with status >= 400
+    # First let us see if we want to retry it.
 
-    # Handle GitHub rate limiting (403, 429) with special logic
-    if status in (403, 429)
-        # Get all rate limit headers
-        limit = HTTP.header(resp, "x-ratelimit-limit", "")
-        remaining = HTTP.header(resp, "x-ratelimit-remaining", "")
-        used = HTTP.header(resp, "x-ratelimit-used", "")
-        reset_time = HTTP.header(resp, "x-ratelimit-reset", "")
-        resource = HTTP.header(resp, "x-ratelimit-resource", "")
-        retry_after = HTTP.header(resp, "retry-after", "")
+    # Note: `String` takes ownership / removes the body, so we make a copy
+    body = String(copy(resp.body))
+    is_primary_rate_limit = occursin("primary rate limit", lowercase(body)) && status in (403, 429)
+    is_secondary_rate_limit = occursin("secondary rate limit", lowercase(body)) && status in (403, 429)
 
-        # Check response body for secondary rate limit indicators
-        # Note: `String` takes ownership / removes the body, so we make a copy
-        body = String(copy(resp.body))
-        is_secondary_rate_limit = occursin("secondary rate limit", lowercase(body)) || !isempty(retry_after)
-        if is_secondary_rate_limit
-            # Secondary rate limit handling
-            # If retry-after header is present, respect it
-            delay_seconds = safe_tryparse(Float64, retry_after)
-            if delay_seconds !== nothing
-                delay_seconds = parse(Float64, retry_after)
-                verbose && @info "GitHub API secondary rate limit hit, retrying in $(round(delay_seconds, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after
-                return (true, delay_seconds)
-            end
+    do_retry = HTTP.RetryRequest.isidempotent(method) && (is_primary_rate_limit || is_secondary_rate_limit || HTTP.RetryRequest.retryable(status))
 
-            # If x-ratelimit-remaining is 0, wait until reset time
-            reset_timestamp = safe_tryparse(Float64, reset_time)
-            if remaining == "0" && reset_timestamp !== nothing
-                current_time = time()
-                if reset_timestamp > current_time
-                    delay_seconds = reset_timestamp - current_time + 1.0
-                    verbose && @info "GitHub API secondary rate limit hit, retrying in $(round(delay_seconds, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after
-                    return (true, delay_seconds)
-                end
-            end
+    if !do_retry
+        return (false, 0.0)
+    end
 
-            # Otherwise, wait at least 1 minute, then use exponential backoff
-            delay_seconds = max(60.0, exponential_delay)
-            verbose && @info "GitHub API secondary rate limit hit, retrying in $(round(delay_seconds, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after
+    # Now we know we want to retry. We need to decide how long to wait.
+
+    # Get all rate limit headers
+    limit = HTTP.header(resp, "x-ratelimit-limit", "")
+    remaining = HTTP.header(resp, "x-ratelimit-remaining", "")
+    used = HTTP.header(resp, "x-ratelimit-used", "")
+    reset_time = HTTP.header(resp, "x-ratelimit-reset", "")
+    resource = HTTP.header(resp, "x-ratelimit-resource", "")
+    retry_after = HTTP.header(resp, "retry-after", "")
+
+    msg = if is_primary_rate_limit
+        "GitHub API primary rate limit reached"
+    elseif is_secondary_rate_limit
+        "GitHub API secondary rate limit reached"
+    else
+        "GitHub API returned $status"
+    end
+
+    # If retry-after header is present, respect it
+    delay_seconds = safe_tryparse(Float64, retry_after)
+    if delay_seconds !== nothing
+        delay_seconds = parse(Float64, retry_after)
+        verbose && @info "$msg, retrying in $(round(delay_seconds, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after
+        return (true, delay_seconds)
+    end
+
+    # If x-ratelimit-remaining is 0, wait until reset time
+    reset_timestamp = safe_tryparse(Float64, reset_time)
+    if remaining == "0" && reset_timestamp !== nothing
+        current_time = time()
+        if reset_timestamp > current_time
+            delay_seconds = reset_timestamp - current_time + 1.0
+            verbose && @info "$msg, retrying in $(round(delay_seconds, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after
             return (true, delay_seconds)
-        else
-            # Primary rate limit handling
-            # If x-ratelimit-remaining is 0, wait until reset time
-            reset_timestamp = safe_tryparse(Float64, reset_time)
-            if remaining == "0" && reset_timestamp !== nothing
-                current_time = time()
-                if reset_timestamp > current_time
-                    delay_seconds = reset_timestamp - current_time + 1.0
-                    verbose && @info "GitHub API primary rate limit hit, retrying in $(round(delay_seconds, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource
-                    return (true, delay_seconds)
-                end
-            end
-
-            # For other primary rate limit cases, use exponential backoff
-            verbose && @info "GitHub API primary rate limit hit, retrying in $(round(exponential_delay, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource
-            return (true, exponential_delay)
         end
     end
 
-    # For other HTTP errors, check if they're retryable according to HTTP.jl
-    if HTTP.RetryRequest.retryable(status) && HTTP.RetryRequest.isidempotent(method)
-        verbose && @info "GitHub API HTTP error, retrying in $(round(exponential_delay, digits=1))s" method=method status=status
-        return (true, exponential_delay)
-    end
+    # If secondary rate limit hit without headers to guide us,
+    # make sure we wait at least a minute
+    delay_seconds = is_secondary_rate_limit ? max(60.0, exponential_delay) :  exponential_delay
 
-    return (false, 0.0)
+    # Fall back to exponential backoff
+    verbose && @info "$msg, retrying in $(round(delay_seconds, digits=1))s" method=method status=status
+
+    return (true, delay_seconds)
 end
 
 """
