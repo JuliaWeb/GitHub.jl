@@ -127,7 +127,11 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     is_primary_rate_limit = occursin("primary rate limit", lowercase(body)) && status in (403, 429)
     is_secondary_rate_limit = occursin("secondary rate limit", lowercase(body)) && status in (403, 429)
 
-    do_retry = HTTP.RetryRequest.isidempotent(method) && (is_primary_rate_limit || is_secondary_rate_limit || HTTP.RetryRequest.retryable(status))
+    # `other_retry` is `HTTP.RetryRequest.retryable(status)` minus 403,
+    # since if it's not a rate-limit, we don't want to retry 403s.
+    other_retry = status in (408, 409, 429, 500, 502, 503, 504, 599)
+
+    do_retry = HTTP.RetryRequest.isidempotent(method) && (is_primary_rate_limit || is_secondary_rate_limit || other_retry)
 
     if !do_retry
         return (false, 0.0)
