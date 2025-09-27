@@ -14,6 +14,9 @@ end
 
 const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 
+const WRITE_METHOD_LOCK = ReentrantLock()
+const LAST_WRITE_METHOD_TIMESTAMP = Ref{Float64}(0.0)
+
 using Base.Meta
 
 """
@@ -212,11 +215,28 @@ end
 """
 function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep)
     backoff = Base.ExponentialBackOff(n = max_retries+1)
+    method_upper = uppercase(method)
+    requires_write_throttle = method_upper in ("POST", "PATCH", "PUT", "DELETE")
 
     for (attempt, exponential_delay) in enumerate(backoff)
         last_try = attempt > max_retries
         local r, ex
         try
+            if requires_write_throttle
+                while true
+                    lock(WRITE_METHOD_LOCK)
+                    last_ts = LAST_WRITE_METHOD_TIMESTAMP[]
+                    now = time()
+                    wait_time = last_ts == 0.0 ? 0.0 : (last_ts + 1.0 - now)
+                    if wait_time <= 0
+                        LAST_WRITE_METHOD_TIMESTAMP[] = now
+                        unlock(WRITE_METHOD_LOCK)
+                        break
+                    end
+                    unlock(WRITE_METHOD_LOCK)
+                    sleep_fn(wait_time)
+                end
+            end
             r = f()
             ex = nothing
             if last_try
