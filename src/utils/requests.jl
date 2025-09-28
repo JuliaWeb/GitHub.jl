@@ -187,9 +187,10 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     return (true, delay_seconds)
 end
 
-function wait_for_mutation_delay(; sleep_fn=sleep)
+function wait_for_mutation_delay(; sleep_fn=sleep, time_fn=time)
     while true
-        now = time()
+        now = time_fn()
+        local wait_time
         # Checking & setting must be atomic to prevent races, so we use a lock
         @lock MUTATION_LOCK begin
             last_ts = LAST_MUTATION_TIMESTAMP[]

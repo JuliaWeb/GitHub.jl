@@ -418,3 +418,72 @@ end
     end
 
 end
+
+@testset "wait_for_mutation_delay" begin
+    # Mock time and sleep to avoid real delays
+    times = [1.0, 3.0, 4.0, 5.0]
+    time_calls = Ref(0)
+    sleep_calls = Float64[]
+
+    mock_time() = (time_calls[] += 1; times[time_calls[]])
+    mock_sleep(t) = push!(sleep_calls, t)
+
+    # Reset state for clean testing
+    @lock GitHub.MUTATION_LOCK begin
+        GitHub.LAST_MUTATION_TIMESTAMP[] = 0.0
+    end
+
+    # First call should not wait (no previous mutation)
+    GitHub.wait_for_mutation_delay(; sleep_fn=mock_sleep, time_fn=mock_time)
+    @test length(sleep_calls) == 0
+    @test time_calls[] == 1
+
+    # Second call should wait for remaining time (1.5 + 1.0 - 3.0 = -0.5, so no wait)
+    GitHub.wait_for_mutation_delay(; sleep_fn=mock_sleep, time_fn=mock_time)
+    @test length(sleep_calls) == 0  # No sleep needed since enough time passed
+
+    # Reset for third test - force a wait scenario
+    @lock GitHub.MUTATION_LOCK begin
+        GitHub.LAST_MUTATION_TIMESTAMP[] = 3.5  # Recent timestamp
+    end
+    time_calls[] = 2  # Start at time 3.0
+    empty!(sleep_calls)
+
+    GitHub.wait_for_mutation_delay(; sleep_fn=mock_sleep, time_fn=mock_time)
+    @test length(sleep_calls) == 1
+    @test sleep_calls[1] ≈ 0.5  # Should wait 3.5 + 1.0 - 3.0 = 0.5 seconds
+end
+
+@testset "with_retries mutation delay integration" begin
+    sleep_calls = Float64[]
+    mock_sleep(t) = push!(sleep_calls, t)
+
+    # Reset mutation state
+    @lock GitHub.MUTATION_LOCK begin
+        GitHub.LAST_MUTATION_TIMESTAMP[] = 0.0
+    end
+
+    # Test: GET method should not trigger mutation delay
+    empty!(sleep_calls)
+    result = GitHub.with_retries(method="GET", max_retries=0, verbose=false, sleep_fn=mock_sleep) do
+        HTTP.Response(200)
+    end
+    @test result.status == 200
+    @test length(sleep_calls) == 0  # No mutation delay for GET
+
+    # Test: POST method should trigger mutation delay (but first call won't wait)
+    empty!(sleep_calls)
+    result = GitHub.with_retries(method="POST", max_retries=0, verbose=false, sleep_fn=mock_sleep) do
+        HTTP.Response(200)
+    end
+    @test result.status == 200
+    @test length(sleep_calls) == 0  # First POST doesn't wait
+
+    # Test: respect_mutation_delay=false should bypass delay
+    empty!(sleep_calls)
+    result = GitHub.with_retries(method="POST", max_retries=0, verbose=false, sleep_fn=mock_sleep, respect_mutation_delay=false) do
+        HTTP.Response(200)
+    end
+    @test result.status == 200
+    @test length(sleep_calls) == 0  # Delay bypassed
+end
