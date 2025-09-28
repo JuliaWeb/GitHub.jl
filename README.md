@@ -73,6 +73,7 @@ These methods all accept keyword arguments which control how the request is made
 
 - `max_retries::Int=5`: how many retries to attempt in requesting the resources. Retries are only made for idempotent requests ("GET", "HEAD", "OPTIONS", "TRACE", "PUT", "DELETE") and delays respect GitHub [rate limit headers](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#checking-the-status-of-your-rate-limit).
 - `verbose::Bool=true`: whether or not to log retries as Info level logs
+- `max_sleep_seconds::Real=60*20`: if GitHub.jl intends to sleep for longer than `max_sleep_seconds` before retrying, e.g. due to rate limit headers from GitHub, throws an `RetryDelayException` instead. 
 
 #### Users and Organizations
 

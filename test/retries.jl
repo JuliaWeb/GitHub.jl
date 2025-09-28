@@ -2,6 +2,9 @@ using Test
 using HTTP
 using GitHub
 
+primary_rate_limit_body = Vector{UInt8}("primary rate limit")
+secondary_rate_limit_body = Vector{UInt8}("secondary rate limit")
+
 @testset "github_retry_decision" begin
 
     @testset "HTTP.jl recoverable exceptions" begin
@@ -42,9 +45,9 @@ using GitHub
         resp = HTTP.Response(403, [
             "x-ratelimit-remaining" => "0",
             "x-ratelimit-reset" => future_time
-        ])
+        ], primary_rate_limit_body)
 
-        should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 2.0; verbose=false)
+        should_retry, sleep_seconds = GitHub.github_retry_decision("GET", resp, nothing, 2.0; verbose=false)
         @test should_retry == true
         @test sleep_seconds > 100000  # Should be a large delay since reset time is far in future
 
@@ -53,9 +56,9 @@ using GitHub
         resp2 = HTTP.Response(403, [
             "x-ratelimit-remaining" => "0",
             "x-ratelimit-reset" => past_time
-        ])
+        ], primary_rate_limit_body)
 
-        should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp2, nothing, 5.0; verbose=false)
+        should_retry, sleep_seconds = GitHub.github_retry_decision("GET", resp2, nothing, 5.0; verbose=false)
         @test should_retry == true
         @test sleep_seconds == 5.0  # Should use the exponential delay
     end
@@ -63,8 +66,7 @@ using GitHub
     @testset "Secondary rate limit - retry-after header" begin
 
         # Test secondary rate limit with retry-after
-        body = """{"message": "You have been rate limited due to a secondary rate limit", "documentation_url": "..."}"""
-        resp = HTTP.Response(429, ["retry-after" => "30"]; body = Vector{UInt8}(body))
+        resp = HTTP.Response(429, ["retry-after" => "30"]; body = secondary_rate_limit_body)
 
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 2.0; verbose=false)
         @test should_retry == true
@@ -77,11 +79,8 @@ using GitHub
         @test sleep_seconds == 15.0
     end
 
-    @testset "Secondary rate limit - message in body" begin
-
-        # Test secondary rate limit detected from body message
-        body = """{"message": "You have exceeded a secondary rate limit. Please wait one minute before trying again."}"""
-        resp = HTTP.Response(429; body = Vector{UInt8}(body))
+    @testset "Secondary rate limit - no headers" begin
+        resp = HTTP.Response(429; body = secondary_rate_limit_body)
 
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 2.0; verbose=false)
         @test should_retry == true
@@ -97,20 +96,18 @@ using GitHub
 
         # Test secondary rate limit with reset time - use fixed timestamp to avoid race conditions
         future_time = "1900000000"  # Fixed timestamp in the future (year 2030)
-        body = """{"message": "secondary rate limit exceeded"}"""
         resp = HTTP.Response(403, [
             "x-ratelimit-remaining" => "0",
             "x-ratelimit-reset" => future_time
-        ]; body = Vector{UInt8}(body))
+        ], secondary_rate_limit_body)
 
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 5.0; verbose=false)
         @test should_retry == true
         @test sleep_seconds > 100000  # Should be a large delay since reset time is far in future
     end
 
-    @testset "Primary rate limit - exponential backoff" begin
-
-        # Primary rate limit without specific headers
+    @testset "429 - exponential backoff" begin
+        # 429 without specific headers or body
         resp = HTTP.Response(429, [])
 
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 4.0; verbose=false)
@@ -123,7 +120,6 @@ using GitHub
     end
 
     @testset "Other HTTP errors" begin
-
         for status in [408, 409, 500, 502, 503, 504, 599]
             resp = HTTP.Response(status, [])
 
@@ -134,8 +130,7 @@ using GitHub
     end
 
     @testset "Non-retryable client errors" begin
-
-        for status in [400, 401, 404, 422]
+        for status in [400, 401, 403, 404, 422]
             resp = HTTP.Response(status, [])
             should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 1.0; verbose=false)
             @test should_retry == false
@@ -144,25 +139,23 @@ using GitHub
     end
 
     @testset "Invalid header values" begin
-
-        # Test with invalid retry-after header (should fall back to secondary rate limit minimum)
-        resp1 = HTTP.Response(429, ["retry-after" => "invalid"], Vector{UInt8}("secondary rate limit"))
+        # Test with invalid retry-after header (should use secondary rate limit minimum)
+        resp1 = HTTP.Response(429, ["retry-after" => "invalid"], secondary_rate_limit_body)
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp1, nothing, 2.0; verbose=false)
         @test should_retry == true
         @test sleep_seconds == 60.0  # Falls back to secondary rate limit minimum (1 minute)
 
-        # Test with invalid reset time (should fall back to exponential backoff)
+        # Test with invalid reset time (should fall back to secondary min)
         resp2 = HTTP.Response(403, [
             "x-ratelimit-remaining" => "0",
             "x-ratelimit-reset" => "invalid"
-        ])
+        ], secondary_rate_limit_body)
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp2, nothing, 3.0; verbose=false)
         @test should_retry == true
-        @test sleep_seconds == 3.0  # Falls back to exponential backoff
+        @test sleep_seconds == 60.0  # minimum for secondary rate limit
     end
 
     @testset "Rate limit header precedence" begin
-
         # retry-after should take precedence over x-ratelimit-reset
         future_time = "1900000000"  # Fixed timestamp (doesn't matter since retry-after takes precedence)
         resp = HTTP.Response(429, [
@@ -183,7 +176,7 @@ using GitHub
         resp = HTTP.Response(403, [
             "x-ratelimit-remaining" => "5",
             "x-ratelimit-reset" => future_time
-        ])
+        ], primary_rate_limit_body)
 
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 3.0; verbose=false)
         @test should_retry == true
@@ -332,13 +325,13 @@ end
         current_time = time()
         reset_time = string(Int(round(current_time)) + 500000000)  # 500000000 seconds from now
 
-        result = GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep) do
+        result = GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep, max_sleep_seconds=2*500000000) do
             call_count[] += 1
             if call_count[] == 1
                 return HTTP.Response(403, [
                     "x-ratelimit-remaining" => "0",
                     "x-ratelimit-reset" => reset_time
-                ])
+                ], primary_rate_limit_body)
             else
                 return HTTP.Response(200)
             end
@@ -347,7 +340,15 @@ end
         @test result.status == 200
         @test call_count[] ==2
         @test length(sleep_calls) == 1
-        @test sleep_calls[1] >= 5.0  # Should wait at least until reset time
+        @test sleep_calls[1] >= 500000000  # Should wait at least until reset time
+
+
+        @test_throws RetryDelayException GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep) do
+            return HTTP.Response(403, [
+                "x-ratelimit-remaining" => "0",
+                "x-ratelimit-reset" => reset_time
+            ], primary_rate_limit_body)
+        end
     end
 
     @testset "Secondary rate limit with retry-after" begin
