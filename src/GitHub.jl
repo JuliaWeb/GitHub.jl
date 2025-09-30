@@ -2,6 +2,8 @@ module GitHub
 
 using Dates
 using Base64
+using Random
+using SHA: sha256
 
 ##########
 # import #

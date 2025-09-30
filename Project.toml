@@ -8,6 +8,8 @@ Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
 HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 JSON = "682c06a0-de6a-54ab-a142-c8b1cf79cde6"
 MbedTLS = "739be429-bea8-5141-9913-cc70e7f3736d"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
+SHA = "ea8e919c-243c-51af-8825-aaa63cd721ce"
 Sockets = "6462fe0b-24de-5631-8697-dd941f90decc"
 SodiumSeal = "2133526b-2bfb-4018-ac12-889fb3908a75"
 URIs = "5c2747f8-b7ea-4ff2-ba2e-563bfd36b1d4"
@@ -17,6 +19,8 @@ HTTP = "1.10.17" # Must be >= 1.10.17, see https://github.com/JuliaWeb/GitHub.jl
 URIs = "1.6"  # Must be >= 1.6, see https://github.com/JuliaWeb/GitHub.jl/pull/225
 JSON = "0.19, 0.20, 0.21"
 MbedTLS = "0.6, 0.7, 1"
+Random = "1.11.0"
+SHA = "0.7.0, 1"
 SodiumSeal = "0.1"
 julia = "1.6"
 

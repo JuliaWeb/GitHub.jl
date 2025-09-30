@@ -223,7 +223,7 @@ end
             push!(sleep_calls, seconds)
         end
 
-        result = GitHub.with_retries(method="GET", max_retries=2, verbose=false, sleep_fn=test_sleep) do
+        result = GitHub.with_retries(method="GET", max_retries=2, verbose=false, sleep_fn=test_sleep, auth_hash=UInt64(0)) do
             call_count[] += 1
             if call_count[] < 3
                 # Return a rate limit response for first 2 attempts
@@ -249,7 +249,7 @@ end
         end
 
         # Test with recoverable exception (for GET method)
-        result = GitHub.with_retries(method="GET", max_retries=2, verbose=false, sleep_fn=test_sleep) do
+        result = GitHub.with_retries(method="GET", max_retries=2, verbose=false, sleep_fn=test_sleep, auth_hash=UInt64(0)) do
             call_count[] += 1
             if call_count[] < 3
                 throw(Base.IOError("connection refused", 111))
@@ -265,7 +265,7 @@ end
 
     @testset "Non-retryable exceptions" begin
         # Test that ArgumentError is not retried
-        @test_throws ArgumentError GitHub.with_retries(method="GET", verbose=false) do
+        @test_throws ArgumentError GitHub.with_retries(method="GET", verbose=false, auth_hash=UInt64(0)) do
             throw(ArgumentError("invalid argument"))
         end
     end
@@ -279,7 +279,7 @@ end
         end
 
         # Test exhausting retries with rate limit responses
-        result = GitHub.with_retries(method="GET", max_retries=2, verbose=false, sleep_fn=test_sleep) do
+        result = GitHub.with_retries(method="GET", max_retries=2, verbose=false, sleep_fn=test_sleep, auth_hash=UInt64(0)) do
             call_count[] += 1
             return HTTP.Response(429, ["retry-after" => "0.1"])  # Always return rate limit
         end
@@ -293,7 +293,7 @@ end
         call_count = Ref(0)
 
         # Test exhausting retries with exceptions
-        @test_throws Base.IOError GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=x->nothing) do
+        @test_throws Base.IOError GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=x->nothing, auth_hash=UInt64(0)) do
             call_count[] += 1
             throw(Base.IOError("persistent error", 104))
         end
@@ -305,7 +305,7 @@ end
         call_count = Ref(0)
 
         # POST requests should not retry on exceptions (non-idempotent)
-        @test_throws Base.IOError GitHub.with_retries(method="POST", verbose=false) do
+        @test_throws Base.IOError GitHub.with_retries(method="POST", verbose=false, auth_hash=UInt64(0)) do
             call_count[] += 1
             throw(Base.IOError("connection refused", 111))
         end
@@ -325,7 +325,7 @@ end
         current_time = time()
         reset_time = string(Int(round(current_time)) + 500000000)  # 500000000 seconds from now
 
-        result = GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep, max_sleep_seconds=2*500000000) do
+        result = GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep, max_sleep_seconds=2*500000000, auth_hash=UInt64(0)) do
             call_count[] += 1
             if call_count[] == 1
                 return HTTP.Response(403, [
@@ -343,7 +343,7 @@ end
         @test sleep_calls[1] >= 500000000  # Should wait at least until reset time
 
 
-        @test_throws RetryDelayException GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep) do
+        @test_throws RetryDelayException GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep, auth_hash=UInt64(0)) do
             return HTTP.Response(403, [
                 "x-ratelimit-remaining" => "0",
                 "x-ratelimit-reset" => reset_time
@@ -361,7 +361,7 @@ end
 
         body = """{"message": "You have exceeded a secondary rate limit."}"""
 
-        result = GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep) do
+        result = GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=test_sleep, auth_hash=UInt64(0)) do
             call_count[] += 1
             if call_count[] == 1
                 return HTTP.Response(429, ["retry-after" => "3"]; body = Vector{UInt8}(body))
@@ -380,7 +380,7 @@ end
         call_count = Ref(0)
 
         # 404 should not be retried
-        result = GitHub.with_retries(method="GET", verbose=false) do
+        result = GitHub.with_retries(method="GET", verbose=false, auth_hash=UInt64(0)) do
             call_count[] += 1
             return HTTP.Response(404)
         end
@@ -393,7 +393,7 @@ end
         call_count = Ref(0)
 
         # With max_retries=0, should only try once
-        result = GitHub.with_retries(method="GET", max_retries=0, verbose=false) do
+        result = GitHub.with_retries(method="GET", max_retries=0, verbose=false, auth_hash=UInt64(0)) do
             call_count[] += 1
             return HTTP.Response(429)  # Rate limit response
         end
@@ -409,7 +409,7 @@ end
             sleep_called[] = true
         end
 
-        result = GitHub.with_retries(method="GET", verbose=false, sleep_fn=test_sleep) do
+        result = GitHub.with_retries(method="GET", verbose=false, sleep_fn=test_sleep, auth_hash=UInt64(0)) do
             return HTTP.Response(200)
         end
 
@@ -428,28 +428,31 @@ end
     mock_time() = (time_calls[] += 1; times[time_calls[]])
     mock_sleep(t) = push!(sleep_calls, t)
 
+    # Use a test auth hash
+    test_auth_hash = UInt64(12345)
+
     # Reset state for clean testing
     @lock GitHub.MUTATION_LOCK begin
-        GitHub.LAST_MUTATION_TIMESTAMP[] = 0.0
+        empty!(GitHub.LAST_MUTATION_TIMESTAMPS)
     end
 
     # First call should not wait (no previous mutation)
-    GitHub.wait_for_mutation_delay(; sleep_fn=mock_sleep, time_fn=mock_time)
+    GitHub.wait_for_mutation_delay(test_auth_hash; sleep_fn=mock_sleep, time_fn=mock_time)
     @test length(sleep_calls) == 0
     @test time_calls[] == 1
 
     # Second call should wait for remaining time (1.5 + 1.0 - 3.0 = -0.5, so no wait)
-    GitHub.wait_for_mutation_delay(; sleep_fn=mock_sleep, time_fn=mock_time)
+    GitHub.wait_for_mutation_delay(test_auth_hash; sleep_fn=mock_sleep, time_fn=mock_time)
     @test length(sleep_calls) == 0  # No sleep needed since enough time passed
 
     # Reset for third test - force a wait scenario
     @lock GitHub.MUTATION_LOCK begin
-        GitHub.LAST_MUTATION_TIMESTAMP[] = 3.5  # Recent timestamp
+        GitHub.LAST_MUTATION_TIMESTAMPS[test_auth_hash] = 3.5  # Recent timestamp
     end
     time_calls[] = 2  # Start at time 3.0
     empty!(sleep_calls)
 
-    GitHub.wait_for_mutation_delay(; sleep_fn=mock_sleep, time_fn=mock_time)
+    GitHub.wait_for_mutation_delay(test_auth_hash; sleep_fn=mock_sleep, time_fn=mock_time)
     @test length(sleep_calls) == 1
     @test sleep_calls[1] ≈ 0.5  # Should wait 3.5 + 1.0 - 3.0 = 0.5 seconds
 end
@@ -458,14 +461,17 @@ end
     sleep_calls = Float64[]
     mock_sleep(t) = push!(sleep_calls, t)
 
+    # Use test auth hashes
+    test_auth_hash = UInt64(12345)
+
     # Reset mutation state
     @lock GitHub.MUTATION_LOCK begin
-        GitHub.LAST_MUTATION_TIMESTAMP[] = 0.0
+        empty!(GitHub.LAST_MUTATION_TIMESTAMPS)
     end
 
     # Test: GET method should not trigger mutation delay
     empty!(sleep_calls)
-    result = GitHub.with_retries(method="GET", max_retries=0, verbose=false, sleep_fn=mock_sleep) do
+    result = GitHub.with_retries(method="GET", max_retries=0, verbose=false, sleep_fn=mock_sleep, auth_hash=test_auth_hash) do
         HTTP.Response(200)
     end
     @test result.status == 200
@@ -473,7 +479,7 @@ end
 
     # Test: POST method should trigger mutation delay (but first call won't wait)
     empty!(sleep_calls)
-    result = GitHub.with_retries(method="POST", max_retries=0, verbose=false, sleep_fn=mock_sleep) do
+    result = GitHub.with_retries(method="POST", max_retries=0, verbose=false, sleep_fn=mock_sleep, auth_hash=test_auth_hash) do
         HTTP.Response(200)
     end
     @test result.status == 200
@@ -481,9 +487,45 @@ end
 
     # Test: respect_mutation_delay=false should bypass delay
     empty!(sleep_calls)
-    result = GitHub.with_retries(method="POST", max_retries=0, verbose=false, sleep_fn=mock_sleep, respect_mutation_delay=false) do
+    result = GitHub.with_retries(method="POST", max_retries=0, verbose=false, sleep_fn=mock_sleep, respect_mutation_delay=false, auth_hash=test_auth_hash) do
         HTTP.Response(200)
     end
     @test result.status == 200
     @test length(sleep_calls) == 0  # Delay bypassed
+end
+
+@testset "Per-auth mutation delay isolation" begin
+    # Test that different auth hashes have independent mutation delays
+    sleep_calls = Float64[]
+    mock_sleep(t) = push!(sleep_calls, t)
+
+    # Create two different auth hashes
+    auth_hash_1 = UInt64(111)
+    auth_hash_2 = UInt64(222)
+
+    # Reset mutation state
+    @lock GitHub.MUTATION_LOCK begin
+        empty!(GitHub.LAST_MUTATION_TIMESTAMPS)
+    end
+
+    # First POST with auth_hash_1 should not wait
+    result1 = GitHub.with_retries(method="POST", max_retries=0, verbose=false, sleep_fn=mock_sleep, auth_hash=auth_hash_1) do
+        HTTP.Response(200)
+    end
+    @test result1.status == 200
+    @test length(sleep_calls) == 0
+
+    # Immediately following POST with auth_hash_2 should also not wait (different auth)
+    result2 = GitHub.with_retries(method="POST", max_retries=0, verbose=false, sleep_fn=mock_sleep, auth_hash=auth_hash_2) do
+        HTTP.Response(200)
+    end
+    @test result2.status == 200
+    @test length(sleep_calls) == 0  # Still no sleep - different auth
+
+    # Verify both auth hashes have separate timestamps
+    @lock GitHub.MUTATION_LOCK begin
+        @test haskey(GitHub.LAST_MUTATION_TIMESTAMPS, auth_hash_1)
+        @test haskey(GitHub.LAST_MUTATION_TIMESTAMPS, auth_hash_2)
+        @test GitHub.LAST_MUTATION_TIMESTAMPS[auth_hash_1] != GitHub.LAST_MUTATION_TIMESTAMPS[auth_hash_2]
+    end
 end

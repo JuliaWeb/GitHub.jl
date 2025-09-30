@@ -15,7 +15,7 @@ end
 const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 
 const MUTATION_LOCK = ReentrantLock()
-const LAST_MUTATION_TIMESTAMP = Ref{Float64}(0.0)
+const LAST_MUTATION_TIMESTAMPS = Dict{UInt64, Float64}()
 
 using Base.Meta
 
@@ -187,16 +187,16 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     return (true, delay_seconds)
 end
 
-function wait_for_mutation_delay(; sleep_fn=sleep, time_fn=time)
+function wait_for_mutation_delay(auth_hash; sleep_fn=sleep, time_fn=time)
     while true
         now = time_fn()
         local wait_time
         # Checking & setting must be atomic to prevent races, so we use a lock
         @lock MUTATION_LOCK begin
-            last_ts = LAST_MUTATION_TIMESTAMP[]
+            last_ts = get(LAST_MUTATION_TIMESTAMPS, auth_hash, 0.0)
             wait_time = last_ts == 0.0 ? 0.0 : (last_ts + 1.0 - now)
             if wait_time <= 0 # good to go
-                LAST_MUTATION_TIMESTAMP[] = now
+                LAST_MUTATION_TIMESTAMPS[auth_hash] = now
                 return nothing
             end
         end
@@ -232,15 +232,14 @@ result = with_retries(method="GET", verbose=false) do
 end
 ```
 """
-function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep, max_sleep_seconds::Real = 60*20, respect_mutation_delay=true)
+function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep, max_sleep_seconds::Real = 60*20, respect_mutation_delay=true, auth_hash)
     backoff = Base.ExponentialBackOff(n = max_retries+1)
     method_upper = uppercase(method)
     requires_mutation_throttle = respect_mutation_delay && method_upper in ("POST", "PATCH", "PUT", "DELETE")
-
     for (attempt, exponential_delay) in enumerate(backoff)
         last_try = attempt > max_retries
         if requires_mutation_throttle
-            wait_for_mutation_delay(; sleep_fn)
+            wait_for_mutation_delay(auth_hash; sleep_fn)
         end
         local r, ex
         try
@@ -285,8 +284,8 @@ function github_request(api::GitHubAPI, request_method::String, endpoint;
     api_endpoint = api_uri(api, endpoint)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
-
-    r = with_retries(; method = request_method, max_retries, verbose, max_sleep_seconds, respect_mutation_delay) do
+    auth_hash = get_auth_hash(auth)
+    r = with_retries(; method = request_method, max_retries, verbose, max_sleep_seconds, respect_mutation_delay, auth_hash) do
         if request_method == "GET"
             return HTTP.request(request_method, URIs.URI(api_endpoint, query = params), _headers;
                                redirect = allowredirects, status_exception = false,
@@ -345,9 +344,10 @@ function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", hand
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
 
+    auth_hash = get_auth_hash(auth)
     # Helper function to make a get request with retries
     function make_request_with_retries(url, headers)
-        return with_retries(; method = "GET", max_retries, verbose, max_sleep_seconds, respect_mutation_delay) do
+        return with_retries(; method = "GET", max_retries, verbose, max_sleep_seconds, respect_mutation_delay, auth_hash) do
             HTTP.request("GET", url, headers; status_exception = false, retry = false)
         end
     end

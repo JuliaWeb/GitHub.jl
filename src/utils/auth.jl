@@ -97,3 +97,26 @@ function Base.show(io::IO, a::OAuth2)
     token_str = a.token[1:6] * repeat("*", length(a.token) - 6)
     print(io, "GitHub.OAuth2($token_str)")
 end
+
+###########
+# Hashing #
+###########
+
+# These are used to implement the 1s mutation delay on a per-auth basis
+# See also `wait_for_mutation_delay`. We want it to be difficult to
+# invert the hash to recover the token, as the hash is stored in a global dict
+# in this module.
+let
+    salt = randstring(RandomDevice(), 20)
+    global uint64_hash(str::AbstractString) = first(reinterpret(UInt64, sha256(string(salt, str))[1:8]))
+end
+
+get_auth_hash(auth::OAuth2) = uint64_hash(auth.token)
+
+get_auth_hash(auth::UsernamePassAuth) = uint64_hash(string(auth.username, "##", auth.password))
+
+get_auth_hash(::AnonymousAuth) = UInt64(0)
+
+# note this will give different hashes for different JWTs from the same key,
+# meaning in that case the 1s mutation delay will apply per-JWT instead of per-key
+get_auth_hash(auth::JWTAuth) = uint64_hash(auth.JWT)
