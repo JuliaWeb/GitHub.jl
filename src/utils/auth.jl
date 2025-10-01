@@ -107,6 +107,8 @@ end
 # invert the hash to recover the token, as the hash is stored in a global dict
 # in this module.
 let
+    # this would be better as OncePerProcess to get fresh salts per session, but we support old Julia's so we'll
+    # have one per precompilation.
     salt = randstring(RandomDevice(), 20)
     global uint64_hash(str::AbstractString) = first(reinterpret(UInt64, sha256(string(salt, str))[1:8]))
 end

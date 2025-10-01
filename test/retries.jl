@@ -529,3 +529,30 @@ end
         @test GitHub.LAST_MUTATION_TIMESTAMPS[auth_hash_1] != GitHub.LAST_MUTATION_TIMESTAMPS[auth_hash_2]
     end
 end
+
+@testset "Automatic cleanup integration" begin
+    times = [0.0, 1.0, 610.0]
+    time_calls = Ref(0)
+    mock_time() = (time_calls[] += 1; times[time_calls[]])
+
+    hash1, hash2 = UInt64(123), UInt64(456)
+
+    @lock GitHub.MUTATION_LOCK begin
+        empty!(GitHub.LAST_MUTATION_TIMESTAMPS)
+        GitHub.LAST_CLEARED_TIMESTAMP[] = 0.0
+    end
+
+    # Add two entries at t=0.0 and t=1.0
+    GitHub.wait_for_mutation_delay(hash1; sleep_fn=t->nothing, time_fn=mock_time)
+    GitHub.wait_for_mutation_delay(hash2; sleep_fn=t->nothing, time_fn=mock_time)
+
+    # At t=610.0, cutoff=10 triggers cleanup; only hash2 (t=1.0) should be removed
+    GitHub.wait_for_mutation_delay(hash1; sleep_fn=t->nothing, time_fn=mock_time)
+
+    @lock GitHub.MUTATION_LOCK begin
+        @test haskey(GitHub.LAST_MUTATION_TIMESTAMPS, hash1)
+        @test !haskey(GitHub.LAST_MUTATION_TIMESTAMPS, hash2)  # Removed (1.0 < cutoff 10.0)
+        @test GitHub.LAST_MUTATION_TIMESTAMPS[hash1] == 610.0
+        @test GitHub.LAST_CLEARED_TIMESTAMP[] == 610.0
+    end
+end

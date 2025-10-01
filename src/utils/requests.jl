@@ -16,6 +16,8 @@ const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 
 const MUTATION_LOCK = ReentrantLock()
 const LAST_MUTATION_TIMESTAMPS = Dict{UInt64, Float64}()
+const LAST_CLEARED_TIMESTAMP = Ref{Float64}(0.0)
+const CLEAR_OLDER_THAN_SECONDS = 10*60 # 10 minutes
 
 using Base.Meta
 
@@ -193,6 +195,15 @@ function wait_for_mutation_delay(auth_hash; sleep_fn=sleep, time_fn=time)
         local wait_time
         # Checking & setting must be atomic to prevent races, so we use a lock
         @lock MUTATION_LOCK begin
+            # we clear entries of `LAST_MUTATION_TIMESTAMPS` older than `CLEAR_OLDER_THAN_SECONDS`
+            # so the global dict doesn't grow forever. But since this could be slow, and we're holding the lock,
+            # we first check `LAST_CLEARED_TIMESTAMP` to see if we've cleared it recently, and skip it if we have
+            last_cleared = LAST_CLEARED_TIMESTAMP[]
+            cutoff_time = now - CLEAR_OLDER_THAN_SECONDS
+            if cutoff_time >= last_cleared
+                filter!(kv -> kv[2] >= cutoff_time, LAST_MUTATION_TIMESTAMPS)
+                LAST_CLEARED_TIMESTAMP[] = now
+            end
             last_ts = get(LAST_MUTATION_TIMESTAMPS, auth_hash, 0.0)
             wait_time = last_ts == 0.0 ? 0.0 : (last_ts + 1.0 - now)
             if wait_time <= 0 # good to go
