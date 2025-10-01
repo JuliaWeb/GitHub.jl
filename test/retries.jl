@@ -433,28 +433,28 @@ end
 
     # Reset state for clean testing
     @lock GitHub.MUTATION_LOCK begin
-        empty!(GitHub.LAST_MUTATION_TIMESTAMPS)
+        empty!(GitHub.NEXT_AVAILABLE)
     end
 
-    # First call should not wait (no previous mutation)
+    # First call should not wait (no reservation exists)
     GitHub.wait_for_mutation_delay(test_auth_hash; sleep_fn=mock_sleep, time_fn=mock_time)
     @test length(sleep_calls) == 0
     @test time_calls[] == 1
 
-    # Second call should wait for remaining time (1.5 + 1.0 - 3.0 = -0.5, so no wait)
+    # Second call at t=3.0, next_available=2.0, so no wait needed
     GitHub.wait_for_mutation_delay(test_auth_hash; sleep_fn=mock_sleep, time_fn=mock_time)
     @test length(sleep_calls) == 0  # No sleep needed since enough time passed
 
     # Reset for third test - force a wait scenario
     @lock GitHub.MUTATION_LOCK begin
-        GitHub.LAST_MUTATION_TIMESTAMPS[test_auth_hash] = 3.5  # Recent timestamp
+        GitHub.NEXT_AVAILABLE[test_auth_hash] = 4.5  # Next available at 4.5
     end
-    time_calls[] = 2  # Start at time 3.0
+    time_calls[] = 2  # Start at time 4.0
     empty!(sleep_calls)
 
     GitHub.wait_for_mutation_delay(test_auth_hash; sleep_fn=mock_sleep, time_fn=mock_time)
     @test length(sleep_calls) == 1
-    @test sleep_calls[1] ≈ 0.5  # Should wait 3.5 + 1.0 - 3.0 = 0.5 seconds
+    @test sleep_calls[1] ≈ 0.5  # Should wait 4.5 - 4.0 = 0.5 seconds
 end
 
 @testset "with_retries mutation delay integration" begin
@@ -466,7 +466,7 @@ end
 
     # Reset mutation state
     @lock GitHub.MUTATION_LOCK begin
-        empty!(GitHub.LAST_MUTATION_TIMESTAMPS)
+        empty!(GitHub.NEXT_AVAILABLE)
     end
 
     # Test: GET method should not trigger mutation delay
@@ -505,7 +505,7 @@ end
 
     # Reset mutation state
     @lock GitHub.MUTATION_LOCK begin
-        empty!(GitHub.LAST_MUTATION_TIMESTAMPS)
+        empty!(GitHub.NEXT_AVAILABLE)
     end
 
     # First POST with auth_hash_1 should not wait
@@ -522,12 +522,49 @@ end
     @test result2.status == 200
     @test length(sleep_calls) == 0  # Still no sleep - different auth
 
-    # Verify both auth hashes have separate timestamps
+    # Verify both auth hashes have separate reservations
     @lock GitHub.MUTATION_LOCK begin
-        @test haskey(GitHub.LAST_MUTATION_TIMESTAMPS, auth_hash_1)
-        @test haskey(GitHub.LAST_MUTATION_TIMESTAMPS, auth_hash_2)
-        @test GitHub.LAST_MUTATION_TIMESTAMPS[auth_hash_1] != GitHub.LAST_MUTATION_TIMESTAMPS[auth_hash_2]
+        @test haskey(GitHub.NEXT_AVAILABLE, auth_hash_1)
+        @test haskey(GitHub.NEXT_AVAILABLE, auth_hash_2)
+        @test GitHub.NEXT_AVAILABLE[auth_hash_1] != GitHub.NEXT_AVAILABLE[auth_hash_2]
     end
+end
+
+@testset "Reservation system prevents needless wakeups" begin
+    # Demonstrate how 3 threads arriving nearly simultaneously get properly serialized
+    # Thread 1 at t=10.0: reserves until t=11.0
+    # Thread 2 at t=10.1: sees reservation at t=11.0, waits 0.9s, reserves until t=12.0
+    # Thread 3 at t=10.2: sees reservation at t=12.0, waits 1.8s, reserves until t=13.0
+    # Without reservations, threads 2 and 3 would compute similar short waits based on last_mutation=10.0,
+    # so one of them would need to wakeup, compute a new wait, and sleep again.
+
+    test_hash = UInt64(999)
+
+    @lock GitHub.MUTATION_LOCK begin
+        empty!(GitHub.NEXT_AVAILABLE)
+    end
+
+    # Thread 1 at t=10.0
+    times1 = [10.0]
+    time_calls1 = Ref(0)
+    GitHub.wait_for_mutation_delay(test_hash; sleep_fn=t->nothing, time_fn=()->(time_calls1[]+=1; times1[time_calls1[]]))
+    @test GitHub.NEXT_AVAILABLE[test_hash] == 11.0
+
+    # Thread 2 at t=10.1
+    sleep_calls2 = Float64[]
+    times2 = [10.1, 11.0]
+    time_calls2 = Ref(0)
+    GitHub.wait_for_mutation_delay(test_hash; sleep_fn=t->push!(sleep_calls2,t), time_fn=()->(time_calls2[]+=1; times2[time_calls2[]]))
+    @test sleep_calls2[1] ≈ 0.9  # Waits until t=11.0
+    @test GitHub.NEXT_AVAILABLE[test_hash] == 12.0
+
+    # Thread 3 at t=10.2
+    sleep_calls3 = Float64[]
+    times3 = [10.2, 12.0]
+    time_calls3 = Ref(0)
+    GitHub.wait_for_mutation_delay(test_hash; sleep_fn=t->push!(sleep_calls3,t), time_fn=()->(time_calls3[]+=1; times3[time_calls3[]]))
+    @test sleep_calls3[1] ≈ 1.8  # Waits until t=12.0 (NOT just 0.9s from last_mutation)
+    @test GitHub.NEXT_AVAILABLE[test_hash] == 13.0
 end
 
 @testset "Automatic cleanup integration" begin
@@ -538,21 +575,21 @@ end
     hash1, hash2 = UInt64(123), UInt64(456)
 
     @lock GitHub.MUTATION_LOCK begin
-        empty!(GitHub.LAST_MUTATION_TIMESTAMPS)
+        empty!(GitHub.NEXT_AVAILABLE)
         GitHub.LAST_CLEARED_TIMESTAMP[] = 0.0
     end
 
-    # Add two entries at t=0.0 and t=1.0
+    # Add two reservations: hash1->1.0, hash2->2.0
     GitHub.wait_for_mutation_delay(hash1; sleep_fn=t->nothing, time_fn=mock_time)
     GitHub.wait_for_mutation_delay(hash2; sleep_fn=t->nothing, time_fn=mock_time)
 
-    # At t=610.0, cutoff=10 triggers cleanup; only hash2 (t=1.0) should be removed
+    # At t=610.0, cutoff=10 triggers cleanup; hash2 (next_available=2.0) should be removed
     GitHub.wait_for_mutation_delay(hash1; sleep_fn=t->nothing, time_fn=mock_time)
 
     @lock GitHub.MUTATION_LOCK begin
-        @test haskey(GitHub.LAST_MUTATION_TIMESTAMPS, hash1)
-        @test !haskey(GitHub.LAST_MUTATION_TIMESTAMPS, hash2)  # Removed (1.0 < cutoff 10.0)
-        @test GitHub.LAST_MUTATION_TIMESTAMPS[hash1] == 610.0
+        @test haskey(GitHub.NEXT_AVAILABLE, hash1)
+        @test !haskey(GitHub.NEXT_AVAILABLE, hash2)  # Removed (2.0 < cutoff 10.0)
+        @test GitHub.NEXT_AVAILABLE[hash1] == 611.0  # Reserved at t=610.0, so next = 611.0
         @test GitHub.LAST_CLEARED_TIMESTAMP[] == 610.0
     end
 end
