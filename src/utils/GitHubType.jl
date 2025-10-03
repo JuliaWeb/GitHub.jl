@@ -46,7 +46,7 @@ macro ghdef(expr)
     quote
         Base.@__doc__($(esc(expr)))
         ($(esc(T)))($params_ex) = ($(esc(T)))($(call_args...))
-        $(esc(T))(data::Dict) = json2github($T, data)
+        $(esc(T))(data::AbstractDict) = json2github($T, data)
     end
 end
 
@@ -87,7 +87,7 @@ function unwrap_union_types(T::Union)
     return T.a
 end
 
-function extract_nullable(data::Dict, key, ::Type{T}) where {T}
+function extract_nullable(data::AbstractDict, key, ::Type{T}) where {T}
     if haskey(data, key)
         val = data[key]
         if val !== nothing
@@ -122,7 +122,7 @@ end
 # dictionary into the type `G` with the expectation that the fieldnames of
 # `G` are keys of `data`, and the corresponding values can be converted to the
 # given field types.
-@generated function json2github(::Type{G}, data::Dict) where {G<:GitHubType}
+@generated function json2github(::Type{G}, data::AbstractDict) where {G<:GitHubType}
     types = unwrap_union_types.(collect(G.types))
     fields = fieldnames(G)
     args = Vector{Expr}(undef, length(fields))
@@ -156,7 +156,7 @@ function github2json(g::GitHubType)
     return results
 end
 
-function github2json(data::Dict{K}) where {K}
+function github2json(data::AbstractDict{K}) where {K}
     results = Dict{K,Any}()
     for (key, val) in data
         results[key] = github2json(val)

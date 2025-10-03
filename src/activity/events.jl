@@ -4,12 +4,12 @@
 
 mutable struct WebhookEvent
     kind::String
-    payload::Dict
+    payload::AbstractDict
     repository::Repo
     sender::Owner
 end
 
-function event_from_payload!(kind, data::Dict)
+function event_from_payload!(kind, data::AbstractDict)
     if haskey(data, "repository")
         repository = Repo(data["repository"])
     elseif kind == "membership" ||
