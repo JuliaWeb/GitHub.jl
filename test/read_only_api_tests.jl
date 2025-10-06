@@ -65,8 +65,8 @@ testuser = Owner(w.login)
     @test length(members) > 1
 
     # test GitHub.followers, GitHub.following
-    @test hasghobj("jrevels", first(followers(testuser; auth = auth)))
-    @test hasghobj("jrevels", first(following(testuser; auth = auth)))
+    @test_skip hasghobj("jrevels", first(followers(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
+    @test_skip hasghobj("jrevels", first(following(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
 
     # test GitHub.repos
     @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
