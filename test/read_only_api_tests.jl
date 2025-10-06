@@ -201,7 +201,9 @@ end
 
 @testset "Gists" begin
     # skip=is_gha_token
-    if !is_gha_token
+    if is_gha_token
+        @test_skip false
+    else
         kc_gists, page_data = gists("KristofferC"; page_limit=1, params=Dict("per_page" => 5), auth = auth)
         @test typeof(kc_gists) == Vector{Gist}
         @test length(kc_gists) != 0
