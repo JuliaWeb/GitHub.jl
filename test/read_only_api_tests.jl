@@ -48,11 +48,23 @@ if auth === nothing
     auth = GitHub.AnonymousAuth()
 end
 
-w = GitHub.whoami(; auth=auth)
-@info "" w w.login
-testuser = Owner(w.login)
+# is_gha_token is true if we're using the GITHUB_TOKEN made available automatically in GitHub Actions
+# false otherwise
+#
+# This try-catch is a crude heuristic.
+# Ideally there would be an actual API we could hit to determine this.
+(testsuite_username, is_gha_token) = try
+    w = GitHub.whoami(; auth=auth)
+    @info "Information for the test user being used in the test suite" w w.login
+    (w.login, false)
+catch ex
+    @info "Looks like this is the GITHUB_TOKEN from GitHub Actions"
+    ("github-actions[bot]", true)
+end
 
 @test rate_limit(; auth = auth)["rate"]["limit"] > 0
+
+testuser = Owner(testsuite_username)
 
 @testset "Owners" begin
     # test GitHub.owner
@@ -78,8 +90,17 @@ testuser = Owner(w.login)
     #                  "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
     # test membership queries
-    @test GitHub.check_membership(julweb, testuser; auth = auth)
-    @test !GitHub.check_membership("JuliaLang", testuser; auth = auth, public_only=true)
+    if is_gha_token
+        # The `@test ex skip=is_gha_token` syntax requires Julia 1.7+, so we can't use it here.
+        @info "Skipping check_membership() test because is_gha_token is true" is_gha_token
+        @test_skip GitHub.check_membership(julweb, testuser; auth = auth)
+    else
+        @test GitHub.check_membership(julweb, testuser; auth = auth)
+    end
+
+    # Some membership tests that only test public membership (and thus the tests don't require authentication)
+    @test GitHub.check_membership("JuliaLang", Owner("StefanKarpinski"); auth = auth, public_only=true)
+    @test !GitHub.check_membership("JuliaLang", Owner("julia-github-test-bot2"); auth = auth, public_only=true)
 
     @test GitHub.isorg(julweb)
     @test !GitHub.isorg(testuser)
@@ -188,14 +209,20 @@ end
 end
 
 @testset "Gists" begin
-    kc_gists, page_data = gists("KristofferC"; page_limit=1, params=Dict("per_page" => 5), auth = auth)
-    @test typeof(kc_gists) == Vector{Gist}
-    @test length(kc_gists) != 0
-    @test kc_gists[1].owner.login == "KristofferC"
-
-    gist_obj = gist("0cb70f50a28d79905aae907e12cbe58e"; auth = auth)
-    @test length(gist_obj.files) == 2
-    @test gist_obj.files["file1.jl"]["content"] == "Hello World!"
+    # skip=is_gha_token
+    if is_gha_token
+        @info "Skipping gists tests because is_gha_token is true" is_gha_token
+        @test_skip false
+    else
+        kc_gists, page_data = gists("KristofferC"; page_limit=1, params=Dict("per_page" => 5), auth = auth)
+        @test typeof(kc_gists) == Vector{Gist}
+        @test length(kc_gists) != 0
+        @test kc_gists[1].owner.login == "KristofferC"
+    
+        gist_obj = gist("0cb70f50a28d79905aae907e12cbe58e"; auth = auth)
+        @test length(gist_obj.files) == 2
+        @test gist_obj.files["file1.jl"]["content"] == "Hello World!"
+    end
 end
 
 @testset "Reviews" begin
