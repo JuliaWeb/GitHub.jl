@@ -1,8 +1,8 @@
 # The below tests are network-dependent, and actually make calls to GitHub's
 # API. They're all read-only, meaning none of them require authentication.
 
-testuser = Owner("julia-github-test-bot")
-testuser2 = Owner("julia-github-test-bot2")
+# testuser = Owner("julia-github-test-bot")
+# testuser2 = Owner("julia-github-test-bot2")
 julweb = Owner("JuliaWeb", true)
 ghjl = Repo("JuliaWeb/GitHub.jl")
 testcommit = Commit("627128970bbf09d27c526cb66a17891c389ab914")
@@ -49,7 +49,8 @@ if auth === nothing
 end
 
 w = GitHub.whoami(; auth=auth)
-@info "" w
+@info "" w w.login
+testuser = Owner(w.login)
 
 @test rate_limit(; auth = auth)["rate"]["limit"] > 0
 
