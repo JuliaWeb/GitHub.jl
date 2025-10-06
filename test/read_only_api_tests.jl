@@ -90,7 +90,13 @@ testuser = Owner(testsuite_username)
     #                  "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
     # test membership queries
-    @test GitHub.check_membership(julweb, testuser; auth = auth) skip=is_gha_token
+    if is_gha_token
+        # The `@test ex skip=is_gha_token` syntax requires Julia 1.7+, so we can't use it here.
+        @test_skip GitHub.check_membership(julweb, testuser; auth = auth)
+    else
+        @test GitHub.check_membership(julweb, testuser; auth = auth)
+    end
+    
     @test !GitHub.check_membership("JuliaLang", testuser; auth = auth, public_only=true)
 
     @test GitHub.isorg(julweb)
