@@ -48,11 +48,23 @@ if auth === nothing
     auth = GitHub.AnonymousAuth()
 end
 
-w = GitHub.whoami(; auth=auth)
-@info "" w w.login
-testuser = Owner(w.login)
+# is_gha_token is true if we're using the GITHUB_TOKEN made available automatically in GitHub Actions
+# false otherwise
+#
+# This try-catch is a crude heuristic.
+# Ideally there would be an actual API we could hit to determine this.
+(testsuite_username, is_gha_token) = try
+    w = GitHub.whoami(; auth=auth)
+    @info "Information for the test user being used in the test suite" w w.login
+    (w.login, false)
+catch ex
+    @info "Looks like this is the GITHUB_TOKEN from GitHub Actions"
+    ("github-actions[bot]", true)
+end
 
 @test rate_limit(; auth = auth)["rate"]["limit"] > 0
+
+testuser = Owner(testsuite_username)
 
 @testset "Owners" begin
     # test GitHub.owner
