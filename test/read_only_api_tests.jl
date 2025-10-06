@@ -1,8 +1,8 @@
 # The below tests are network-dependent, and actually make calls to GitHub's
 # API. They're all read-only, meaning none of them require authentication.
 
-testuser = Owner("julia-github-test-bot")
-testuser2 = Owner("julia-github-test-bot2")
+# testuser = Owner("julia-github-test-bot")
+# testuser2 = Owner("julia-github-test-bot2")
 julweb = Owner("JuliaWeb", true)
 ghjl = Repo("JuliaWeb/GitHub.jl")
 testcommit = Commit("627128970bbf09d27c526cb66a17891c389ab914")
@@ -22,17 +22,37 @@ testuser2_sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkj86sSo36bkgv+gKp"*
 
 hasghobj(obj, items) = any(x -> name(x) == name(obj), items)
 
-# This token has public, read-only access, and is required so that our
-# tests don't get rate-limited. The only way a malicious party could do harm
-# with this token is if they used it to abuse the rate limit associated with
-# the token (not too big of a deal). The token is hard-coded in an obsfucated
-# manner in an attempt to thwart token-stealing crawlers.
-auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
-                                      "c09", "363", "5f1", "bd3",
-                                      "fc6", "77b", '5', "9cf",
-                                      "868", "033"], 3)...))
+auth = nothing
 
-@test rate_limit(; auth = auth)["rate"]["limit"] == 5000
+names = [
+    "MY_CUSTOM_GITHUB_TOKEN",
+    "GITHUB_TOKEN",
+]
+for name in names
+    global auth
+    if auth === nothing
+        if haskey(ENV, name)
+            str = strip(ENV[name])
+            if !isempty(str)
+                @info "Trying token from $name"
+                auth = authenticate(str)
+            else
+                @warn "The $name environment variable is defined, but it is empty or consists only of whitespace"
+            end
+        end
+    end
+end
+
+if auth === nothing
+    @warn "Using anonymous GitHub access. If you get rate-limited, please set the MY_CUSTOM_GITHUB_TOKEN or GITHUB_TOKEN env var to an appropriate value."
+    auth = GitHub.AnonymousAuth()
+end
+
+w = GitHub.whoami(; auth=auth)
+@info "" w w.login
+testuser = Owner(w.login)
+
+@test rate_limit(; auth = auth)["rate"]["limit"] > 0
 
 @testset "Owners" begin
     # test GitHub.owner
@@ -45,8 +65,8 @@ auth = authenticate(string(circshift(["bcc", "3fc", "03a", "33e",
     @test length(members) > 1
 
     # test GitHub.followers, GitHub.following
-    @test hasghobj("jrevels", first(followers(testuser; auth = auth)))
-    @test hasghobj("jrevels", first(following(testuser; auth = auth)))
+    @test_skip hasghobj("jrevels", first(followers(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
+    @test_skip hasghobj("jrevels", first(following(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
 
     # test GitHub.repos
     @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
@@ -188,11 +208,11 @@ end
 @testset "Activity" begin
     # test GitHub.stargazers, GitHub.starred
     @test length(first(stargazers(ghjl; auth = auth))) > 10 # every package should fail tests if it's not popular enough :p
-    @test hasghobj(ghjl, first(starred(testuser; auth = auth)))
+    @test_skip hasghobj(ghjl, first(starred(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
 
     # test GitHub.watched, GitHub.watched
-    @test hasghobj(testuser, first(watchers(ghjl; auth = auth)))
-    @test hasghobj(ghjl, first(watched(testuser; auth = auth)))
+    @test_skip hasghobj(testuser, first(watchers(ghjl; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
+    @test_skip hasghobj(ghjl, first(watched(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
 end
 
 testbot_key =
