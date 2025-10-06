@@ -176,9 +176,9 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
 
     # If secondary rate limit hit without headers to guide us,
     # make sure we wait at least a minute
+    # Fall back to exponential backoff
     delay_seconds = is_secondary_rate_limit ? max(60.0, exponential_delay) :  exponential_delay
 
-    # Fall back to exponential backoff
     verbose && @info "$msg, retrying in $(round(delay_seconds, digits=1))s" method=method status=status
 
     return (true, delay_seconds)
