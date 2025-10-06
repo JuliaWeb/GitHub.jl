@@ -48,6 +48,9 @@ if auth === nothing
     auth = GitHub.AnonymousAuth()
 end
 
+w = GitHub.whoami(; auth=auth)
+@info "" w
+
 @test rate_limit(; auth = auth)["rate"]["limit"] > 0
 
 @testset "Owners" begin
