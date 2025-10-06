@@ -66,6 +66,9 @@ function safe_tryparse(args...)
     end
 end
 
+# convert a numeric number of seconds to a canonicalized object for printing
+to_canon(val_seconds::Number) = Dates.canonicalize(Nanosecond(round(Int, val_seconds*1e9)))
+
 """
     github_retry_decision(method::String, resp::Union{HTTP.Response, Nothing}, ex::Union{Exception, Nothing}, exponential_delay::Float64; verbose::Bool=true) -> (should_retry::Bool, sleep_seconds::Float64)
 
@@ -111,7 +114,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
         if ex !== nothing
             # If there's an exception, check if it's recoverable and if the method is idempotent
             if HTTP.RetryRequest.isrecoverable(ex) && HTTP.RetryRequest.isidempotent(method)
-                verbose && @info "GitHub API exception, retrying in $(round(exponential_delay, digits=1))s" method=method exception=ex
+                verbose && @info "GitHub API exception, retrying in $(to_canon(exponential_delay))" method=method exception=ex delay_seconds=exponential_delay
                 return (true, exponential_delay)
             end
         end
@@ -159,7 +162,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     delay_seconds = safe_tryparse(Float64, retry_after)
     if delay_seconds !== nothing
         delay_seconds = parse(Float64, retry_after)
-        verbose && @info "$msg, retrying in $(round(delay_seconds, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after
+        verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after delay_seconds=delay_seconds
         return (true, delay_seconds)
     end
 
@@ -169,7 +172,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
         current_time = time()
         if reset_timestamp > current_time
             delay_seconds = reset_timestamp - current_time + 1.0
-            verbose && @info "$msg, retrying in $(round(delay_seconds, digits=1))s" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after
+            verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after delay_seconds=delay_seconds
             return (true, delay_seconds)
         end
     end
@@ -179,7 +182,8 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     # Fall back to exponential backoff
     delay_seconds = is_secondary_rate_limit ? max(60.0, exponential_delay) :  exponential_delay
 
-    verbose && @info "$msg, retrying in $(round(delay_seconds, digits=1))s" method=method status=status
+    # Fall back to exponential backoff
+    verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method=method status=status delay_seconds=delay_seconds
 
     return (true, delay_seconds)
 end

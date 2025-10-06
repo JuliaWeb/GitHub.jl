@@ -1,9 +1,23 @@
 using Test
 using HTTP
 using GitHub
+using Dates
 
 primary_rate_limit_body = Vector{UInt8}("primary rate limit")
 secondary_rate_limit_body = Vector{UInt8}("secondary rate limit")
+
+@testset "to_canon" begin
+    @test GitHub.to_canon(1) == Second(1)
+    @test GitHub.to_canon(60) == Minute(1)
+    @test GitHub.to_canon(90) == Minute(1) + Second(30)
+    @test GitHub.to_canon(3600) == Hour(1)
+    @test GitHub.to_canon(1.5) == Second(1) + Millisecond(500)
+    @test GitHub.to_canon(0) == Second(0)
+
+    # Test verbose logging with canonicalized time
+    resp = HTTP.Response(429, ["retry-after" => "90"])
+    @test_logs (:info, r"retrying in 1 minute, 30 seconds") GitHub.github_retry_decision("GET", resp, nothing, 2.0; verbose=true)
+end
 
 @testset "github_retry_decision" begin
 
