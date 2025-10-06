@@ -92,6 +92,7 @@ testuser = Owner(testsuite_username)
     # test membership queries
     if is_gha_token
         # The `@test ex skip=is_gha_token` syntax requires Julia 1.7+, so we can't use it here.
+        @info "Skipping check_membership() test because is_gha_token is true" is_gha_token
         @test_skip GitHub.check_membership(julweb, testuser; auth = auth)
     else
         @test GitHub.check_membership(julweb, testuser; auth = auth)
@@ -208,6 +209,7 @@ end
 @testset "Gists" begin
     # skip=is_gha_token
     if is_gha_token
+        @info "Skipping gists tests because is_gha_token is true" is_gha_token
         @test_skip false
     else
         kc_gists, page_data = gists("KristofferC"; page_limit=1, params=Dict("per_page" => 5), auth = auth)
