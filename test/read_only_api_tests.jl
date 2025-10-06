@@ -90,7 +90,7 @@ testuser = Owner(testsuite_username)
     #                  "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
     # test membership queries
-    @test GitHub.check_membership(julweb, testuser; auth = auth)
+    @test GitHub.check_membership(julweb, testuser; auth = auth) skip=is_gha_token
     @test !GitHub.check_membership("JuliaLang", testuser; auth = auth, public_only=true)
 
     @test GitHub.isorg(julweb)
@@ -200,14 +200,17 @@ end
 end
 
 @testset "Gists" begin
-    kc_gists, page_data = gists("KristofferC"; page_limit=1, params=Dict("per_page" => 5), auth = auth)
-    @test typeof(kc_gists) == Vector{Gist}
-    @test length(kc_gists) != 0
-    @test kc_gists[1].owner.login == "KristofferC"
-
-    gist_obj = gist("0cb70f50a28d79905aae907e12cbe58e"; auth = auth)
-    @test length(gist_obj.files) == 2
-    @test gist_obj.files["file1.jl"]["content"] == "Hello World!"
+    # skip=is_gha_token
+    if !is_gha_token
+        kc_gists, page_data = gists("KristofferC"; page_limit=1, params=Dict("per_page" => 5), auth = auth)
+        @test typeof(kc_gists) == Vector{Gist}
+        @test length(kc_gists) != 0
+        @test kc_gists[1].owner.login == "KristofferC"
+    
+        gist_obj = gist("0cb70f50a28d79905aae907e12cbe58e"; auth = auth)
+        @test length(gist_obj.files) == 2
+        @test gist_obj.files["file1.jl"]["content"] == "Hello World!"
+    end
 end
 
 @testset "Reviews" begin
