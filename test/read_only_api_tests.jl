@@ -22,12 +22,29 @@ testuser2_sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkj86sSo36bkgv+gKp"*
 
 hasghobj(obj, items) = any(x -> name(x) == name(obj), items)
 
-auth = if haskey(ENV, "GITHUB_TOKEN")
-    @info "Using GitHub token from ENV"
-    authenticate(ENV["GITHUB_TOKEN"])
-else
-    @warn "Using anonymous GitHub access. If you get rate-limited, please set the GITHUB_TOKEN env var to an appropriate value."
-    GitHub.AnonymousAuth()
+auth = nothing
+
+names = [
+    "MY_CUSTOM_GITHUB_TOKEN",
+    "GITHUB_TOKEN",
+]
+for name in names
+    if auth === nothing
+        if haskey(ENV, name)
+            str = strip(ENV[name])
+            if !isempty(str)
+                @info "Trying token from $name"
+                auth = authenticate(str)
+            else
+                @warn "The $name environment variable is defined, but it is empty or consists only of whitespace"
+            end
+        end
+    end
+end
+
+if auth === nothing
+    @warn "Using anonymous GitHub access. If you get rate-limited, please set the MY_CUSTOM_GITHUB_TOKEN or GITHUB_TOKEN env var to an appropriate value."
+    auth = GitHub.AnonymousAuth()
 end
 
 @test rate_limit(; auth = auth)["rate"]["limit"] > 0
