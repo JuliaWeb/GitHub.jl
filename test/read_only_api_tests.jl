@@ -97,8 +97,10 @@ testuser = Owner(testsuite_username)
     else
         @test GitHub.check_membership(julweb, testuser; auth = auth)
     end
-    
-    @test !GitHub.check_membership("JuliaLang", testuser; auth = auth, public_only=true)
+
+    # Some membership tests that only test public membership (and thus the tests don't require authentication)
+    @test GitHub.check_membership("JuliaLang", Owner("StefanKarpinski"); auth = auth, public_only=true)
+    @test !GitHub.check_membership("JuliaLang", Owner("julia-github-test-bot2"); auth = auth, public_only=true)
 
     @test GitHub.isorg(julweb)
     @test !GitHub.isorg(testuser)
