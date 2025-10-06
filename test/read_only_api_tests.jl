@@ -29,6 +29,7 @@ names = [
     "GITHUB_TOKEN",
 ]
 for name in names
+    global auth
     if auth === nothing
         if haskey(ENV, name)
             str = strip(ENV[name])
