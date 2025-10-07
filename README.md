@@ -69,6 +69,13 @@ You can inspect which fields are available for a type `G<:GitHubType` by calling
 
 GitHub.jl implements a bunch of methods that make REST requests to GitHub's API. The below sections list these methods (note that a return type of `Tuple{Vector{T}, Dict}` means the result is [paginated](#pagination)).
 
+These methods all accept keyword arguments which control how the request is made to github:
+
+- `max_retries::Int=5`: how many retries to attempt in requesting the resources. Retries are only made for idempotent requests ("GET", "HEAD", "OPTIONS", "TRACE", "PUT", "DELETE") and delays respect GitHub [rate limit headers](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#checking-the-status-of-your-rate-limit).
+- `verbose::Bool=true`: whether or not to log retries as Info level logs
+- `max_sleep_seconds::Real=60*20`: if GitHub.jl intends to sleep for longer than `max_sleep_seconds` before retrying, e.g. due to rate limit headers from GitHub, throws an `RetryDelayException` instead. 
+- `respect_mutation_delay::Bool=true`: whether or not to ensure at least 1s has passed since the last mutation has been submitted to the GitHub API (tracked separately per auth object), following GitHub's [recommended practice](https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api?apiVersion=2022-11-28#pause-between-mutative-requests).
+
 #### Users and Organizations
 
 | method                          | return type                  | documentation                                                                                                                                                                                               |

@@ -2,6 +2,8 @@ module GitHub
 
 using Dates
 using Base64
+using Random
+using SHA: sha256
 
 ##########
 # import #
@@ -44,7 +46,7 @@ export # auth.jl
        authenticate
 
 export # requests.jl
-       rate_limit
+       rate_limit, RetryDelayException
 
 ##################################
 # Owners (organizations + users) #
