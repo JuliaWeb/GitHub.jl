@@ -68,7 +68,9 @@ testuser = Owner(testsuite_username)
 
 @testset "Owners" begin
     # test GitHub.owner
-    @test name(owner(testuser; auth = auth)) == name(testuser)
+    testuser_profile = owner(testuser; auth = auth)
+
+    @test name(testuser_profile) == name(testuser)
     @test name(owner(julweb; auth = auth)) == name(julweb)
 
     # test GitHub.orgs
@@ -77,8 +79,21 @@ testuser = Owner(testsuite_username)
     @test length(members) > 1
 
     # test GitHub.followers, GitHub.following
-    @test_skip hasghobj("jrevels", first(followers(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
-    @test_skip hasghobj("jrevels", first(following(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
+    followers_list, followers_page = followers(testuser; auth = auth)
+    @test followers_list isa Vector{Owner}
+    @test followers_page isa Dict
+    @test all(x -> x isa Owner, followers_list)
+    if testuser_profile.followers !== nothing
+        @test length(followers_list) == testuser_profile.followers
+    end
+
+    following_list, following_page = following(testuser; auth = auth)
+    @test following_list isa Vector{Owner}
+    @test following_page isa Dict
+    @test all(x -> x isa Owner, following_list)
+    if testuser_profile.following !== nothing
+        @test length(following_list) == testuser_profile.following
+    end
 
     # test GitHub.repos
     @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
@@ -90,12 +105,19 @@ testuser = Owner(testsuite_username)
     #                  "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
     # test membership queries
-    if is_gha_token
-        # The `@test ex skip=is_gha_token` syntax requires Julia 1.7+, so we can't use it here.
-        @info "Skipping check_membership() test because is_gha_token is true" is_gha_token
-        @test_skip GitHub.check_membership(julweb, testuser; auth = auth)
-    else
-        @test GitHub.check_membership(julweb, testuser; auth = auth)
+    membership_check = try
+        GitHub.check_membership(julweb, testuser; auth = auth)
+    catch ex
+        if occursin("do not have access", sprint(showerror, ex))
+            @info "Skipping check_membership() test because the token lacks access to the org" is_gha_token
+            @test_skip true
+            nothing
+        else
+            rethrow()
+        end
+    end
+    if membership_check !== nothing
+        @test membership_check
     end
 
     # Some membership tests that only test public membership (and thus the tests don't require authentication)
