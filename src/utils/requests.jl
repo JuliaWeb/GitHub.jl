@@ -117,6 +117,9 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
         # No response - check if we have a recoverable exception
         if ex !== nothing
             # If there's an exception, check if it's recoverable and if the method is idempotent
+            # Note: HTTP.RetryRequest.isrecoverable is private API.
+            # So keep an eye on this, just in case upstream (HTTP.jl) changes it in the future.
+            # See also: https://github.com/JuliaWeb/HTTP.jl/issues/1245
             if HTTP.RetryRequest.isrecoverable(ex) && HTTP.Messages.isidempotent(method)
                 verbose && @info "GitHub API exception, retrying in $(to_canon(exponential_delay))" method exception=ex delay_seconds=exponential_delay
                 return (true, exponential_delay)
