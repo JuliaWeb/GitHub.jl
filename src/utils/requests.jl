@@ -103,7 +103,7 @@ This follows the [documentation from GitHub](https://docs.github.com/en/rest/usi
 function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothing}, ex::Union{Exception, Nothing}, exponential_delay::Float64; verbose::Bool=true)
     # If we have a response, process it first (takes precedence over exceptions)
     if resp !== nothing
-        status = resp.status
+        status = resp.status # .status is public API for HTTP.Response
 
         # Don't retry successful responses
         if status < 400
@@ -113,7 +113,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
         # No response - check if we have a recoverable exception
         if ex !== nothing
             # If there's an exception, check if it's recoverable and if the method is idempotent
-            if HTTP.RetryRequest.isrecoverable(ex) && HTTP.RetryRequest.isidempotent(method)
+            if HTTP.RetryRequest.isrecoverable(ex) && HTTP.Messages.isidempotent(method)
                 verbose && @info "GitHub API exception, retrying in $(to_canon(exponential_delay))" method exception=ex delay_seconds=exponential_delay
                 return (true, exponential_delay)
             end
