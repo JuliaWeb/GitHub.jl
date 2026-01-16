@@ -105,19 +105,12 @@ testuser = Owner(testsuite_username)
     #                  "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
     # test membership queries
-    membership_check = try
-        GitHub.check_membership(julweb, testuser; auth = auth)
-    catch ex
-        if occursin("do not have access", sprint(showerror, ex))
-            @info "Skipping check_membership() test because the token lacks access to the org" is_gha_token
-            @test_skip true
-            nothing
-        else
-            rethrow()
-        end
-    end
-    if membership_check !== nothing
-        @test membership_check
+    if is_gha_token
+        # The `@test ex skip=is_gha_token` syntax requires Julia 1.7+, so we can't use it here.
+        @info "Skipping check_membership() test because is_gha_token is true" is_gha_token
+        @test_skip GitHub.check_membership(julweb, testuser; auth = auth)
+    else
+        @test GitHub.check_membership(julweb, testuser; auth = auth)
     end
 
     # Some membership tests that only test public membership (and thus the tests don't require authentication)
