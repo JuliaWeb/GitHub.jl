@@ -133,6 +133,14 @@ end
         @test sleep_seconds == 8.0
     end
 
+    @testset "Generic rate limit message" begin
+        resp = HTTP.Response(403, []; body = Vector{UInt8}("API rate limit exceeded"))
+
+        should_retry, sleep_seconds = GitHub.github_retry_decision("GET", resp, nothing, 7.0; verbose=false)
+        @test should_retry == true
+        @test sleep_seconds == 7.0  # Should fall back to exponential delay
+    end
+
     @testset "Other HTTP errors" begin
         for status in [408, 409, 500, 502, 503, 504, 599]
             resp = HTTP.Response(status, [])
