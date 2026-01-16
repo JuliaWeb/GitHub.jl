@@ -16,6 +16,10 @@ const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 
 using Base.Meta
 
+const DEFAULT_MAX_RETRIES = 5
+const DEFAULT_RETRY_VERBOSE = true
+const DEFAULT_MAX_SLEEP_SECONDS = 20 * 60
+
 """
     @api_default function f(api, args...)
     ...
@@ -197,17 +201,17 @@ end
 Base.showerror(io::IO, e::RetryDelayException) = print(io, e.msg)
 
 """
-    with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep, max_sleep_seconds::Real = 20*60)
+    with_retries(f; method::AbstractString="GET", max_retries::Int=$DEFAULT_MAX_RETRIES, verbose::Bool=$DEFAULT_RETRY_VERBOSE, sleep_fn=sleep, max_sleep_seconds::Real = $DEFAULT_MAX_SLEEP_SECONDS)
 
 Generic retry wrapper that executes function `f()` with GitHub-specific retry logic.
 
 # Arguments
 - `f`: Function to execute (should return HTTP.Response or throw exception)
 - `method`: HTTP method for retry decision logic (default: "GET")
-- `max_retries`: Maximum number of retry attempts (default: 5)
-- `verbose`: Whether to log retry decisions (default: true)
+- `max_retries`: Maximum number of retry attempts (default: `$DEFAULT_MAX_RETRIES`)
+- `verbose`: Whether to log retry decisions (default: `$DEFAULT_RETRY_VERBOSE`)
 - `sleep_fn`: Function to call for sleeping between retries (default: sleep). For testing, can be replaced with a custom function.
-- `max_sleep_seconds::Real`: maximum number of seconds to sleep when delaying before retrying. If the intended retry delay exceeds `max_sleep_seconds` an exception is thrown instead. This parameter defaults to 20*60 (20 minutes).
+- `max_sleep_seconds::Real`: maximum number of seconds to sleep when delaying before retrying. If the intended retry delay exceeds `max_sleep_seconds` an exception is thrown instead. This parameter defaults to `$DEFAULT_MAX_SLEEP_SECONDS` (20 minutes).
 
 # Returns
 Returns the result of `f()` if successful, or re-throws the final exception if all retries fail.
@@ -219,7 +223,7 @@ result = with_retries(method="GET", verbose=false) do
 end
 ```
 """
-function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbose::Bool=true, sleep_fn=sleep, max_sleep_seconds::Real = 60*20)
+function with_retries(f; method::AbstractString="GET", max_retries::Int=DEFAULT_MAX_RETRIES, verbose::Bool=DEFAULT_RETRY_VERBOSE, sleep_fn=sleep, max_sleep_seconds::Real = DEFAULT_MAX_SLEEP_SECONDS)
     backoff = Base.ExponentialBackOff(n = max_retries+1)
 
     for (attempt, exponential_delay) in enumerate(backoff)
@@ -261,7 +265,7 @@ end
 function github_request(api::GitHubAPI, request_method::String, endpoint;
                         auth = AnonymousAuth(), handle_error = true,
                         headers = Dict(), params = Dict(), allowredirects = true,
-                        max_retries = 5, verbose = true, max_sleep_seconds = 20*60)
+                        max_retries = DEFAULT_MAX_RETRIES, verbose = DEFAULT_RETRY_VERBOSE, max_sleep_seconds = DEFAULT_MAX_SLEEP_SECONDS)
     authenticate_headers!(headers, auth)
     params = github2json(params)
     api_endpoint = api_uri(api, endpoint)
@@ -322,7 +326,7 @@ end
 extract_page_url(link) = match(r"<.*?>", link).match[2:end-1]
 
 function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", handle_error = true,
-                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), max_retries = 5, verbose = true,  max_sleep_seconds = 20*60, options...)
+                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), max_retries = DEFAULT_MAX_RETRIES, verbose = DEFAULT_RETRY_VERBOSE,  max_sleep_seconds = DEFAULT_MAX_SLEEP_SECONDS, options...)
     authenticate_headers!(headers, auth)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
