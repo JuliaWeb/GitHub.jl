@@ -6,7 +6,7 @@
     state::Union{String, Nothing}
 end
 
-function Review(pr::PullRequest, data::Dict)
+function Review(pr::PullRequest, data::AbstractDict)
     rev = Review(data)
     rev.pr = pr
     rev
