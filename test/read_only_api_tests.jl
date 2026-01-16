@@ -244,6 +244,11 @@ end
     @test starred_list isa Vector{Repo}
     @test starred_page isa Dict
     @test all(x -> x isa Repo, starred_list)
+    if isempty(starred_list)
+        @test_skip "starred_list is empty for test user"
+    else
+        @test !isempty(starred_list)
+    end
 
     # test GitHub.watched
     repo_info = repo(ghjl; auth = auth)
@@ -261,6 +266,11 @@ end
     @test watched_list isa Vector{Repo}
     @test watched_page isa Dict
     @test all(x -> x isa Repo, watched_list)
+    if isempty(watched_list)
+        @test_skip "watched_list is empty for test user"
+    else
+        @test !isempty(watched_list)
+    end
 end
 
 testbot_key =
