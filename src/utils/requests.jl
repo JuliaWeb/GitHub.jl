@@ -168,7 +168,8 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
 
     # If x-ratelimit-remaining is 0, wait until reset time
     reset_timestamp = safe_tryparse(Float64, reset_time) # a timestamp, in UTC epoch seconds
-    if remaining == "0" && reset_timestamp !== nothing
+    seconds_remaining = safe_tryparse(Int, remaining)
+    if seconds_remaining !== nothing && iszero(seconds_remaining) && reset_timestamp !== nothing
         # Base.time() returns the current timestamp in UTC epoch seconds
         # This is true regardless of the local time zone of the machine
         current_time = time()
