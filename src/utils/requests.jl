@@ -254,7 +254,7 @@ function with_retries(f; method::AbstractString="GET", max_retries::Int=5, verbo
         if sleep_seconds > 0
             sleep_fn(sleep_seconds)
         end
-    end
+    end # for loop
 end
 
 function github_request(api::GitHubAPI, request_method::String, endpoint;
