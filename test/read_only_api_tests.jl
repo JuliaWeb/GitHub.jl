@@ -234,7 +234,7 @@ end
 
 @testset "Activity" begin
     # test GitHub.stargazers, GitHub.starred
-    stargazers_list, stargazers_page = stargazers(ghjl; auth = auth)
+    stargazers_list, stargazers_page = stargazers(ghjl; auth)
     @test stargazers_list isa Vector{Owner}
     @test stargazers_page isa Dict
     @test all(x -> x isa Owner, stargazers_list)
@@ -245,7 +245,7 @@ end
     @test starred_page isa Dict
     @test all(x -> x isa Repo, starred_list)
 
-    # test GitHub.watched, GitHub.watchers
+    # test GitHub.watched
     repo_info = repo(ghjl; auth = auth)
     watchers_list, watchers_page = watchers(ghjl; auth = auth)
     @test watchers_list isa Vector{Owner}
@@ -255,6 +255,7 @@ end
         @test length(watchers_list) == repo_info.subscribers_count
     end
 
+    # Test GitHub.watched
     watched_list, watched_page = watched(testuser; auth = auth)
     @test watched_list isa Vector{Repo}
     @test watched_page isa Dict
