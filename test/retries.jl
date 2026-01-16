@@ -6,13 +6,13 @@ using Dates
 primary_rate_limit_body = Vector{UInt8}("primary rate limit")
 secondary_rate_limit_body = Vector{UInt8}("secondary rate limit")
 
-@testset "to_canon" begin
-    @test GitHub.to_canon(1) == Second(1)
-    @test GitHub.to_canon(60) == Minute(1)
-    @test GitHub.to_canon(90) == Minute(1) + Second(30)
-    @test GitHub.to_canon(3600) == Hour(1)
-    @test GitHub.to_canon(1.5) == Second(1) + Millisecond(500)
-    @test GitHub.to_canon(0) == Second(0)
+@testset "to_canon_seconds" begin
+    @test GitHub.to_canon_seconds(1) == Second(1)
+    @test GitHub.to_canon_seconds(60) == Minute(1)
+    @test GitHub.to_canon_seconds(90) == Minute(1) + Second(30)
+    @test GitHub.to_canon_seconds(3600) == Hour(1)
+    @test GitHub.to_canon_seconds(1.5) == Second(2)
+    @test GitHub.to_canon_seconds(0) == Second(0)
 
     # Test verbose logging with canonicalized time
     resp = HTTP.Response(429, ["retry-after" => "90"])
