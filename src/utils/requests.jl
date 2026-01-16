@@ -114,7 +114,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
         if ex !== nothing
             # If there's an exception, check if it's recoverable and if the method is idempotent
             if HTTP.RetryRequest.isrecoverable(ex) && HTTP.RetryRequest.isidempotent(method)
-                verbose && @info "GitHub API exception, retrying in $(to_canon(exponential_delay))" method=method exception=ex delay_seconds=exponential_delay
+                verbose && @info "GitHub API exception, retrying in $(to_canon(exponential_delay))" method exception=ex delay_seconds=exponential_delay
                 return (true, exponential_delay)
             end
         end
@@ -134,7 +134,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     # since if it's not a rate-limit, we don't want to retry 403s.
     other_retry = status in (408, 409, 429, 500, 502, 503, 504, 599)
 
-    do_retry = HTTP.RetryRequest.isidempotent(method) && (is_primary_rate_limit || is_secondary_rate_limit || other_retry)
+    do_retry = HTTP.Messages.isidempotent(method) && (is_primary_rate_limit || is_secondary_rate_limit || other_retry)
 
     if !do_retry
         return (false, 0.0)
@@ -146,9 +146,9 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     limit = HTTP.header(resp, "x-ratelimit-limit", "")
     remaining = HTTP.header(resp, "x-ratelimit-remaining", "")
     used = HTTP.header(resp, "x-ratelimit-used", "")
-    reset_time = HTTP.header(resp, "x-ratelimit-reset", "")
+    reset_time = HTTP.header(resp, "x-ratelimit-reset", "") # a timestamp, in UTC epoch seconds
     resource = HTTP.header(resp, "x-ratelimit-resource", "")
-    retry_after = HTTP.header(resp, "retry-after", "")
+    retry_after = HTTP.header(resp, "retry-after", "") # a number of seconds (not a timestamp)
 
     msg = if is_primary_rate_limit
         "GitHub API primary rate limit reached"
@@ -162,17 +162,19 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     delay_seconds = safe_tryparse(Float64, retry_after)
     if delay_seconds !== nothing
         delay_seconds = parse(Float64, retry_after)
-        verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after delay_seconds=delay_seconds
+        verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method status limit remaining used reset=reset_time resource retry_after delay_seconds
         return (true, delay_seconds)
     end
 
     # If x-ratelimit-remaining is 0, wait until reset time
-    reset_timestamp = safe_tryparse(Float64, reset_time)
+    reset_timestamp = safe_tryparse(Float64, reset_time) # a timestamp, in UTC epoch seconds
     if remaining == "0" && reset_timestamp !== nothing
+        # Base.time() returns the current timestamp in UTC epoch seconds
+        # This is true regardless of the local time zone of the machine
         current_time = time()
         if reset_timestamp > current_time
             delay_seconds = reset_timestamp - current_time + 1.0
-            verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method=method status=status limit=limit remaining=remaining used=used reset=reset_time resource=resource retry_after=retry_after delay_seconds=delay_seconds
+            verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method status limit remaining used reset=reset_time resource retry_after delay_seconds
             return (true, delay_seconds)
         end
     end
@@ -183,7 +185,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     delay_seconds = is_secondary_rate_limit ? max(60.0, exponential_delay) :  exponential_delay
 
     # Fall back to exponential backoff
-    verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method=method status=status delay_seconds=delay_seconds
+    verbose && @info "$msg, retrying in $(to_canon(delay_seconds))" method status delay_seconds
 
     return (true, delay_seconds)
 end
