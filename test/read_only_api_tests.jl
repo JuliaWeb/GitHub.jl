@@ -244,10 +244,14 @@ end
     @test starred_list isa Vector{Repo}
     @test starred_page isa Dict
     @test all(x -> x isa Repo, starred_list)
-    if isempty(starred_list)
-        @test_skip "starred_list is empty for test user"
+    if is_ci
+        if is_gha_token
+            @test_skip "starred_list non-empty check skipped for GHA token"
+        else
+            @test !isempty(starred_list)
+        end
     else
-        @test !isempty(starred_list)
+        @test_skip "starred_list non-empty check skipped outside CI"
     end
 
     # test GitHub.watched
@@ -266,10 +270,14 @@ end
     @test watched_list isa Vector{Repo}
     @test watched_page isa Dict
     @test all(x -> x isa Repo, watched_list)
-    if isempty(watched_list)
-        @test_skip "watched_list is empty for test user"
+    if is_ci
+        if is_gha_token
+            @test_skip "watched_list non-empty check skipped for GHA token"
+        else
+            @test !isempty(watched_list)
+        end
     else
-        @test !isempty(watched_list)
+        @test_skip "watched_list non-empty check skipped outside CI"
     end
 end
 
