@@ -62,6 +62,18 @@ catch ex
     ("github-actions[bot]", true)
 end
 
+# Determine if the authenticated user is a member of JuliaWeb org
+is_juliaweb_member = if !is_gha_token
+    try
+        my_orgs, _ = GitHub.myorgs(; auth=auth)
+        any(org -> org.login == "JuliaWeb", my_orgs)
+    catch
+        false  # If API fails, assume not member
+    end
+else
+    false
+end
+
 @test rate_limit(; auth = auth)["rate"]["limit"] > 0
 
 testuser = Owner(testsuite_username)
@@ -90,19 +102,20 @@ testuser = Owner(testsuite_username)
     #                  "-----BEGIN PGP PUBLIC KEY BLOCK-----")
 
     # test membership queries
-    membership_check = try
-        GitHub.check_membership(julweb, testuser; auth = auth)
-    catch ex
-        if occursin("do not have access", sprint(showerror, ex))
-            @info "Skipping check_membership() test because the token lacks access to the org" is_gha_token
-            @test_skip true
-            nothing
+    if is_ci
+        if !is_gha_token && !is_juliaweb_member
+            error("In CI with PAT but user not member of JuliaWeb")
+        elseif !is_gha_token && is_juliaweb_member
+            @test GitHub.check_membership(julweb, testuser; auth = auth)
         else
-            rethrow()
+            @test_skip "Skipping check_membership in CI with GHA token"
         end
-    end
-    if membership_check !== nothing
-        @test membership_check
+    else
+        if !is_gha_token && is_juliaweb_member
+            @test GitHub.check_membership(julweb, testuser; auth = auth)
+        else
+            @test_skip "Skipping check_membership outside CI"
+        end
     end
 
     # Some membership tests that only test public membership (and thus the tests don't require authentication)
