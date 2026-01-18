@@ -1,6 +1,8 @@
 # The below tests are network-dependent, and actually make calls to GitHub's
 # API. They're all read-only, meaning none of them require authentication.
 
+const is_ci = tryparse(Bool, get(ENV, "CI", "")) == true
+
 # testuser = Owner("julia-github-test-bot")
 # testuser2 = Owner("julia-github-test-bot2")
 julweb = Owner("JuliaWeb", true)
@@ -79,21 +81,57 @@ end
 testuser = Owner(testsuite_username)
 
 @testset "Owners" begin
-    # test GitHub.owner
-    @test name(owner(testuser; auth = auth)) == name(testuser)
-    @test name(owner(julweb; auth = auth)) == name(julweb)
+    try
+        @test name(owner(testuser; auth = auth)) == name(testuser)
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+    try
+        @test name(owner(julweb; auth = auth)) == name(julweb)
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
-    # test GitHub.orgs
-    @test hasghobj("JuliaWeb", first(orgs("jrevels"; auth = auth)))
-    members, _ = GitHub.members(Owner("JuliaLang"); auth=auth)
-    @test length(members) > 1
+    try
+        @test hasghobj("JuliaWeb", first(orgs("jrevels"; auth = auth)))
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+    try
+        members, _ = GitHub.members(Owner("JuliaLang"); auth=auth)
+        @test length(members) > 1
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
-    # test GitHub.followers, GitHub.following
     @test_skip hasghobj("jrevels", first(followers(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
     @test_skip hasghobj("jrevels", first(following(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
 
-    # test GitHub.repos
-    @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
+    try
+        @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
     # test sshkey/gpgkey retrieval
     # Test commented out because testuser2 seems to have been deleted or the key removed
@@ -106,88 +144,195 @@ testuser = Owner(testsuite_username)
         if !is_gha_token && !is_juliaweb_member
             error("In CI with PAT but user not member of JuliaWeb")
         elseif !is_gha_token && is_juliaweb_member
-            @test GitHub.check_membership(julweb, testuser; auth = auth)
+            try
+                @test GitHub.check_membership(julweb, testuser; auth = auth)
+            catch e
+                if occursin("rate limit", lowercase(string(e)))
+                    @test_skip "Rate limited"
+                else
+                    rethrow()
+                end
+            end
         else
             @test_skip "Skipping check_membership in CI with GHA token"
         end
     else
         if !is_gha_token && is_juliaweb_member
-            @test GitHub.check_membership(julweb, testuser; auth = auth)
+            try
+                @test GitHub.check_membership(julweb, testuser; auth = auth)
+            catch e
+                if occursin("rate limit", lowercase(string(e)))
+                    @test_skip "Rate limited"
+                else
+                    rethrow()
+                end
+            end
         else
             @test_skip "Skipping check_membership outside CI"
         end
     end
 
     # Some membership tests that only test public membership (and thus the tests don't require authentication)
-    @test GitHub.check_membership("JuliaLang", Owner("StefanKarpinski"); auth = auth, public_only=true)
-    @test !GitHub.check_membership("JuliaLang", Owner("julia-github-test-bot2"); auth = auth, public_only=true)
+    try
+        @test GitHub.check_membership("JuliaLang", Owner("StefanKarpinski"); auth = auth, public_only=true)
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+    try
+        @test !GitHub.check_membership("JuliaLang", Owner("julia-github-test-bot2"); auth = auth, public_only=true)
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
-    @test GitHub.isorg(julweb)
-    @test !GitHub.isorg(testuser)
+    try
+        @test GitHub.isorg(julweb)
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+    try
+        @test !GitHub.isorg(testuser)
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 end
 
 @testset "Repositories" begin
-    # test GitHub.repo
-    repo_obj = repo(ghjl; auth = auth)
-    @test name(repo_obj) == name(ghjl)
-    @test typeof(repo_obj.license) == License
-    @test name(repo_obj.license) == "MIT"
-
-    # test GitHub.forks
-    @test length(first(forks(ghjl; auth = auth))) > 0
-
-    # test GitHub.contributors
-    @test hasghobj("jrevels", map(x->x["contributor"], first(contributors(ghjl; auth = auth))))
-
-    # test GitHub.stats
-    @test stats(ghjl, "contributors"; auth = auth).status < 300
-
-    # test GitHub.branch, GitHub.branches
-    @test name(branch(ghjl, "master"; auth = auth)) == "master"
-    @test hasghobj("master", first(branches(ghjl; auth = auth)))
-
-    # test GitHub.compare
-    # check if the latest commit is a merge commit
-    latest_commit = GitHub.branch(ghjl, "master"; auth=auth).commit
-    is_latest_commit_merge = length(latest_commit.parents) > 1
-    if is_latest_commit_merge
-        @test compare(ghjl, "master", "master~"; auth = auth).behind_by >= 1
-        let comparison = compare(ghjl, "master~", "master"; auth = auth)
-            @test comparison.ahead_by >= 1
-            @test length(comparison.commits) >= 1
-        end
-    else
-        @test compare(ghjl, "master", "master~"; auth = auth).behind_by == 1
-        let comparison = compare(ghjl, "master~", "master"; auth = auth)
-            @test comparison.ahead_by == 1
-            @test length(comparison.commits) == 1
+    try
+        repo_obj = repo(ghjl; auth = auth)
+        @test name(repo_obj) == name(ghjl)
+        @test typeof(repo_obj.license) == License
+        @test name(repo_obj.license) == "MIT"
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
         end
     end
 
-    # test GitHub.file, GitHub.directory, GitHub.readme, GitHub.permalink
-    readme_file = file(ghjl, "README.md"; auth = auth)
-    src_dir = first(directory(ghjl, "src"; auth = auth))
-    owners_dir = src_dir[findfirst(c -> c.path == "src/owners", src_dir)]
-    test_sha = "eab14e1ab7b4de848ef6390101b6d40b489d5d08"
-    readme_permalink = string(permalink(readme_file, test_sha))
-    owners_permalink = string(permalink(owners_dir, test_sha))
-    @test readme_permalink == "https://github.com/JuliaWeb/GitHub.jl/blob/$(test_sha)/README.md"
-    @test owners_permalink == "https://github.com/JuliaWeb/GitHub.jl/tree/$(test_sha)/src/owners"
-    @test readme_file == readme(ghjl; auth = auth)
-    @test occursin("GitHub.jl", String(readme_file))
-    @test hasghobj("src/GitHub.jl", src_dir)
-
-    # test GitHub.status, GitHub.statuses
-    # FIXME: for some reason, the GitHub API reports empty statuses on the GitHub.jl repo
-    let ghjl = Repo("JuliaLang/julia"), testcommit = Commit("3200219b1f7e2681ece9e4b99bda48586fab8a93")
-        @test status(ghjl, testcommit; auth = auth).sha == name(testcommit)
-        # The statuses API seems to be broken / not documented correctly. Ref: https://github.com/orgs/community/discussions/55455
-        # @test !(isempty(first(statuses(ghjl, testcommit; auth = auth))))
+    try
+        @test length(first(forks(ghjl; auth = auth))) > 0
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
     end
 
-    # test GitHub.comment, GitHub.comments
-    @test name(comment(ghjl, 154431956; auth = auth)) == 154431956
-    @test !(isempty(first(comments(ghjl, 40; auth = auth))))
+    try
+        @test hasghobj("jrevels", map(x->x["contributor"], first(contributors(ghjl; auth = auth))))
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+
+    try
+        @test stats(ghjl, "contributors"; auth = auth).status < 300
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+
+    try
+        @test name(branch(ghjl, "master"; auth = auth)) == "master"
+        @test hasghobj("master", first(branches(ghjl; auth = auth)))
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+
+    try
+        latest_commit = GitHub.branch(ghjl, "master"; auth=auth).commit
+        is_latest_commit_merge = length(latest_commit.parents) > 1
+        if is_latest_commit_merge
+            @test compare(ghjl, "master", "master~"; auth = auth).behind_by >= 1
+            let comparison = compare(ghjl, "master~", "master"; auth = auth)
+                @test comparison.ahead_by >= 1
+                @test length(comparison.commits) >= 1
+            end
+        else
+            @test compare(ghjl, "master", "master~"; auth = auth).behind_by == 1
+            let comparison = compare(ghjl, "master~", "master"; auth = auth)
+                @test comparison.ahead_by == 1
+                @test length(comparison.commits) == 1
+            end
+        end
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+
+    try
+        readme_file = file(ghjl, "README.md"; auth = auth)
+        src_dir = first(directory(ghjl, "src"; auth = auth))
+        owners_dir = src_dir[findfirst(c -> c.path == "src/owners", src_dir)]
+        test_sha = "eab14e1ab7b4de848ef6390101b6d40b489d5d08"
+        readme_permalink = string(permalink(readme_file, test_sha))
+        owners_permalink = string(permalink(owners_dir, test_sha))
+        @test readme_permalink == "https://github.com/JuliaWeb/GitHub.jl/blob/$(test_sha)/README.md"
+        @test owners_permalink == "https://github.com/JuliaWeb/GitHub.jl/tree/$(test_sha)/src/owners"
+        @test readme_file == readme(ghjl; auth = auth)
+        @test occursin("GitHub.jl", String(readme_file))
+        @test hasghobj("src/GitHub.jl", src_dir)
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+
+    try
+        ghjl_julia = Repo("JuliaLang/julia")
+        testcommit_julia = Commit("3200219b1f7e2681ece9e4b99bda48586fab8a93")
+        @test status(ghjl_julia, testcommit_julia; auth = auth).sha == name(testcommit_julia)
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+
+    try
+        @test name(comment(ghjl, 154431956; auth = auth)) == 154431956
+        @test !(isempty(first(comments(ghjl, 40; auth = auth))))
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
     # These require `auth` to have push-access (it's currently a read-only token)
     # @test hasghobj("jrevels", first(collaborators(ghjl; auth = auth)))
@@ -195,37 +340,77 @@ end
 end
 
 @testset "Commits" begin
-    # of a repo
-    @test name(commit(ghjl, testcommit; auth = auth)) == name(testcommit)
-    @test hasghobj(testcommit, first(commits(ghjl; auth = auth)))
+    try
+        @test name(commit(ghjl, testcommit; auth = auth)) == name(testcommit)
+        @test hasghobj(testcommit, first(commits(ghjl; auth = auth)))
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
-    # of a pull request
-    let pr = pull_request(ghjl, 37; auth = auth)
+    try
+        pr = pull_request(ghjl, 37; auth = auth)
         commit_vec, page_data = commits(pr; auth = auth)
         @test commit_vec isa Vector{Commit}
         @test length(commit_vec) == 1
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
     end
-    let
+    try
         commit_vec, page_data = commits(ghjl, 37; auth = auth)
         @test commit_vec isa Vector{Commit}
         @test length(commit_vec) == 1
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
     end
 end
 
 @testset "Issues" begin
     state_param = Dict("state" => "all")
 
-    # test GitHub.pull_request, GitHub.pull_requests
-    let pr = pull_request(ghjl, 37; auth = auth)
+    try
+        pr = pull_request(ghjl, 37; auth = auth)
         @test pr.title == "Fix dep warnings"
         @test length(pr.labels) == 1
         @test pr.labels[1].name == "enhancement"
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
     end
-    @test hasghobj(37, first(pull_requests(ghjl; auth = auth, params = state_param)))
+    try
+        @test hasghobj(37, first(pull_requests(ghjl; auth = auth, params = state_param)))
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
-    # test GitHub.issue, GitHub.issues
-    @test issue(ghjl, 40; auth = auth).title == "Needs test"
-    @test hasghobj(40, first(issues(ghjl; auth = auth, params = state_param)))
+    try
+        @test issue(ghjl, 40; auth = auth).title == "Needs test"
+        @test hasghobj(40, first(issues(ghjl; auth = auth, params = state_param)))
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 end
 
 @testset "Gists" begin
@@ -246,15 +431,31 @@ end
 end
 
 @testset "Reviews" begin
-    pr = pull_request(ghjl, 59; auth = auth)
-    review = first(reviews(ghjl, pr; auth=auth)[1])
-
-    @test review.state == "CHANGES_REQUESTED"
+    try
+        pr = pull_request(ghjl, 59; auth = auth)
+        review = first(reviews(ghjl, pr; auth=auth)[1])
+        @test review.state == "CHANGES_REQUESTED"
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 end
 
 @testset "Activity" begin
     # test GitHub.stargazers, GitHub.starred
-    @test length(first(stargazers(ghjl; auth = auth))) > 10 # every package should fail tests if it's not popular enough :p
+    try
+        stargazers_result = first(stargazers(ghjl; auth = auth))
+        @test length(stargazers_result) > 10 # every package should fail tests if it's not popular enough :p
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
     @test_skip hasghobj(ghjl, first(starred(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
 
     # test GitHub.watched, GitHub.watched
@@ -292,33 +493,65 @@ testbot_key =
       "MW1IcklTCi0tLS0tRU5EIFJTQSBQUklWQVRFIEtFWS0tLS0tCg=="
 
 @testset "Apps" begin
-    @test app(4123; auth=auth).name == "femtocleaner"
-    @test app("femtocleaner"; auth=auth).name == "femtocleaner"
+    try
+        @test app(4123; auth=auth).name == "femtocleaner"
+        @test app("femtocleaner"; auth=auth).name == "femtocleaner"
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
     key = MbedTLS.PKContext()
     MbedTLS.parse_key!(key, base64decode(testbot_key))
     jwt = GitHub.JWTAuth(4484, key)
-    @test app(; auth=jwt).name == "juliawebtestbot"
+    try
+        @test app(; auth=jwt).name == "juliawebtestbot"
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 
-    @test length(installations(jwt)[1]) == 1
+    try
+        @test length(installations(jwt)[1]) == 1
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
 end
 
 @testset "Git Data" begin
     github_jl = Repo("JuliaWeb/GitHub.jl")
 
-    g = gitcommit(github_jl, "0d9f04ce4be061d3c2b12644316a232c8f889b44"; auth=auth)
-    @test g.tree["sha"] == "e22fee36cb13d9a1850b242f79938458221a5d2e"
+    try
+        g = gitcommit(github_jl, "0d9f04ce4be061d3c2b12644316a232c8f889b44"; auth=auth)
+        @test g.tree["sha"] == "e22fee36cb13d9a1850b242f79938458221a5d2e"
 
-    t = tree(github_jl, g.tree["sha"]; auth=auth)
-    for entry in t.tree
-        if entry["path"] == "README.md"
-            @test entry["sha"] == "95c8d1aa2a7b1e6d672e15b67e0df4abbe57dcbe"
-            @test entry["type"] == "blob"
+        t = tree(github_jl, g.tree["sha"]; auth=auth)
+        for entry in t.tree
+            if entry["path"] == "README.md"
+                @test entry["sha"] == "95c8d1aa2a7b1e6d672e15b67e0df4abbe57dcbe"
+                @test entry["type"] == "blob"
 
-            b = blob(github_jl, entry["sha"]; auth=auth)
-            @test occursin("GitHub.jl", String(b))
+                b = blob(github_jl, entry["sha"]; auth=auth)
+                @test occursin("GitHub.jl", String(b))
 
-            break
+                break
+            end
+        end
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
         end
     end
 end
