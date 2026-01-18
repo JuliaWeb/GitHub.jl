@@ -16,6 +16,10 @@ const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 
 using Base.Meta
 
+const DEFAULT_MAX_RETRIES = 5
+const DEFAULT_RETRY_VERBOSE = true
+const DEFAULT_MAX_SLEEP_SECONDS = 20 * 60
+
 """
     @api_default function f(api, args...)
     ...
@@ -58,28 +62,245 @@ api_uri(api::GitHubAPI, path) = error("URI retrieval not implemented for this AP
 # GitHub REST Methods #
 #######################
 
-function github_request(api::GitHubAPI, request_method, endpoint;
+function safe_tryparse(args...)
+    try
+        return tryparse(args...)
+    catch
+        nothing
+    end
+end
+
+# convert a numeric number of seconds to a canonicalized object for printing
+to_canon_seconds(val_seconds::Number) = Dates.canonicalize(Second(round(Int, val_seconds)))
+
+"""
+    github_retry_decision(method::String, resp::Union{HTTP.Response, Nothing}, ex::Union{Exception, Nothing}, exponential_delay::Float64; verbose::Bool=true) -> (should_retry::Bool, sleep_seconds::Float64)
+
+Analyzes a GitHub API response/exception to determine if a request should be retried and how long to wait.
+Uses HTTP.jl's retry logic as a foundation, then adds GitHub-specific rate limiting handling.
+This function does NOT perform any sleeping - it only returns the decision and timing information.
+Logs retry decisions with detailed rate limit information when retries occur (if verbose=true).
+
+# Arguments
+- `method`: HTTP method string (e.g., "GET", "POST")
+- `resp`: HTTP response object (if a response was received), or `nothing`
+- `ex`: Exception that occurred (if any), or `nothing`
+- `exponential_delay`: The delay from ExponentialBackOff iterator
+- `verbose`: Whether to log retry decisions (default: true)
+
+# Returns
+A tuple `(should_retry, sleep_seconds)` where:
+- `should_retry`: `true` if the request should be retried, `false` otherwise
+- `sleep_seconds`: Number of seconds to sleep before retry (0 if no sleep needed)
+
+# Retry Logic
+1. First uses HTTP.jl's standard retry logic (`isrecoverable` + `isidempotent`)
+2. Then adds GitHub-specific rate limiting:
+   - **Primary rate limit**: `x-ratelimit-remaining: 0` → wait until `x-ratelimit-reset` time
+   - **Secondary rate limit**: Has `retry-after` header OR error message indicates secondary →
+     - If `retry-after` present: use that delay
+     - If `x-ratelimit-remaining: 0`: wait until reset time
+     - Otherwise: wait at least 1 minute, then use exponential backoff
+
+This follows the [documentation from GitHub](https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28#exceeding-the-rate-limit) as of 2025.
+"""
+function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothing}, ex::Union{Exception, Nothing}, exponential_delay::Float64; verbose::Bool=true)
+    # If we have a response, process it first (takes precedence over exceptions)
+    if resp !== nothing
+        status = resp.status # .status is public API for HTTP.Response
+
+        # Don't retry successful responses
+        if status < 400
+            return (false, 0.0)
+        end
+    else
+        # No response - check if we have a recoverable exception
+        if ex !== nothing
+            # If there's an exception, check if it's recoverable and if the method is idempotent
+            # Note: HTTP.RetryRequest.isrecoverable is private API.
+            # So keep an eye on this, just in case upstream (HTTP.jl) changes it in the future.
+            # See also: https://github.com/JuliaWeb/HTTP.jl/issues/1245
+            if HTTP.RetryRequest.isrecoverable(ex) && HTTP.Messages.isidempotent(method)
+                verbose && @info "GitHub API exception, retrying in $(to_canon_seconds(exponential_delay))" method exception=ex delay_seconds=exponential_delay
+                return (true, exponential_delay)
+            end
+        end
+        # No response and no retryable exception
+        return (false, 0.0)
+    end
+
+    # At this point we have a response with status >= 400
+    # First let us see if we want to retry it.
+
+    # Note: `String` takes ownership / removes the body, so we make a copy
+    body = String(copy(resp.body))
+    is_primary_rate_limit = occursin("primary rate limit", lowercase(body)) && status in (403, 429)
+    is_secondary_rate_limit = occursin("secondary rate limit", lowercase(body)) && status in (403, 429)
+
+    # sometimes the message doesn't say what kind
+    any_rate_limit = occursin("rate limit", lowercase(body)) && status in (403, 429)
+
+    # `other_retry` is `HTTP.RetryRequest.retryable(status)` minus 403,
+    # since if it's not a rate-limit, we don't want to retry 403s.
+    other_retry = status in (408, 409, 429, 500, 502, 503, 504, 599)
+
+    do_retry = HTTP.Messages.isidempotent(method) && (any_rate_limit || other_retry)
+
+    if !do_retry
+        return (false, 0.0)
+    end
+
+    # Now we know we want to retry. We need to decide how long to wait.
+
+    # Get all rate limit headers
+    limit = HTTP.header(resp, "x-ratelimit-limit", "")
+    remaining = HTTP.header(resp, "x-ratelimit-remaining", "")
+    used = HTTP.header(resp, "x-ratelimit-used", "")
+    reset_time = HTTP.header(resp, "x-ratelimit-reset", "") # a timestamp, in UTC epoch seconds
+    resource = HTTP.header(resp, "x-ratelimit-resource", "")
+    retry_after = HTTP.header(resp, "retry-after", "") # a number of seconds (not a timestamp)
+
+    msg = if is_primary_rate_limit
+        "GitHub API primary rate limit reached"
+    elseif is_secondary_rate_limit
+        "GitHub API secondary rate limit reached"
+    elseif any_rate_limit
+        "GitHub API rate limit reached"
+    else
+        "GitHub API returned $status"
+    end
+
+    # If retry-after header is present, respect it
+    delay_seconds = safe_tryparse(Float64, retry_after)
+    if delay_seconds !== nothing
+        delay_seconds = parse(Float64, retry_after)
+        verbose && @info "$msg, retrying in $(to_canon_seconds(delay_seconds))" method status limit remaining used reset=reset_time resource retry_after delay_seconds
+        return (true, delay_seconds)
+    end
+
+    # If x-ratelimit-remaining is 0, wait until reset time
+    reset_timestamp = safe_tryparse(Float64, reset_time) # a timestamp, in UTC epoch seconds
+    seconds_remaining = safe_tryparse(Int, remaining)
+    if seconds_remaining !== nothing && iszero(seconds_remaining) && reset_timestamp !== nothing
+        # Base.time() returns the current timestamp in UTC epoch seconds
+        # This is true regardless of the local time zone of the machine
+        current_time = time()
+        if reset_timestamp > current_time
+            delay_seconds = reset_timestamp - current_time + 1.0
+            verbose && @info "$msg, retrying in $(to_canon_seconds(delay_seconds))" method status limit remaining used reset=reset_time resource retry_after delay_seconds
+            return (true, delay_seconds)
+        end
+    end
+
+    # If secondary rate limit hit without headers to guide us,
+    # make sure we wait at least a minute
+    # Fall back to exponential backoff
+    delay_seconds = is_secondary_rate_limit ? max(60.0, exponential_delay) :  exponential_delay
+
+    # Fall back to exponential backoff
+    verbose && @info "$msg, retrying in $(to_canon_seconds(delay_seconds))" method status delay_seconds
+
+    return (true, delay_seconds)
+end
+
+struct RetryDelayException <: Exception
+    msg::String
+end
+Base.showerror(io::IO, e::RetryDelayException) = print(io, e.msg)
+
+"""
+    with_retries(f; method::AbstractString="GET", max_retries::Int=$DEFAULT_MAX_RETRIES, verbose::Bool=$DEFAULT_RETRY_VERBOSE, sleep_fn=sleep, max_sleep_seconds::Real = $DEFAULT_MAX_SLEEP_SECONDS)
+
+Generic retry wrapper that executes function `f()` with GitHub-specific retry logic.
+
+# Arguments
+- `f`: Function to execute (should return HTTP.Response or throw exception)
+- `method`: HTTP method for retry decision logic (default: "GET")
+- `max_retries`: Maximum number of retry attempts (default: `$DEFAULT_MAX_RETRIES`)
+- `verbose`: Whether to log retry decisions (default: `$DEFAULT_RETRY_VERBOSE`)
+- `sleep_fn`: Function to call for sleeping between retries (default: sleep). For testing, can be replaced with a custom function.
+- `max_sleep_seconds::Real`: maximum number of seconds to sleep when delaying before retrying. If the intended retry delay exceeds `max_sleep_seconds` an exception is thrown instead. This parameter defaults to `$DEFAULT_MAX_SLEEP_SECONDS` (20 minutes).
+
+# Returns
+Returns the result of `f()` if successful, or re-throws the final exception if all retries fail.
+
+# Example
+```julia
+result = with_retries(method="GET", verbose=false) do
+    HTTP.get("https://api.github.com/user", headers)
+end
+```
+"""
+function with_retries(f; method::AbstractString="GET", max_retries::Int=DEFAULT_MAX_RETRIES, verbose::Bool=DEFAULT_RETRY_VERBOSE, sleep_fn=sleep, max_sleep_seconds::Real = DEFAULT_MAX_SLEEP_SECONDS)
+    backoff = Base.ExponentialBackOff(n = max_retries+1)
+
+    for (attempt, exponential_delay) in enumerate(backoff)
+        last_try = attempt > max_retries
+        local r, ex
+        try
+            r = f()
+            ex = nothing
+            if last_try
+                return r
+            end
+        catch e
+            r = nothing
+            ex = e
+            if last_try
+                rethrow()
+            end
+        end
+
+        # Check if we should retry based on this attempt
+        should_retry, sleep_seconds = github_retry_decision(method, r, ex, exponential_delay; verbose)
+
+        if !should_retry
+            if ex !== nothing
+                throw(ex)
+            else
+                return r
+            end
+        end
+        if sleep_seconds > max_sleep_seconds
+            throw(RetryDelayException("Retry delay $(sleep_seconds) exceeds configured maximum ($(max_sleep_seconds) seconds)"))
+        end
+        if sleep_seconds > 0
+            sleep_fn(sleep_seconds)
+        end
+    end # for loop
+end
+
+function github_request(api::GitHubAPI, request_method::String, endpoint;
                         auth = AnonymousAuth(), handle_error = true,
-                        headers = Dict(), params = Dict(), allowredirects = true)
+                        headers = Dict(), params = Dict(), allowredirects = true,
+                        max_retries = DEFAULT_MAX_RETRIES, verbose = DEFAULT_RETRY_VERBOSE, max_sleep_seconds = DEFAULT_MAX_SLEEP_SECONDS)
     authenticate_headers!(headers, auth)
     params = github2json(params)
     api_endpoint = api_uri(api, endpoint)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
-    if request_method == HTTP.get
-        r = request_method(URIs.URI(api_endpoint, query = params), _headers, redirect = allowredirects, status_exception = false, idle_timeout=20)
-    else
-        r = request_method(string(api_endpoint), _headers, JSON.json(params), redirect = allowredirects, status_exception = false, idle_timeout=20)
+
+    r = with_retries(; method = request_method, max_retries, verbose, max_sleep_seconds) do
+        if request_method == "GET"
+            return HTTP.request(request_method, URIs.URI(api_endpoint, query = params), _headers;
+                               redirect = allowredirects, status_exception = false,
+                               idle_timeout = 20, retry = false)
+        else
+            return HTTP.request(request_method, string(api_endpoint), _headers, JSON.json(params);
+                               redirect = allowredirects, status_exception = false,
+                               idle_timeout = 20, retry = false)
+        end
     end
+
     handle_error && handle_response_error(r)
     return r
 end
 
-gh_get(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.get, endpoint; options...)
-gh_post(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.post, endpoint; options...)
-gh_put(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.put, endpoint; options...)
-gh_delete(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.delete, endpoint; options...)
-gh_patch(api::GitHubAPI, endpoint = ""; options...) = github_request(api, HTTP.patch, endpoint; options...)
+gh_get(api::GitHubAPI, endpoint = ""; options...) = github_request(api, "GET", endpoint; options...)
+gh_post(api::GitHubAPI, endpoint = ""; options...) = github_request(api, "POST", endpoint; options...)
+gh_put(api::GitHubAPI, endpoint = ""; options...) = github_request(api, "PUT", endpoint; options...)
+gh_delete(api::GitHubAPI, endpoint = ""; options...) = github_request(api, "DELETE", endpoint; options...)
+gh_patch(api::GitHubAPI, endpoint = ""; options...) = github_request(api, "PATCH", endpoint; options...)
 
 gh_get_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_get(api, endpoint; options...), String))
 gh_post_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_post(api, endpoint; options...), String))
@@ -113,15 +334,23 @@ end
 extract_page_url(link) = match(r"<.*?>", link).match[2:end-1]
 
 function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", handle_error = true,
-                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), options...)
+                          auth = AnonymousAuth(), headers = Dict(), params = Dict(), max_retries = DEFAULT_MAX_RETRIES, verbose = DEFAULT_RETRY_VERBOSE,  max_sleep_seconds = DEFAULT_MAX_SLEEP_SECONDS, options...)
     authenticate_headers!(headers, auth)
     _headers = convert(Dict{String, String}, headers)
     !haskey(_headers, "User-Agent") && (_headers["User-Agent"] = "GitHub-jl")
+
+    # Helper function to make a get request with retries
+    function make_request_with_retries(url, headers)
+        return with_retries(; method = "GET", max_retries, verbose, max_sleep_seconds) do
+            HTTP.request("GET", url, headers; status_exception = false, retry = false)
+        end
+    end
+
     if isempty(start_page)
-        r = gh_get(api, endpoint; handle_error = handle_error, headers = _headers, params = params, auth=auth, options...)
+        r = gh_get(api, endpoint; handle_error, headers = _headers, params, auth, max_retries, verbose, max_sleep_seconds, options...)
     else
         @assert isempty(params) "`start_page` kwarg is incompatible with `params` kwarg"
-        r = HTTP.get(start_page, headers = _headers)
+        r = make_request_with_retries(start_page, _headers)
     end
     results = HTTP.Response[r]
     page_data = Dict{String, String}()
@@ -131,7 +360,7 @@ function github_paged_get(api, endpoint; page_limit = Inf, start_page = "", hand
             links = get_page_links(r)
             next_index = find_page_link(links, "next")
             next_index == 0 && break
-            r = HTTP.get(extract_page_url(links[next_index]), headers = _headers)
+            r = make_request_with_retries(extract_page_url(links[next_index]), _headers)
             handle_error && handle_response_error(r)
             push!(results, r)
             page_count += 1
@@ -184,7 +413,7 @@ function handle_response_error(r::HTTP.Response)
             errors = get(data, "errors", "")
         catch
         end
-        error("Error found in GitHub reponse:\n",
+        error("Error found in GitHub response:\n",
               "\tStatus Code: $(r.status)\n",
               ((isempty(message) && isempty(errors)) ?
                ("\tBody: $body",) :
