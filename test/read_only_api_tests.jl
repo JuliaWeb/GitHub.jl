@@ -68,7 +68,9 @@ testuser = Owner(testsuite_username)
 
 @testset "Owners" begin
     # test GitHub.owner
-    @test name(owner(testuser; auth = auth)) == name(testuser)
+    testuser_profile = owner(testuser; auth = auth)
+
+    @test name(testuser_profile) == name(testuser)
     @test name(owner(julweb; auth = auth)) == name(julweb)
 
     # test GitHub.orgs
@@ -77,8 +79,21 @@ testuser = Owner(testsuite_username)
     @test length(members) > 1
 
     # test GitHub.followers, GitHub.following
-    @test_skip hasghobj("jrevels", first(followers(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
-    @test_skip hasghobj("jrevels", first(following(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/236
+    followers_list, followers_page = followers(testuser; auth = auth)
+    @test followers_list isa Vector{Owner}
+    @test followers_page isa Dict
+    @test all(x -> x isa Owner, followers_list)
+    if testuser_profile.followers !== nothing
+        @test length(followers_list) == testuser_profile.followers
+    end
+
+    following_list, following_page = following(testuser; auth = auth)
+    @test following_list isa Vector{Owner}
+    @test following_page isa Dict
+    @test all(x -> x isa Owner, following_list)
+    if testuser_profile.following !== nothing
+        @test length(following_list) == testuser_profile.following
+    end
 
     # test GitHub.repos
     @test hasghobj(ghjl, first(repos(julweb; auth = auth)))
