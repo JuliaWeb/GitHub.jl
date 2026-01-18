@@ -44,7 +44,7 @@ export # auth.jl
        authenticate
 
 export # requests.jl
-       rate_limit
+       rate_limit, RetryDelayException
 
 ##################################
 # Owners (organizations + users) #
