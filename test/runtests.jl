@@ -38,7 +38,7 @@ function check_is_gha_token(auth = get_gh_auth())
         (w.login, false)
     catch ex1
         # @info "This might be the GITHUB_TOKEN from GitHub Actions. We'll double-check"
-        a = GitHub.app(; auth)
+        a = GitHub.installations(auth)
         @info "" a
         exit(1)
     end
