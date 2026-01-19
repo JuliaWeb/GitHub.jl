@@ -3,7 +3,35 @@ using Dates, Test, Base64
 using GitHub: Branch, name
 using GitHub.Checks
 
-function check_is_gha_token()
+function get_gh_auth()::GitHub.Authorization
+    auth = nothing
+    names = [
+        "MY_CUSTOM_GITHUB_TOKEN",
+        "GITHUB_TOKEN",
+    ]
+    for name in names
+        if auth === nothing
+            if haskey(ENV, name)
+                str = strip(ENV[name])
+                if !isempty(str)
+                    @info "Trying token from $name"
+                    auth = authenticate(str)
+                else
+                    @warn "The $name environment variable is defined, but it is empty or consists only of whitespace"
+                end
+            end
+        end
+    end
+    
+    if auth === nothing
+        @warn "Using anonymous GitHub access. If you get rate-limited, please set the MY_CUSTOM_GITHUB_TOKEN or GITHUB_TOKEN env var to an appropriate value."
+        auth = GitHub.AnonymousAuth()
+    end
+
+    return auth
+end
+
+function check_is_gha_token(auth = get_gh_auth())
     (testsuite_username, is_gha_token) = try
         w = GitHub.whoami(; auth)
         @info "Information for the test user being used in the test suite" w w.login
