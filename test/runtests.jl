@@ -42,11 +42,12 @@ function check_is_gha_token(auth = get_gh_auth())
         @info "" a
         exit(1)
     end
-    return (; testsuite_username, is_gha_token)
+    return (testsuite_username, is_gha_token)
 end
 
 @testset "GitHub.jl" begin
-    (; testsuite_username, is_gha_token) = check_is_gha_token()
+    (testsuite_username, is_gha_token) = check_is_gha_token()
+    @info "All is good. Exiting early to save CI time while debugging"
     exit(1)
 
     include("ghtype_tests.jl")
