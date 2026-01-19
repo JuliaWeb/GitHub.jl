@@ -22,45 +22,8 @@ testuser2_sshkey = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCkj86sSo36bkgv+gKp"*
 
 hasghobj(obj, items) = any(x -> name(x) == name(obj), items)
 
-auth = nothing
-
-names = [
-    "MY_CUSTOM_GITHUB_TOKEN",
-    "GITHUB_TOKEN",
-]
-for name in names
-    global auth
-    if auth === nothing
-        if haskey(ENV, name)
-            str = strip(ENV[name])
-            if !isempty(str)
-                @info "Trying token from $name"
-                auth = authenticate(str)
-            else
-                @warn "The $name environment variable is defined, but it is empty or consists only of whitespace"
-            end
-        end
-    end
-end
-
-if auth === nothing
-    @warn "Using anonymous GitHub access. If you get rate-limited, please set the MY_CUSTOM_GITHUB_TOKEN or GITHUB_TOKEN env var to an appropriate value."
-    auth = GitHub.AnonymousAuth()
-end
-
-# is_gha_token is true if we're using the GITHUB_TOKEN made available automatically in GitHub Actions
-# false otherwise
-#
-# This try-catch is a crude heuristic.
-# Ideally there would be an actual API we could hit to determine this.
-(testsuite_username, is_gha_token) = try
-    w = GitHub.whoami(; auth=auth)
-    @info "Information for the test user being used in the test suite" w w.login
-    (w.login, false)
-catch ex
-    @info "Looks like this is the GITHUB_TOKEN from GitHub Actions"
-    ("github-actions[bot]", true)
-end
+auth = get_gh_auth()
+(testsuite_username, is_gha_token) = check_is_gha_token(auth)
 
 @test rate_limit(; auth = auth)["rate"]["limit"] > 0
 
@@ -218,7 +181,7 @@ end
         @test typeof(kc_gists) == Vector{Gist}
         @test length(kc_gists) != 0
         @test kc_gists[1].owner.login == "KristofferC"
-    
+
         gist_obj = gist("0cb70f50a28d79905aae907e12cbe58e"; auth = auth)
         @test length(gist_obj.files) == 2
         @test gist_obj.files["file1.jl"]["content"] == "Hello World!"

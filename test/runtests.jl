@@ -22,7 +22,7 @@ function get_gh_auth()::GitHub.Authorization
             end
         end
     end
-    
+
     if auth === nothing
         @warn "Using anonymous GitHub access. If you get rate-limited, please set the MY_CUSTOM_GITHUB_TOKEN or GITHUB_TOKEN env var to an appropriate value."
         auth = GitHub.AnonymousAuth()
@@ -47,15 +47,13 @@ end
 
 @testset "GitHub.jl" begin
     (testsuite_username, is_gha_token) = check_is_gha_token()
-    @info "All is good. Exiting early to save CI time while debugging"
-    exit(1)
 
     include("ghtype_tests.jl")
     include("event_tests.jl")
     include("read_only_api_tests.jl")
     include("auth_tests.jl")
     include("retries.jl")
-  
+
     @testset "SSH keygen" begin
         pubkey, privkey = GitHub.genkeys(keycomment="GitHub.jl")
         @test endswith(pubkey, "GitHub.jl")
