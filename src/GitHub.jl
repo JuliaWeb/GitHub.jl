@@ -367,6 +367,15 @@ export
     create_release,
     releases
 
+#########
+# GraphQL #
+#########
+
+include("graphql.jl")
+
+export
+    graphql_query
+
 #################
 # Organizations #
 #################
