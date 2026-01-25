@@ -369,3 +369,39 @@ end
     @test_throws ArgumentError GitHub.api_uri(GitHub.DEFAULT_API, "/repos/foo/../bar")
     @test string(GitHub.api_uri(GitHub.DEFAULT_API, "/repos/foo/bar")) == "https://api.github.com/repos/foo/bar"
 end
+
+
+@testset "GraphQL" begin
+    query = """
+    {
+      viewer {
+        login
+      }
+    }
+    """
+    try
+        result = graphql_query(query; auth = auth)
+        @test haskey(result, "data")
+        @test haskey(result["data"], "viewer")
+        @test haskey(result["data"]["viewer"], "login")
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited"
+        else
+            rethrow()
+        end
+    end
+
+    # Test viewer helper
+    try
+        viewer_result = graphql_viewer(; auth = auth)
+        @test haskey(viewer_result, "data")
+        @test haskey(viewer_result["data"], "viewer")
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited for viewer"
+        else
+            rethrow()
+        end
+    end
+end
