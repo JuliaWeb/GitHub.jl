@@ -374,7 +374,9 @@ export
 include("graphql.jl")
 
 export
-    graphql_query
+    graphql_query,
+    graphql_schema_introspection,
+    graphql_viewer
 
 #################
 # Organizations #

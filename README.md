@@ -23,6 +23,8 @@ Here's a table of contents for this rather lengthy README:
 
 [6. GitHub Enterprise](#github-enterprise)
 
+[7. GraphQL API](#graphql-api)
+
 ## Response Types
 
 GitHub's JSON responses are parsed and returned to the caller as types of the form `G<:GitHub.GitHubType`. Here's some useful information about these types:
@@ -576,3 +578,66 @@ create_secret(repo, "DOCUMENTER_KEY"; auth, value=privkey)
 `privkey` is sent in encrypted form to GitHub. Do **not** share `privkey` with others or post it publicly;
 doing so breaches the security of your repository.
 You can [read more](https://www.ssh.com/ssh/public-key-authentication) about the meaning of SSH keys and their security implications.
+
+## GraphQL API
+
+GitHub.jl provides basic support for GitHub's [GraphQL API](https://docs.github.com/en/graphql), allowing you to execute custom GraphQL queries efficiently.
+
+### Basic Usage
+
+Use `graphql_query` to execute any GraphQL query:
+
+```julia
+using GitHub
+
+# Simple viewer query
+query = """
+{
+  viewer {
+    login
+    name
+  }
+}
+"""
+
+result = graphql_query(query; auth=auth)
+println("Logged in as: ", result["data"]["viewer"]["login"])
+```
+
+### Schema Introspection
+
+You can introspect the GraphQL schema to explore available types and fields:
+
+```julia
+schema = graphql_schema_introspection(; auth=auth)
+# This returns the full GraphQL schema as a JSON object
+```
+
+### Common Query Builders
+
+For convenience, some common queries are available as helper functions:
+
+```julia
+# Get current user info
+viewer = graphql_viewer(; auth=auth)
+
+# Get repository info
+repo_query = """
+{
+  repository(owner: "JuliaLang", name: "julia") {
+    name
+    description
+    stargazerCount
+  }
+}
+"""
+repo_info = graphql_query(repo_query; auth=auth)
+```
+
+### Advantages over REST API
+
+- **Efficiency**: Fetch multiple related resources in a single request.
+- **Precision**: Request only the data you need.
+- **Flexibility**: Complex queries and mutations.
+
+For more information, see GitHub's [GraphQL API documentation](https://docs.github.com/en/graphql).

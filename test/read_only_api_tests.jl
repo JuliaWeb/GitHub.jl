@@ -391,4 +391,17 @@ end
             rethrow()
         end
     end
+
+    # Test viewer helper
+    try
+        viewer_result = graphql_viewer(; auth = auth)
+        @test haskey(viewer_result, "data")
+        @test haskey(viewer_result["data"], "viewer")
+    catch e
+        if occursin("rate limit", lowercase(string(e)))
+            @test_skip "Rate limited for viewer"
+        else
+            rethrow()
+        end
+    end
 end
