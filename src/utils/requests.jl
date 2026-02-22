@@ -232,6 +232,14 @@ end
 ```
 """
 function with_retries(f; method::AbstractString="GET", max_retries::Int=DEFAULT_MAX_RETRIES, verbose::Bool=DEFAULT_RETRY_VERBOSE, sleep_fn=sleep, max_sleep_seconds::Real = DEFAULT_MAX_SLEEP_SECONDS)
+    # https://docs.github.com/en/rest/using-the-rest-api/best-practices-for-using-the-rest-api?apiVersion=2022-11-28#pause-between-mutative-requests
+    # > Pause between mutative requests
+    # > If you are making a large number of POST, PATCH, PUT, or DELETE requests,
+    # > wait at least one second between each request. This will help you avoid secondary rate limits.
+    if uppercase(method) in ("POST", "PATCH", "PUT", "DELETE")
+        sleep_fn(1)
+    end
+    
     backoff = Base.ExponentialBackOff(n = max_retries+1)
 
     for (attempt, exponential_delay) in enumerate(backoff)
