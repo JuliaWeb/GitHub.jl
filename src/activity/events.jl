@@ -43,7 +43,7 @@ sig_header(request::HTTP.Request) = HTTP.header(request, "X-Hub-Signature")
 
 function has_valid_secret(request::HTTP.Request, secret)
     if has_sig_header(request)
-        secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, HTTP.payload(request), secret))
+        secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, http_payload(request), secret))
         return sig_header(request) == secret_sha
     end
     return false
@@ -97,7 +97,7 @@ function handle_event_request(request, handle;
         return HTTP.Response(204, "event ignored")
     end
 
-    event = event_from_payload!(event_header(request), JSON.parse(IOBuffer(HTTP.payload(request))))
+    event = event_from_payload!(event_header(request), JSON.parse(IOBuffer(http_payload(request))))
 
     if !(isa(repos, Nothing)) && !(from_valid_repo(event, repos))
         return HTTP.Response(400, "invalid repo")
@@ -119,14 +119,21 @@ function Base.run(listener::EventListener, args...; host = nothing, port = nothi
     run(listener, host, port, args...; kwargs...)
 end
 
-function Base.run(listener::EventListener, host::HTTP.IPAddr, port::Int, args...; kwargs...)
+function Base.run(listener::EventListener, host::Sockets.IPAddr, port::Int, args...; kwargs...)
     println("Listening for GitHub events sent to $port;")
     println("Whitelisted events: $(isa(listener.events, Nothing) ? "All" : listener.events)")
     println("Whitelisted repos: $(isa(listener.repos, Nothing) ? "All" : listener.repos)")
-    sock = Sockets.listen(Sockets.InetAddr(host, port))
-    run(listener, sock, host, port, args...; kwargs...)
+    if _HTTP_V1
+        # HTTP 1.x accepts a pre-created `Sockets.TCPServer` via the `server` keyword.
+        sock = Sockets.listen(Sockets.InetAddr(host, port))
+        run(listener, sock, host, port, args...; kwargs...)
+    else
+        # HTTP 2.x dropped the `server` keyword and creates the listener internally.
+        HTTP.serve(listener.handle_request, host, port, args...; kwargs...)
+    end
 end
 
+# HTTP 1.x only: serve on a pre-bound socket via the `server` keyword.
 function Base.run(listener::EventListener, sock::Sockets.TCPServer, host, port, args...; kwargs...)
     HTTP.serve(listener.handle_request, host, port; server=sock, kwargs...)
 end
