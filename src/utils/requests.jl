@@ -23,7 +23,12 @@ const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 # `pkgversion(::Module)` exists only on Julia >= 1.9; HTTP 2.x in turn requires
 # Julia >= 1.10, so on older Julia only HTTP 1.x can ever be installed.
 @static if VERSION >= v"1.9"
-    const _HTTP_V1 = pkgversion(HTTP) < v"2"
+    # `pkgversion(::Module)` returns `nothing` for some non-registry loads (e.g. a
+    # dev'd path without a recorded version); fall back to feature detection then
+    # (`HTTP.RetryRequest` is a 1.x-only internal module).
+    const _HTTP_V1 = let v = pkgversion(HTTP)
+        v === nothing ? isdefined(HTTP, :RetryRequest) : v < v"2"
+    end
 else
     const _HTTP_V1 = true
 end

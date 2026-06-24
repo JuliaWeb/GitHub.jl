@@ -81,14 +81,27 @@ end
         catch
         end
     else
-        # HTTP 2.x: use the non-blocking `serve!` which returns a closeable server.
-        port = 8001
-        server = HTTP.serve!(listener.listener.handle_request, string(host), port)
-        try
-            resp = HTTP.request("POST", "http://$host:$port", event_request.headers, event_request.body)
-            @test resp.status == 200
-        finally
-            close(server)
+        # HTTP 2.x: drive `GitHub.run` itself (it must accept an `IPAddr` host and
+        # start an HTTP 2.x server). `run` blocks, so launch it from a task; if it
+        # errors (e.g. a bad serve call) the task dies and `server_started` stays
+        # false, failing the test below.
+        port = 8002
+        srvrtask = @async GitHub.run(listener, host, port)
+
+        server_started = false
+        t0 = time()
+        while !server_started && time() - t0 < 10
+            try
+                close(connect(host, port))
+                server_started = true
+            catch
+                sleep(0.05)
+            end
         end
+        @test server_started
+
+        resp = HTTP.request("POST", "http://$host:$port", event_request.headers, event_request.body)
+        @test resp.status == 200
+        # `run`'s blocking server task is left to be torn down at process exit.
     end
 end

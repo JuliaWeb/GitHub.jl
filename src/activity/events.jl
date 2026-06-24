@@ -128,13 +128,18 @@ function Base.run(listener::EventListener, host::Sockets.IPAddr, port::Int, args
         sock = Sockets.listen(Sockets.InetAddr(host, port))
         run(listener, sock, host, port, args...; kwargs...)
     else
-        # HTTP 2.x dropped the `server` keyword and creates the listener internally.
-        HTTP.serve(listener.handle_request, host, port, args...; kwargs...)
+        # HTTP 2.x dropped the `server` keyword and creates the listener internally;
+        # it also requires the host as an `AbstractString`, not a `Sockets.IPAddr`.
+        HTTP.serve(listener.handle_request, string(host), port; kwargs...)
     end
 end
 
-# HTTP 1.x only: serve on a pre-bound socket via the `server` keyword.
+# HTTP 1.x only: serve on a pre-bound socket via the `server` keyword. HTTP 2.x
+# has no equivalent, so direct callers there must use `run(listener, host, port)`.
 function Base.run(listener::EventListener, sock::Sockets.TCPServer, host, port, args...; kwargs...)
+    _HTTP_V1 || throw(ArgumentError(
+        "serving an EventListener on a pre-bound `Sockets.TCPServer` is only supported on " *
+        "HTTP.jl 1.x; on HTTP.jl 2.x call `run(listener, host, port)` instead"))
     HTTP.serve(listener.handle_request, host, port; server=sock, kwargs...)
 end
 
