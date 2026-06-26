@@ -19,9 +19,11 @@ const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 ###############################
 
 # HTTP.jl 2.0 removed/renamed several APIs that GitHub.jl relied on. These shims
-# let the package work with both HTTP 1.x and 2.x. HTTP.jl exports its own
-# `VERSION` constant in both major versions, so use it to select the API era.
-const _HTTP_V1 = HTTP.VERSION < v"2"
+# let the package work with both HTTP 1.x and 2.x. We detect the API era via the
+# `RetryRequest` submodule, which exists only in 1.x.
+# (`HTTP.VERSION` is not usable here: HTTP.jl only defines its own `VERSION`
+# constant in 2.x; in 1.x `HTTP.VERSION` resolves to Julia's `Base.VERSION`.)
+const _HTTP_V1 = isdefined(HTTP, :RetryRequest)
 
 # `HTTP.payload(msg[, String])` was removed in 2.x. In 1.x a message `.body` is a
 # `Vector{UInt8}`; in 2.x a `Response.body` materialized by a request is still a
