@@ -2,7 +2,7 @@ using Sockets
 
 include("commit_comment.jl")
 event_request = create_event()
-event_json = JSON.parse(IOBuffer(HTTP.payload(event_request)))
+event_json = JSON.parse(GitHub.http_payload(event_request, String))
 event = GitHub.event_from_payload!("commit_comment", event_json)
 
 @testset "WebhookEvent" begin
@@ -51,30 +51,57 @@ end
     auth = GitHub.JWTAuth(4123, "not_a_real_key.pem")
 
     function test_handler(event::WebhookEvent, phrase::RegexMatch)
-       return HTTP.Messages.Response((phrase.match == "RunBenchmarks") ? 200 : 500)
+       return HTTP.Response((phrase.match == "RunBenchmarks") ? 200 : 500)
     end
     listener = GitHub.CommentListener(test_handler, r"RunBenchmarks"; check_collab=false, auth=auth, secret=nothing)
     host = IPv4("127.0.0.1")
-    port, sock = Sockets.listenany(host, 8001)
 
-    srvrtask = @async GitHub.run(listener, sock, host, Int(port))
+    if GitHub._HTTP_V1
+        # HTTP 1.x: serve on a pre-bound socket and stop by closing it.
+        port, sock = Sockets.listenany(host, 8001)
 
-    server_started = false
-    while !server_started
-        try
-            close(connect(host, port))
-            server_started = true
-        catch
-            yield()
+        srvrtask = @async GitHub.run(listener, sock, host, Int(port))
+
+        server_started = false
+        while !server_started
+            try
+                close(connect(host, port))
+                server_started = true
+            catch
+                yield()
+            end
         end
-    end
 
-    resp = HTTP.request("POST", "http://$host:$port", event_request.headers, event_request.body)
-    @test resp.status == 200
+        resp = HTTP.request("POST", "http://$host:$port", event_request.headers, event_request.body)
+        @test resp.status == 200
 
-    try
-        close(sock)
-        wait(srvrtask)
-    catch
+        try
+            close(sock)
+            wait(srvrtask)
+        catch
+        end
+    else
+        # HTTP 2.x: drive `GitHub.run` itself (it must accept an `IPAddr` host and
+        # start an HTTP 2.x server). `run` blocks, so launch it from a task; if it
+        # errors (e.g. a bad serve call) the task dies and `server_started` stays
+        # false, failing the test below.
+        port = 8002
+        srvrtask = @async GitHub.run(listener, host, port)
+
+        server_started = false
+        t0 = time()
+        while !server_started && time() - t0 < 10
+            try
+                close(connect(host, port))
+                server_started = true
+            catch
+                sleep(0.05)
+            end
+        end
+        @test server_started
+
+        resp = HTTP.request("POST", "http://$host:$port", event_request.headers, event_request.body)
+        @test resp.status == 200
+        # `run`'s blocking server task is left to be torn down at process exit.
     end
 end

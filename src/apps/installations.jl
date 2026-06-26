@@ -74,7 +74,7 @@ List `Repo`s that the installation corresponding to `token` can access.
     headers["Accept"] = "application/vnd.github.machine-man-preview+json"
     results, page_data = github_paged_get(api, "/installation/repositories";
         auth=auth, headers=headers, options...)
-    mapreduce(x->map(Repo, JSON.parse(HTTP.payload(x, String))["repositories"]), vcat, results; init=Repo[]), page_data
+    mapreduce(x->map(Repo, JSON.parse(http_payload(x, String))["repositories"]), vcat, results; init=Repo[]), page_data
 end
 @api_default function repos(api::GitHubAPI, inst::Installation; options...)
     # TODO: deprecate

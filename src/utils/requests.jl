@@ -14,6 +14,46 @@ end
 
 const DEFAULT_API = GitHubWebAPI(URIs.URI("https://api.github.com"))
 
+###############################
+# HTTP.jl 1.x / 2.x compat    #
+###############################
+
+# HTTP.jl 2.0 removed/renamed several APIs that GitHub.jl relied on. These shims
+# let the package work with both HTTP 1.x and 2.x, selected by HTTP's major
+# version. HTTP.jl only defines its own `VERSION` constant in 2.x; in 1.x
+# `HTTP.VERSION` is the binding re-exported from `Base` (Julia's version), so we
+# first check that `VERSION` is actually owned by the `HTTP` module before
+# trusting it -- if it is not, we are on 1.x.
+const _HTTP_V1 = Base.binding_module(HTTP, :VERSION) !== HTTP || HTTP.VERSION < v"2"
+
+# `HTTP.payload(msg[, String])` was removed in 2.x. In 1.x a message `.body` is a
+# `Vector{UInt8}`; in 2.x a `Response.body` materialized by a request is still a
+# `Vector{UInt8}`, but a `Request.body` (and a freshly constructed body) is an
+# `AbstractBody` object (`BytesBody`/`EmptyBody`). These helpers normalize all of
+# those to bytes / String without consuming the underlying buffer.
+http_payload(m) = _body_bytes(m.body)
+http_payload(m, ::Type{String}) = _body_string(m.body)
+
+_body_bytes(b::AbstractVector{UInt8}) = b
+# `String(::AbstractBody)` copies (does not consume) in HTTP 2.x.
+_body_bytes(b) = Vector{UInt8}(_body_string(b))
+
+# Copy first: in 2.x `String(::Vector{UInt8})` aliases and empties the buffer.
+_body_string(b::AbstractVector{UInt8}) = String(copy(b))
+_body_string(b) = String(b)
+
+# `HTTP.Messages.isidempotent` was removed in 2.x. The set of idempotent HTTP
+# methods is fixed by the HTTP spec (RFC 7231), so we can compute it directly.
+const _IDEMPOTENT_METHODS = ("GET", "HEAD", "OPTIONS", "TRACE", "PUT", "DELETE")
+is_idempotent(method::AbstractString) = uppercase(method) in _IDEMPOTENT_METHODS
+
+# `HTTP.RetryRequest.isrecoverable` (1.x, private) became `HTTP.isrecoverable`
+# (2.x, public).
+is_recoverable(ex) = _HTTP_V1 ? HTTP.RetryRequest.isrecoverable(ex) : HTTP.isrecoverable(ex)
+
+# The `idle_timeout` request keyword was renamed to `read_idle_timeout` in 2.x.
+const _IDLE_TIMEOUT_KWARGS = _HTTP_V1 ? (; idle_timeout = 20) : (; read_idle_timeout = 20)
+
 using Base.Meta
 
 const DEFAULT_MAX_RETRIES = 5
@@ -120,7 +160,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
             # Note: HTTP.RetryRequest.isrecoverable is private API.
             # So keep an eye on this, just in case upstream (HTTP.jl) changes it in the future.
             # See also: https://github.com/JuliaWeb/HTTP.jl/issues/1245
-            if HTTP.RetryRequest.isrecoverable(ex) && HTTP.Messages.isidempotent(method)
+            if is_recoverable(ex) && is_idempotent(method)
                 verbose && @info "GitHub API exception, retrying in $(to_canon_seconds(exponential_delay))" method exception=ex delay_seconds=exponential_delay
                 return (true, exponential_delay)
             end
@@ -132,8 +172,10 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     # At this point we have a response with status >= 400
     # First let us see if we want to retry it.
 
-    # Note: `String` takes ownership / removes the body, so we make a copy
-    body = String(copy(resp.body))
+    # Note: in HTTP 2.x `String(body)` aliases/empties the buffer, and a body may
+    # be an `AbstractBody` rather than a `Vector{UInt8}`; `http_payload` handles
+    # both safely (copying so `resp` stays usable).
+    body = http_payload(resp, String)
     is_primary_rate_limit = occursin("primary rate limit", lowercase(body)) && status in (403, 429)
     is_secondary_rate_limit = occursin("secondary rate limit", lowercase(body)) && status in (403, 429)
 
@@ -144,7 +186,7 @@ function github_retry_decision(method::String, resp::Union{HTTP.Response, Nothin
     # since if it's not a rate-limit, we don't want to retry 403s.
     other_retry = status in (408, 409, 429, 500, 502, 503, 504, 599)
 
-    do_retry = HTTP.Messages.isidempotent(method) && (any_rate_limit || other_retry)
+    do_retry = is_idempotent(method) && (any_rate_limit || other_retry)
 
     if !do_retry
         return (false, 0.0)
@@ -284,11 +326,11 @@ function github_request(api::GitHubAPI, request_method::String, endpoint;
         if request_method == "GET"
             return HTTP.request(request_method, URIs.URI(api_endpoint, query = params), _headers;
                                redirect = allowredirects, status_exception = false,
-                               idle_timeout = 20, retry = false)
+                               retry = false, _IDLE_TIMEOUT_KWARGS...)
         else
             return HTTP.request(request_method, string(api_endpoint), _headers, JSON.json(params);
                                redirect = allowredirects, status_exception = false,
-                               idle_timeout = 20, retry = false)
+                               retry = false, _IDLE_TIMEOUT_KWARGS...)
         end
     end
 
@@ -302,11 +344,11 @@ gh_put(api::GitHubAPI, endpoint = ""; options...) = github_request(api, "PUT", e
 gh_delete(api::GitHubAPI, endpoint = ""; options...) = github_request(api, "DELETE", endpoint; options...)
 gh_patch(api::GitHubAPI, endpoint = ""; options...) = github_request(api, "PATCH", endpoint; options...)
 
-gh_get_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_get(api, endpoint; options...), String))
-gh_post_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_post(api, endpoint; options...), String))
-gh_put_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_put(api, endpoint; options...), String))
-gh_delete_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_delete(api, endpoint; options...), String))
-gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(HTTP.payload(gh_patch(api, endpoint; options...), String))
+gh_get_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(http_payload(gh_get(api, endpoint; options...), String))
+gh_post_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(http_payload(gh_post(api, endpoint; options...), String))
+gh_put_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(http_payload(gh_put(api, endpoint; options...), String))
+gh_delete_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(http_payload(gh_delete(api, endpoint; options...), String))
+gh_patch_json(api::GitHubAPI, endpoint = ""; options...) = JSON.parse(http_payload(gh_patch(api, endpoint; options...), String))
 
 #################
 # Rate Limiting #
@@ -379,7 +421,7 @@ end
 # for APIs which return just a list
 function gh_get_paged_json(api, endpoint = ""; options...)
     results, page_data = github_paged_get(api, endpoint; options...)
-    parsed_results = mapreduce(r -> JSON.parse(HTTP.payload(r, String)), vcat, results)
+    parsed_results = mapreduce(r -> JSON.parse(http_payload(r, String)), vcat, results)
     if !(isa(parsed_results, Vector))
         parsed_results = [parsed_results]
     end
@@ -391,7 +433,7 @@ function gh_get_paged_json(api, endpoint, key; options...)
     results, page_data = github_paged_get(api, endpoint; options...)
     local total_count
     list = mapreduce(vcat, results) do r
-        dict = JSON.parse(HTTP.payload(r, String))
+        dict = JSON.parse(http_payload(r, String))
         total_count = dict["total_count"]
         dict[key]
     end
@@ -405,7 +447,7 @@ end
 function handle_response_error(r::HTTP.Response)
     if r.status >= 400
         message, docs_url, errors = "", "", ""
-        body = HTTP.payload(r, String)
+        body = http_payload(r, String)
         try
             data = JSON.parse(body)
             message = get(data, "message", "")
