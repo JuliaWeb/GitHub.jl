@@ -48,6 +48,11 @@ isorg(owner::Owner) = something(owner.typ, "") == "Organization"
     return Owner(result)
 end
 
+@api_default function myorgs(api::GitHubAPI; options...)
+    results, page_data = gh_get_paged_json(api, "/user/orgs"; options...)
+    return map(Owner, results), page_data
+end
+
 @api_default owner(api::GitHubAPI, owner_obj::Owner; options...) = owner(api, name(owner_obj), isorg(owner_obj); options...)
 
 @api_default function owner(api::GitHubAPI, owner_obj, isorg = false; options...)
