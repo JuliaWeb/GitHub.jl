@@ -234,12 +234,51 @@ end
 
 @testset "Activity" begin
     # test GitHub.stargazers, GitHub.starred
-    @test length(first(stargazers(ghjl; auth = auth))) > 10 # every package should fail tests if it's not popular enough :p
-    @test_skip hasghobj(ghjl, first(starred(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
+    stargazers_list, stargazers_page = stargazers(ghjl; auth)
+    @test stargazers_list isa Vector{Owner}
+    @test stargazers_page isa Dict
+    @test all(x -> x isa Owner, stargazers_list)
+    @test !isempty(stargazers_list)
 
-    # test GitHub.watched, GitHub.watched
-    @test_skip hasghobj(testuser, first(watchers(ghjl; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
-    @test_skip hasghobj(ghjl, first(watched(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
+    starred_list, starred_page = starred(testuser; auth = auth)
+    @test starred_list isa Vector{Repo}
+    @test starred_page isa Dict
+    @test all(x -> x isa Repo, starred_list)
+    if is_ci
+        if is_gha_token
+            @test_skip "starred_list non-empty check skipped for GHA token"
+        else
+            @test !isempty(starred_list)
+        end
+    else
+        @test_skip "starred_list non-empty check skipped outside CI"
+    end
+
+    # test GitHub.watched
+    repo_info = repo(ghjl; auth = auth)
+    watchers_list, watchers_page = watchers(ghjl; auth = auth)
+    @test watchers_list isa Vector{Owner}
+    @test watchers_page isa Dict
+    @test all(x -> x isa Owner, watchers_list)
+    @test !isempty(watchers_list)
+    if repo_info.subscribers_count !== nothing
+        @test length(watchers_list) == repo_info.subscribers_count
+    end
+
+    # Test GitHub.watched
+    watched_list, watched_page = watched(testuser; auth = auth)
+    @test watched_list isa Vector{Repo}
+    @test watched_page isa Dict
+    @test all(x -> x isa Repo, watched_list)
+    if is_ci
+        if is_gha_token
+            @test_skip "watched_list non-empty check skipped for GHA token"
+        else
+            @test !isempty(watched_list)
+        end
+    else
+        @test_skip "watched_list non-empty check skipped outside CI"
+    end
 end
 
 testbot_key =

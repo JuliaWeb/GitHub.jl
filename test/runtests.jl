@@ -3,6 +3,8 @@ using Dates, Test, Base64
 using GitHub: Branch, name
 using GitHub.Checks
 
+const is_ci = tryparse(Bool, get(ENV, "CI", "")) == true
+
 @testset "GitHub.jl" begin
 
     include("ghtype_tests.jl")
