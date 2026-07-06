@@ -122,7 +122,7 @@ end
 
     @testset "429 - exponential backoff" begin
         # 429 without specific headers or body
-        resp = HTTP.Response(429, [])
+        resp = HTTP.Response(429)
 
         should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 4.0; verbose=false)
         @test should_retry == true
@@ -143,7 +143,7 @@ end
 
     @testset "Other HTTP errors" begin
         for status in [408, 409, 500, 502, 503, 504, 599]
-            resp = HTTP.Response(status, [])
+            resp = HTTP.Response(status)
 
             should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 3.0; verbose=false)
             @test should_retry == true
@@ -153,7 +153,7 @@ end
 
     @testset "Non-retryable client errors" begin
         for status in [400, 401, 403, 404, 422]
-            resp = HTTP.Response(status, [])
+            resp = HTTP.Response(status)
             should_retry, sleep_seconds = GitHub.github_retry_decision("GET",resp, nothing, 1.0; verbose=false)
             @test should_retry == false
             @test sleep_seconds == 0.0
@@ -270,11 +270,13 @@ end
             push!(sleep_calls, seconds)
         end
 
-        # Test with recoverable exception (for GET method)
+        # Test with recoverable exception (for GET method). Use EOFError: HTTP.jl
+        # classifies it as recoverable in both 1.x and 2.x (raw Base.IOError is
+        # only recoverable under 1.x).
         result = GitHub.with_retries(method="GET", max_retries=2, verbose=false, sleep_fn=test_sleep) do
             call_count[] += 1
             if call_count[] < 3
-                throw(Base.IOError("connection refused", 111))
+                throw(EOFError())
             else
                 return HTTP.Response(200)
             end
@@ -314,10 +316,11 @@ end
     @testset "Max retries exhausted with exception" begin
         call_count = Ref(0)
 
-        # Test exhausting retries with exceptions
-        @test_throws Base.IOError GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=x->nothing) do
+        # Test exhausting retries with exceptions. EOFError is recoverable under
+        # both HTTP.jl 1.x and 2.x.
+        @test_throws EOFError GitHub.with_retries(method="GET", max_retries=1, verbose=false, sleep_fn=x->nothing) do
             call_count[] += 1
-            throw(Base.IOError("persistent error", 104))
+            throw(EOFError())
         end
 
         @test call_count[] ==2  # Initial + 1 retry
