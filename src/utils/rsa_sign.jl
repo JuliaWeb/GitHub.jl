@@ -1,0 +1,170 @@
+# Minimal RSA signing via libcrypto from OpenSSL_jll.
+#
+# Used to sign GitHub App JWTs (RS256, i.e. RSASSA-PKCS1-v1_5 over SHA-256).
+# OpenSSL_jll is already part of the dependency tree through HTTP.jl.
+
+import OpenSSL_jll: libcrypto
+
+struct OpenSSLError <: Exception
+    context::String
+    msg::String
+end
+
+Base.showerror(io::IO, e::OpenSSLError) = print(io, "OpenSSLError in ", e.context, ": ", e.msg)
+
+# libcrypto keeps a per-thread error queue. Every entry point below clears it
+# first, so that an error left behind by some other libcrypto user (e.g. the
+# HTTP.jl TLS backend) is not reported as ours.
+_clear_openssl_errors() = @ccall libcrypto.ERR_clear_error()::Cvoid
+
+function _throw_openssl_error(context::AbstractString)
+    code = @ccall libcrypto.ERR_get_error()::Culong
+    msg = if code == 0
+        "unknown error"
+    else
+        buf = Vector{UInt8}(undef, 256)
+        @ccall libcrypto.ERR_error_string_n(code::Culong, buf::Ptr{UInt8}, length(buf)::Csize_t)::Cvoid
+        GC.@preserve buf unsafe_string(pointer(buf))
+    end
+    _clear_openssl_errors()
+    throw(OpenSSLError(String(context), msg))
+end
+
+# Password callback for `PEM_read_bio_*`. Encrypted keys are not supported, so
+# refuse (-1) instead of letting OpenSSL's default callback prompt on the
+# terminal, which would block a server process.
+_pem_no_password_cb(::Ptr{UInt8}, ::Cint, ::Cint, ::Ptr{Cvoid})::Cint = Cint(-1)
+
+function _check_not_encrypted_pem(pem::AbstractString)
+    # "-----BEGIN ENCRYPTED PRIVATE KEY-----" (PKCS#8) or a legacy
+    # "Proc-Type: 4,ENCRYPTED" header.
+    if occursin("ENCRYPTED", pem)
+        throw(ArgumentError(
+            "Encrypted private keys are not supported. Decrypt the key first, e.g. " *
+            "`openssl pkey -in key.pem -out key-decrypted.pem`."))
+    end
+    return nothing
+end
+
+# Read a PEM-encoded key into an `EVP_PKEY*` with `PEM_read_bio_PrivateKey` or
+# `PEM_read_bio_PUBKEY` (`@ccall` needs the literal symbol, hence the branch).
+# Caller must `EVP_PKEY_free`.
+function _read_pem_key(pem::AbstractString, reader::Symbol)
+    _clear_openssl_errors()
+    # `BIO_new_mem_buf` does not copy the buffer, so `pem_str` must be kept alive
+    # for as long as the BIO is read from.
+    pem_str = String(pem)
+    password_cb = @cfunction(_pem_no_password_cb, Cint, (Ptr{UInt8}, Cint, Cint, Ptr{Cvoid}))
+    GC.@preserve pem_str begin
+        bio = @ccall libcrypto.BIO_new_mem_buf(pem_str::Ptr{UInt8}, sizeof(pem_str)::Cint)::Ptr{Cvoid}
+        bio == C_NULL && _throw_openssl_error("BIO_new_mem_buf")
+        try
+            pkey = if reader === :PEM_read_bio_PrivateKey
+                @ccall libcrypto.PEM_read_bio_PrivateKey(
+                    bio::Ptr{Cvoid}, C_NULL::Ptr{Cvoid}, password_cb::Ptr{Cvoid}, C_NULL::Ptr{Cvoid})::Ptr{Cvoid}
+            elseif reader === :PEM_read_bio_PUBKEY
+                @ccall libcrypto.PEM_read_bio_PUBKEY(
+                    bio::Ptr{Cvoid}, C_NULL::Ptr{Cvoid}, password_cb::Ptr{Cvoid}, C_NULL::Ptr{Cvoid})::Ptr{Cvoid}
+            else
+                throw(ArgumentError("unknown PEM reader $reader"))
+            end
+            pkey == C_NULL && _throw_openssl_error(String(reader))
+            return pkey
+        finally
+            @ccall libcrypto.BIO_free(bio::Ptr{Cvoid})::Cint
+        end
+    end
+end
+
+# Parse a PEM-encoded private key into an `EVP_PKEY*`. Caller must `EVP_PKEY_free`.
+function _load_private_key_pem(pem::AbstractString)
+    _check_not_encrypted_pem(pem)
+    return _read_pem_key(pem, :PEM_read_bio_PrivateKey)
+end
+
+# Load either a PEM private key or a PEM public key. Caller must `EVP_PKEY_free`.
+function _load_key_pem_any(pem::AbstractString)
+    if occursin("PRIVATE KEY", pem)
+        return _load_private_key_pem(pem)
+    end
+    return _read_pem_key(pem, :PEM_read_bio_PUBKEY)
+end
+
+"""
+    rsa_sha256_sign(private_key_pem::AbstractString, data) -> Vector{UInt8}
+
+Sign `data` (a `String` or byte vector) with the RSA private key given as PEM
+text, producing an RSASSA-PKCS1-v1_5 signature over the SHA-256 digest of
+`data`. This is the `RS256` algorithm used for GitHub App JWTs.
+"""
+function rsa_sha256_sign(private_key_pem::AbstractString, data::AbstractString)
+    rsa_sha256_sign(private_key_pem, Vector{UInt8}(codeunits(data)))
+end
+
+function rsa_sha256_sign(private_key_pem::AbstractString, data::Vector{UInt8})
+    pkey = _load_private_key_pem(private_key_pem)
+    _clear_openssl_errors()
+    ctx = C_NULL
+    try
+        ctx = @ccall libcrypto.EVP_MD_CTX_new()::Ptr{Cvoid}
+        ctx == C_NULL && _throw_openssl_error("EVP_MD_CTX_new")
+        md = @ccall libcrypto.EVP_sha256()::Ptr{Cvoid}
+        md == C_NULL && _throw_openssl_error("EVP_sha256")
+        rc = @ccall libcrypto.EVP_DigestSignInit(
+            ctx::Ptr{Cvoid}, C_NULL::Ptr{Ptr{Cvoid}}, md::Ptr{Cvoid}, C_NULL::Ptr{Cvoid}, pkey::Ptr{Cvoid})::Cint
+        rc == 1 || _throw_openssl_error("EVP_DigestSignInit")
+        # NOTE: use `EVP_DigestUpdate` rather than `EVP_DigestSignUpdate`: the latter is
+        # only a macro alias in OpenSSL 1.x and is not an exported symbol there.
+        rc = @ccall libcrypto.EVP_DigestUpdate(ctx::Ptr{Cvoid}, data::Ptr{UInt8}, length(data)::Csize_t)::Cint
+        rc == 1 || _throw_openssl_error("EVP_DigestUpdate (sign)")
+        # First call with a NULL buffer queries the required signature length.
+        siglen = Ref{Csize_t}(0)
+        rc = @ccall libcrypto.EVP_DigestSignFinal(ctx::Ptr{Cvoid}, C_NULL::Ptr{UInt8}, siglen::Ref{Csize_t})::Cint
+        rc == 1 || _throw_openssl_error("EVP_DigestSignFinal (length query)")
+        sig = Vector{UInt8}(undef, siglen[])
+        rc = @ccall libcrypto.EVP_DigestSignFinal(ctx::Ptr{Cvoid}, sig::Ptr{UInt8}, siglen::Ref{Csize_t})::Cint
+        rc == 1 || _throw_openssl_error("EVP_DigestSignFinal")
+        resize!(sig, siglen[])
+        return sig
+    finally
+        ctx != C_NULL && @ccall libcrypto.EVP_MD_CTX_free(ctx::Ptr{Cvoid})::Cvoid
+        @ccall libcrypto.EVP_PKEY_free(pkey::Ptr{Cvoid})::Cvoid
+    end
+end
+
+"""
+    rsa_sha256_verify(key_pem::AbstractString, data, signature) -> Bool
+
+Verify an `RS256` signature produced by [`rsa_sha256_sign`](@ref). Accepts either
+a PEM public key or a PEM private key (whose public part is used).
+"""
+function rsa_sha256_verify(key_pem::AbstractString, data::AbstractString, signature::Vector{UInt8})
+    rsa_sha256_verify(key_pem, Vector{UInt8}(codeunits(data)), signature)
+end
+
+function rsa_sha256_verify(key_pem::AbstractString, data::Vector{UInt8}, signature::Vector{UInt8})
+    pkey = _load_key_pem_any(key_pem)
+    _clear_openssl_errors()
+    ctx = C_NULL
+    try
+        ctx = @ccall libcrypto.EVP_MD_CTX_new()::Ptr{Cvoid}
+        ctx == C_NULL && _throw_openssl_error("EVP_MD_CTX_new")
+        md = @ccall libcrypto.EVP_sha256()::Ptr{Cvoid}
+        md == C_NULL && _throw_openssl_error("EVP_sha256")
+        rc = @ccall libcrypto.EVP_DigestVerifyInit(
+            ctx::Ptr{Cvoid}, C_NULL::Ptr{Ptr{Cvoid}}, md::Ptr{Cvoid}, C_NULL::Ptr{Cvoid}, pkey::Ptr{Cvoid})::Cint
+        rc == 1 || _throw_openssl_error("EVP_DigestVerifyInit")
+        # See the note in `rsa_sha256_sign`: `EVP_DigestVerifyUpdate` is a macro in OpenSSL 1.x.
+        rc = @ccall libcrypto.EVP_DigestUpdate(ctx::Ptr{Cvoid}, data::Ptr{UInt8}, length(data)::Csize_t)::Cint
+        rc == 1 || _throw_openssl_error("EVP_DigestUpdate (verify)")
+        rc = @ccall libcrypto.EVP_DigestVerifyFinal(ctx::Ptr{Cvoid}, signature::Ptr{UInt8}, length(signature)::Csize_t)::Cint
+        # 1 = valid, 0 = invalid signature, <0 = other error
+        rc < 0 && _throw_openssl_error("EVP_DigestVerifyFinal")
+        # An invalid signature leaves an error on the queue; do not let it leak.
+        _clear_openssl_errors()
+        return rc == 1
+    finally
+        ctx != C_NULL && @ccall libcrypto.EVP_MD_CTX_free(ctx::Ptr{Cvoid})::Cvoid
+        @ccall libcrypto.EVP_PKEY_free(pkey::Ptr{Cvoid})::Cvoid
+    end
+end

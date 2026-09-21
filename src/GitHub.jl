@@ -10,22 +10,9 @@ using Base64
 import HTTP,
        URIs,
        JSON,
-       MbedTLS,
+       SHA,
        Sockets,
        SodiumSeal
-
-########
-# init #
-########
-
-const ENTROPY = Ref{MbedTLS.Entropy}()
-const RNG     = Ref{MbedTLS.CtrDrbg}()
-
-function __init__()
-    ENTROPY[] = MbedTLS.Entropy()
-    RNG[]     = MbedTLS.CtrDrbg()
-    MbedTLS.seed!(RNG[], ENTROPY[])
-end
 
 #############
 # Utilities #
@@ -35,6 +22,7 @@ end
 
 include("utils/requests.jl")
 include("utils/GitHubType.jl")
+include("utils/rsa_sign.jl")
 include("utils/auth.jl")
 include("utils/ssh-keys.jl")
 
