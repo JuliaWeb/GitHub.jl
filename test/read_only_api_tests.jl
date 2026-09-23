@@ -275,7 +275,7 @@ testbot_key =
     @test app(4123; auth=auth).name == "femtocleaner"
     @test app("femtocleaner"; auth=auth).name == "femtocleaner"
 
-    jwt = GitHub.JWTAuth(4484, String(base64decode(testbot_key)))
+    jwt = GitHub.JWTAuth(4484, base64decode(testbot_key))
     @test app(; auth=jwt).name == "juliawebtestbot"
 
     @test length(installations(jwt)[1]) == 1

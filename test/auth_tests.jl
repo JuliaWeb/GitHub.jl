@@ -76,7 +76,9 @@ end
 
     # Error handling
     @test_throws GitHub.OpenSSLError GitHub.rsa_sha256_sign("-----BEGIN RSA PRIVATE KEY-----\nnot a key\n-----END RSA PRIVATE KEY-----\n", signing_input)
-    @test_throws GitHub.OpenSSLError GitHub.rsa_sha256_sign(pubpem, signing_input)
+    # A public key is named as such rather than surfacing OpenSSL's bare "unsupported"
+    @test_throws ArgumentError GitHub.rsa_sha256_sign(pubpem, signing_input)
+    @test_throws ArgumentError GitHub.rsa_sha256_sign(Vector{UInt8}(codeunits(pubpem)), signing_input)
     # Encrypted keys are rejected up front rather than prompting for a pass phrase
     @test_throws ArgumentError GitHub.rsa_sha256_sign("-----BEGIN ENCRYPTED PRIVATE KEY-----\nAAAA\n-----END ENCRYPTED PRIVATE KEY-----\n", signing_input)
     for proctype in ("Proc-Type: 4,ENCRYPTED", "Proc-Type:4,ENCRYPTED", "Proc-Type: 4, ENCRYPTED")
@@ -96,6 +98,7 @@ end
     -----END EC PRIVATE KEY-----
     """
     @test_throws ArgumentError GitHub.rsa_sha256_sign(ecpem, signing_input)
+    @test_throws ArgumentError GitHub.rsa_sha256_verify(ecpem, signing_input, sig_bytes)
     # RSA-PSS keys are restricted to PSS padding and would yield a PS256 signature
     # Throwaway key generated for this test (`openssl genpkey -algorithm RSA-PSS -pkeyopt rsa_keygen_bits:1024`)
     psspem = """

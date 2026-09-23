@@ -315,7 +315,7 @@ appauth = JWTAuth(1234, "privkey.pem") # Replace with your app id/privkey file (
 The key file may be PEM- or DER-encoded. To avoid re-reading and re-parsing the
 key every time a JWT is created, parse it once with `GitHub.RSAPrivateKey`:
 ```
-key = GitHub.RSAPrivateKey(read("privkey.pem"))
+key = GitHub.RSAPrivateKey("privkey.pem")
 appauth = JWTAuth(1234, key)
 ```
 

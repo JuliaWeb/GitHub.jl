@@ -17,17 +17,17 @@ Base.showerror(io::IO, e::OpenSSLError) = print(io, "OpenSSLError in ", e.contex
 # HTTP.jl TLS backend) is not reported as ours.
 _clear_openssl_errors() = @ccall libcrypto.ERR_clear_error()::Cvoid
 
+# Drain the whole error queue (oldest first): a single failure typically pushes
+# several entries, and the most descriptive one is usually the last (e.g. "PEM
+# routines::bad password read" after a couple of "interrupted or cancelled").
 function _throw_openssl_error(context::AbstractString)
-    code = @ccall libcrypto.ERR_get_error()::Culong
-    msg = if code == 0
-        "unknown error"
-    else
-        buf = Vector{UInt8}(undef, 256)
+    msgs = String[]
+    buf = Vector{UInt8}(undef, 256)
+    while (code = @ccall libcrypto.ERR_get_error()::Culong) != 0
         @ccall libcrypto.ERR_error_string_n(code::Culong, buf::Ptr{UInt8}, length(buf)::Csize_t)::Cvoid
-        GC.@preserve buf unsafe_string(pointer(buf))
+        push!(msgs, GC.@preserve buf unsafe_string(pointer(buf)))
     end
-    _clear_openssl_errors()
-    throw(OpenSSLError(String(context), msg))
+    throw(OpenSSLError(String(context), isempty(msgs) ? "unknown error" : join(msgs, "; ")))
 end
 
 # Password callback for `PEM_read_bio_*`. Encrypted keys are not supported, so
@@ -81,6 +81,11 @@ end
 # Parse a PEM-encoded private key into an `EVP_PKEY*`. Caller must `EVP_PKEY_free`.
 function _load_private_key_pem(pem::AbstractString)
     _check_not_encrypted_pem(pem)
+    # Name the public-key case (as the DER path does) instead of surfacing OpenSSL's
+    # bare "DECODER routines::unsupported".
+    if occursin("PUBLIC KEY-----", pem) && !occursin("PRIVATE KEY-----", pem)
+        throw(ArgumentError("The PEM data is a public key; RS256 signing requires the RSA private key"))
+    end
     return _read_pem_key(pem, :PEM_read_bio_PrivateKey)
 end
 
@@ -110,12 +115,15 @@ function _pkey_base_id(pkey::Ptr{Cvoid})
     return ccall(fptr, Cint, (Ptr{Cvoid},), pkey)
 end
 
-function _check_rsa_key(pkey::Ptr{Cvoid})
+# Check the key type, freeing `pkey` if it is rejected, so that callers can take
+# ownership of the returned pointer unconditionally.
+function _checked_rsa_key(pkey::Ptr{Cvoid})
     if _pkey_base_id(pkey) != _EVP_PKEY_RSA
+        @ccall libcrypto.EVP_PKEY_free(pkey::Ptr{Cvoid})::Cvoid
         _clear_openssl_errors()
-        throw(ArgumentError("RS256 signing requires an RSA (not RSA-PSS) private key"))
+        throw(ArgumentError("RS256 requires an RSA (not RSA-PSS) key"))
     end
-    return nothing
+    return pkey
 end
 
 # A PKCS#8 `EncryptedPrivateKeyInfo` is a SEQUENCE whose first element is the
@@ -185,7 +193,7 @@ end
 
 function RSAPrivateKey(key::AbstractString)
     occursin("-----BEGIN", key) && return _wrap_rsa_key(_load_private_key_pem(key))
-    _isfile_nothrow(key) && return RSAPrivateKey(read(key))
+    _isfile_nothrow(key) && return _rsa_key_from_bytes!(read(key))
     throw(ArgumentError(
         "key must be the path to a PEM- or DER-encoded RSA private key file, or the PEM text itself"))
 end
@@ -201,25 +209,21 @@ function _isfile_nothrow(path::AbstractString)
     end
 end
 
-function RSAPrivateKey(key::AbstractVector{UInt8})
+# The caller's vector is copied once here; `_rsa_key_from_bytes!` then owns it.
+RSAPrivateKey(key::AbstractVector{UInt8}) = _rsa_key_from_bytes!(Vector{UInt8}(key))
+
+# Takes ownership of `key` (`String(::Vector{UInt8})` empties the buffer).
+function _rsa_key_from_bytes!(key::Vector{UInt8})
     # DER starts with an ASN.1 SEQUENCE tag; PEM with "-----BEGIN" (or whitespace).
     pkey = if !isempty(key) && first(key) == 0x30
-        _load_private_key_der(Vector{UInt8}(key))
+        _load_private_key_der(key)
     else
-        _load_private_key_pem(String(copy(key)))
+        _load_private_key_pem(String(key))
     end
     return _wrap_rsa_key(pkey)
 end
 
-function _wrap_rsa_key(pkey::Ptr{Cvoid})
-    try
-        _check_rsa_key(pkey)
-    catch
-        @ccall libcrypto.EVP_PKEY_free(pkey::Ptr{Cvoid})::Cvoid
-        rethrow()
-    end
-    return RSAPrivateKey(_TakeOwnership(), pkey)
-end
+_wrap_rsa_key(pkey::Ptr{Cvoid}) = RSAPrivateKey(_TakeOwnership(), _checked_rsa_key(pkey))
 
 # Parse `key` into a temporary `RSAPrivateKey`, pass it to `f`, and free it
 # straight away rather than waiting for GC.
@@ -312,7 +316,10 @@ rsa_sha256_verify(key_pem::AbstractString, data::AbstractVector{UInt8}, signatur
     rsa_sha256_verify(key_pem, Vector{UInt8}(data), Vector{UInt8}(signature))
 
 function rsa_sha256_verify(key_pem::AbstractString, data::Vector{UInt8}, signature::Vector{UInt8})
-    pkey = _load_key_pem_any(key_pem)
+    # Reject non-RSA keys here too: with an EC key `EVP_DigestVerifyFinal` fails with
+    # an empty error queue ("unknown error"), and an RSA-PSS key would silently
+    # verify PSS signatures instead of RS256 ones.
+    pkey = _checked_rsa_key(_load_key_pem_any(key_pem))
     _clear_openssl_errors()
     ctx = C_NULL
     try
