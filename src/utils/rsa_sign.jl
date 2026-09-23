@@ -94,10 +94,19 @@ end
 # whichever symbol this libcrypto has.
 const _EVP_PKEY_RSA = Cint(6)  # NID_rsaEncryption
 
+# Resolved lazily at runtime (a function pointer cannot be baked into the
+# precompile cache) and cached, so that the symbol lookup happens once per session
+# rather than on every key parse.
+const _pkey_base_id_fptr = Ref{Ptr{Cvoid}}(C_NULL)
+
 function _pkey_base_id(pkey::Ptr{Cvoid})
-    lib = Libc.Libdl.dlopen(libcrypto)
-    fptr = Libc.Libdl.dlsym(lib, :EVP_PKEY_get_base_id; throw_error = false)
-    fptr === nothing && (fptr = Libc.Libdl.dlsym(lib, :EVP_PKEY_base_id))
+    fptr = _pkey_base_id_fptr[]
+    if fptr == C_NULL
+        lib = Libc.Libdl.dlopen(libcrypto)
+        fptr = Libc.Libdl.dlsym(lib, :EVP_PKEY_get_base_id; throw_error = false)
+        fptr === nothing && (fptr = Libc.Libdl.dlsym(lib, :EVP_PKEY_base_id))
+        _pkey_base_id_fptr[] = fptr
+    end
     return ccall(fptr, Cint, (Ptr{Cvoid},), pkey)
 end
 
@@ -112,15 +121,18 @@ end
 # A PKCS#8 `EncryptedPrivateKeyInfo` is a SEQUENCE whose first element is the
 # encryption `AlgorithmIdentifier` (another SEQUENCE, tag 0x30), whereas unencrypted
 # PKCS#1 and PKCS#8 keys start with a version INTEGER (tag 0x02). Detect the former
-# so that it gets the same clear error as an encrypted PEM key.
+# so that it gets the same clear error as an encrypted PEM key. A DER
+# `SubjectPublicKeyInfo` (a public key) has the same shape, so name that case too
+# rather than misreporting it as encrypted.
 function _check_not_encrypted_der(der::Vector{UInt8})
     length(der) >= 2 || return nothing
     # Skip the outer SEQUENCE header: short-form length, or 0x8n + n length bytes.
     hdr = der[2] < 0x80 ? 2 : 2 + Int(der[2] & 0x7f)
     if length(der) > hdr && der[hdr + 1] == 0x30
         throw(ArgumentError(
-            "Encrypted private keys are not supported. Decrypt the key first, e.g. " *
-            "`openssl pkey -inform DER -in key.der -out key-decrypted.pem`."))
+            "Not an unencrypted private key: the DER data is an encrypted (PKCS#8) " *
+            "private key or a public key. Encrypted keys are not supported; decrypt " *
+            "the key first, e.g. `openssl pkey -inform DER -in key.der -out key-decrypted.pem`."))
     end
     return nothing
 end
@@ -148,6 +160,8 @@ An RSA private key parsed once, so that it can be reused for many signatures
 string, or the PEM or DER encoding as bytes.
 Encrypted keys and non-RSA keys (including RSA-PSS) are rejected.
 """
+RSAPrivateKey
+
 # Marker for the internal constructor below.
 struct _TakeOwnership end
 
