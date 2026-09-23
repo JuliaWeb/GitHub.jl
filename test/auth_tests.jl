@@ -26,13 +26,20 @@ auth2 = GitHub.JWTAuth(1234, keypem; iat = DateTime("2016-9-15T14:00"))
     iat = DateTime("2016-9-15T14:00")
     # PEM bytes
     @test GitHub.JWTAuth(1234, Vector{UInt8}(codeunits(keypem)); iat = iat).JWT == correct_jwt
-    # DER, as bytes and as a file (`openssl pkey -in not_a_real_key.pem -outform DER`)
+    # PKCS#1 DER (the base64 body of the "BEGIN RSA PRIVATE KEY" PEM), as bytes and as a file
     der = base64decode(join(filter(l -> !startswith(l, "-----"), split(strip(keypem), '\n'))))
     @test GitHub.JWTAuth(1234, der; iat = iat).JWT == correct_jwt
     mktemp() do path, io
         write(io, der); close(io)
         @test GitHub.JWTAuth(1234, path; iat = iat).JWT == correct_jwt
     end
+    # PKCS#8 DER, as `openssl pkey -in not_a_real_key.pem -outform DER` emits:
+    # SEQUENCE { INTEGER 0, SEQUENCE { OID rsaEncryption, NULL }, OCTET STRING { pkcs1 } }
+    der_len(n) = n < 0x80 ? UInt8[n] : (b = reverse(digits(UInt8, n; base = 256)); UInt8[0x80 | length(b); b])
+    der_tlv(tag, content) = UInt8[tag; der_len(length(content)); content]
+    rsa_oid = der_tlv(0x06, UInt8[0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01])
+    pkcs8 = der_tlv(0x30, [der_tlv(0x02, UInt8[0x00]); der_tlv(0x30, [rsa_oid; der_tlv(0x05, UInt8[])]); der_tlv(0x04, der)])
+    @test GitHub.JWTAuth(1234, pkcs8; iat = iat).JWT == correct_jwt
     @test_throws GitHub.OpenSSLError GitHub.JWTAuth(1234, UInt8[0x30, 0x03, 0x02, 0x01, 0x00])
     # A parsed key can be reused
     key = GitHub.RSAPrivateKey(keypem)

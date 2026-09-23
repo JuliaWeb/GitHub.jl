@@ -48,10 +48,18 @@ function _check_not_encrypted_pem(pem::AbstractString)
     return nothing
 end
 
-# Read a PEM-encoded key into an `EVP_PKEY*` with `PEM_read_bio_PrivateKey` or
-# `PEM_read_bio_PUBKEY` (`@ccall` needs the literal symbol, hence the branch).
-# Caller must `EVP_PKEY_free`.
-function _read_pem_key(pem::AbstractString, reader::Symbol)
+# `PEM_read_bio_PrivateKey` / `PEM_read_bio_PUBKEY` behind one call shape, so that
+# `_read_pem_key` can take either (`@ccall` needs the literal symbol).
+_pem_read_private_key(bio::Ptr{Cvoid}, password_cb::Ptr{Cvoid}) =
+    @ccall libcrypto.PEM_read_bio_PrivateKey(
+        bio::Ptr{Cvoid}, C_NULL::Ptr{Cvoid}, password_cb::Ptr{Cvoid}, C_NULL::Ptr{Cvoid})::Ptr{Cvoid}
+_pem_read_public_key(bio::Ptr{Cvoid}, password_cb::Ptr{Cvoid}) =
+    @ccall libcrypto.PEM_read_bio_PUBKEY(
+        bio::Ptr{Cvoid}, C_NULL::Ptr{Cvoid}, password_cb::Ptr{Cvoid}, C_NULL::Ptr{Cvoid})::Ptr{Cvoid}
+
+# Read a PEM-encoded key into an `EVP_PKEY*` with `reader` (one of the two above);
+# `context` names the libcrypto function in the error. Caller must `EVP_PKEY_free`.
+function _read_pem_key(pem::AbstractString, reader::F, context::String) where {F}
     _clear_openssl_errors()
     # `BIO_new_mem_buf` does not copy the buffer, so `pem_str` must be kept alive
     # for as long as the BIO is read from.
@@ -61,16 +69,8 @@ function _read_pem_key(pem::AbstractString, reader::Symbol)
         bio = @ccall libcrypto.BIO_new_mem_buf(pem_str::Ptr{UInt8}, sizeof(pem_str)::Cint)::Ptr{Cvoid}
         bio == C_NULL && _throw_openssl_error("BIO_new_mem_buf")
         try
-            pkey = if reader === :PEM_read_bio_PrivateKey
-                @ccall libcrypto.PEM_read_bio_PrivateKey(
-                    bio::Ptr{Cvoid}, C_NULL::Ptr{Cvoid}, password_cb::Ptr{Cvoid}, C_NULL::Ptr{Cvoid})::Ptr{Cvoid}
-            elseif reader === :PEM_read_bio_PUBKEY
-                @ccall libcrypto.PEM_read_bio_PUBKEY(
-                    bio::Ptr{Cvoid}, C_NULL::Ptr{Cvoid}, password_cb::Ptr{Cvoid}, C_NULL::Ptr{Cvoid})::Ptr{Cvoid}
-            else
-                throw(ArgumentError("unknown PEM reader $reader"))
-            end
-            pkey == C_NULL && _throw_openssl_error(String(reader))
+            pkey = reader(bio, password_cb)
+            pkey == C_NULL && _throw_openssl_error(context)
             return pkey
         finally
             @ccall libcrypto.BIO_free(bio::Ptr{Cvoid})::Cint
@@ -86,7 +86,7 @@ function _load_private_key_pem(pem::AbstractString)
     if occursin("PUBLIC KEY-----", pem) && !_pem_has_private_key(pem)
         throw(ArgumentError("The PEM data is a public key; RS256 signing requires the RSA private key"))
     end
-    return _read_pem_key(pem, :PEM_read_bio_PrivateKey)
+    return _read_pem_key(pem, _pem_read_private_key, "PEM_read_bio_PrivateKey")
 end
 
 _pem_has_private_key(pem::AbstractString) = occursin("PRIVATE KEY-----", pem)
@@ -161,6 +161,9 @@ function _load_private_key_der(der::Vector{UInt8})
     return pkey
 end
 
+# Marker for the internal constructor below.
+struct _TakeOwnership end
+
 """
     RSAPrivateKey(key)
 
@@ -170,11 +173,6 @@ An RSA private key parsed once, so that it can be reused for many signatures
 string, or the PEM or DER encoding as bytes.
 Encrypted keys and non-RSA keys (including RSA-PSS) are rejected.
 """
-RSAPrivateKey
-
-# Marker for the internal constructor below.
-struct _TakeOwnership end
-
 mutable struct RSAPrivateKey
     ptr::Ptr{Cvoid}
     # Only called by `_wrap_rsa_key`, which has checked the key type and transfers
@@ -256,7 +254,7 @@ end
 # Load either a PEM private key or a PEM public key. Caller must `EVP_PKEY_free`.
 function _load_key_pem_any(pem::AbstractString)
     _pem_has_private_key(pem) && return _load_private_key_pem(pem)
-    return _read_pem_key(pem, :PEM_read_bio_PUBKEY)
+    return _read_pem_key(pem, _pem_read_public_key, "PEM_read_bio_PUBKEY")
 end
 
 """
