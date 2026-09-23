@@ -85,13 +85,25 @@ end
 
 # `EVP_DigestSign*` signs with whatever key type it is given, so an EC key would
 # silently yield an ECDSA signature in a JWT whose header claims RS256. Reject
-# non-RSA keys. (`EVP_PKEY_get0_RSA` is exported by both OpenSSL 1.1 and 3.x,
-# unlike `EVP_PKEY_id`/`EVP_PKEY_get_id`, and returns NULL for non-RSA keys.)
+# non-RSA keys. RSA-PSS keys (`EVP_PKEY_RSA_PSS`) must be rejected too: they are
+# restricted to PSS padding, so they would yield a (randomized) PS256 signature.
+# `EVP_PKEY_get0_RSA` cannot tell the two apart, so compare the base key type.
+# That function is exported as `EVP_PKEY_base_id` by OpenSSL 1.1 but as
+# `EVP_PKEY_get_base_id` by 3.x (where the old name is only a macro), so look up
+# whichever symbol this libcrypto has.
+const _EVP_PKEY_RSA = Cint(6)  # NID_rsaEncryption
+
+function _pkey_base_id(pkey::Ptr{Cvoid})
+    lib = Libc.Libdl.dlopen(libcrypto)
+    fptr = Libc.Libdl.dlsym(lib, :EVP_PKEY_get_base_id; throw_error = false)
+    fptr === nothing && (fptr = Libc.Libdl.dlsym(lib, :EVP_PKEY_base_id))
+    return ccall(fptr, Cint, (Ptr{Cvoid},), pkey)
+end
+
 function _check_rsa_key(pkey::Ptr{Cvoid})
-    rsa = @ccall libcrypto.EVP_PKEY_get0_RSA(pkey::Ptr{Cvoid})::Ptr{Cvoid}
-    if rsa == C_NULL
+    if _pkey_base_id(pkey) != _EVP_PKEY_RSA
         _clear_openssl_errors()
-        throw(ArgumentError("RS256 signing requires an RSA private key"))
+        throw(ArgumentError("RS256 signing requires an RSA (not RSA-PSS) private key"))
     end
     return nothing
 end

@@ -65,11 +65,22 @@ end
 function _private_key_pem(privkey::AbstractString)
     if occursin("PRIVATE KEY", privkey)
         return String(privkey)
-    elseif isfile(privkey)
+    elseif _isfile_nothrow(privkey)
         return read(privkey, String)
     else
         throw(ArgumentError(
             "privkey must be the path to a PEM-encoded RSA private key file, or the PEM text itself"))
+    end
+end
+
+# `isfile` throws instead of returning `false` for strings that cannot be a path,
+# e.g. a base64-encoded key (`ENAMETOOLONG`) or one containing NUL bytes.
+function _isfile_nothrow(path::AbstractString)
+    try
+        return isfile(path)
+    catch err
+        err isa Union{Base.IOError, ArgumentError} || rethrow()
+        return false
     end
 end
 

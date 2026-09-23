@@ -11,17 +11,7 @@ wsQxsZgWFIz6hodiw_q45bHYsLw
 keyfile = joinpath(dirname(@__FILE__), "not_a_real_key.pem")
 keypem = read(keyfile, String)
 # Public half of not_a_real_key.pem (`openssl pkey -in not_a_real_key.pem -pubout`)
-pubpem = """
------BEGIN PUBLIC KEY-----
-MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA8IyF2xKWh/GQ10rAVKP7
-G27z/wdSpc6pX1BRbB17FAo5gzHfH1eb/OjCFPJ1/VELVs1/muO+pBDbXi6Sb2+7
-tPIkE0qXBsI6kfH16r3Tb5BiXCjTjBQGMpOCq/nohi5EsZ8YTyIKdwLkAeujsRVk
-vKvW3i3rgj/znNpJq3GDDnW4kf10xU1BfE2dtKrpQyCJ8VjUoNVQ4f9CBX4fx4EE
-+KK3JFyd9gPE5MbJ9cw0Y9FNtrkMODHW6W/N24ArvrbLThI0wKzbkKPP6sLTCPGp
-VsCUjUz+VVZT9h1X1mo4TL8AssID8PtQqk+q6qWw4r3A6tCw6po2idhsRDSbaIWH
-NQIDAQAB
------END PUBLIC KEY-----
-"""
+pubpem = read(joinpath(dirname(@__FILE__), "pubkey.pem"), String)
 
 # Fix iat, to make sure the payload is reproducible. The key can be given as a
 # file path or as the PEM text.
@@ -66,8 +56,34 @@ auth2 = GitHub.JWTAuth(1234, keypem; iat = DateTime("2016-9-15T14:00"))
     -----END EC PRIVATE KEY-----
     """
     @test_throws ArgumentError GitHub.rsa_sha256_sign(ecpem, signing_input)
+    # RSA-PSS keys are restricted to PSS padding and would yield a PS256 signature
+    # Throwaway key generated for this test (`openssl genpkey -algorithm RSA-PSS -pkeyopt rsa_keygen_bits:1024`)
+    psspem = """
+    -----BEGIN PRIVATE KEY-----
+    MIICdQIBADALBgkqhkiG9w0BAQoEggJhMIICXQIBAAKBgQC0lqGYJYjxVoHUjjHu
+    RjvAZdgxE391yDvAYzJiYWw+ZsTqYzrKbKDKlrzrogwhzNBECudmdYzeuH6YJ54a
+    tLe/dyPrXa2NMnJqSDiVfeznbMeMOlNw37fBn28Whi2QiZk6R0vBGNsyR5SfgrCb
+    P+6wGFGfUn9A+o6HRPgWy4LldwIDAQABAoGAPnyku7W5NfD+CaOOSWmKAV/8N7cM
+    cp/vdPmeFIarYshCuOvPCv4dgRw5kLtIwWVSZ0jymvRv4x0pyNJklc8UiRoNhERM
+    9r2K4w2RzRT3sQhh/wn56/Obzz4Z3qsgh+bfaw2IRT8Ux9svSisTYHt6WsKgmMmt
+    BkE2zwx7cxjKNnkCQQDY6oAnEKLLKNQPi7SH7MAjcGSRro95uCr5c6aIa0acdkYo
+    xySKUJHjM/B9MmIXMs2eTBEGAAW+UNxglKhbkO6zAkEA1SB6VNHTmvYWO7DslHSF
+    KivYfVFDjNAEt4M/E3/OxTcSRcnn33MCvfQ5/vB2HCMkZ4mh015TJ2l6Ib0DnktQ
+    LQJAGnw3fY2YcvnfOq6yMk6D/0+/19HajuAfzymB0fJXQs9mLaBzI7hGt9klqgO2
+    2mJHnOZoxbTG/r/cyKYeEGAX5QJBAIP2lyhbv50skHmnQ+Vr/GQvP93gamYPC0yh
+    nHWzZlEgl1TU/piRuvno9dwQAeHMNKdTRfr9ZZl6qt+nDE2ALoUCQQC9ewaDmKz3
+    jf5lkmeA6IFJK1pk9ZzJxrXNJAGcNXhqSfMDXVuufNcQwgp+Fa/FjaJobBdTAtcm
+    NiCQPBAHB2QT
+    -----END PRIVATE KEY-----
+    """
+    @test_throws ArgumentError GitHub.rsa_sha256_sign(psspem, signing_input)
     # Neither a PEM nor an existing file
     @test_throws ArgumentError GitHub.JWTAuth(1234, "definitely/not/a/file.pem")
+    # Strings that cannot be a path (e.g. a base64-encoded key) get the same error,
+    # not an `IOError` from `stat`
+    @test_throws ArgumentError GitHub.JWTAuth(1234, base64encode(keypem))
+    @test_throws ArgumentError GitHub.JWTAuth(1234, "a"^300)
+    @test_throws ArgumentError GitHub.JWTAuth(1234, "a\0b")
 end
 
 @test_throws ArgumentError GitHub.OAuth2("ghp_\n")
