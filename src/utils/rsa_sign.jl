@@ -37,8 +37,9 @@ _pem_no_password_cb(::Ptr{UInt8}, ::Cint, ::Cint, ::Ptr{Cvoid})::Cint = Cint(-1)
 
 function _check_not_encrypted_pem(pem::AbstractString)
     # "-----BEGIN ENCRYPTED PRIVATE KEY-----" (PKCS#8) or a legacy
-    # "Proc-Type: 4,ENCRYPTED" header.
-    if occursin("ENCRYPTED", pem)
+    # "Proc-Type: 4,ENCRYPTED" header. Match the markers exactly rather than the bare
+    # word, which could also occur inside the base64 body.
+    if occursin("-----BEGIN ENCRYPTED", pem) || occursin("Proc-Type: 4,ENCRYPTED", pem)
         throw(ArgumentError(
             "Encrypted private keys are not supported. Decrypt the key first, e.g. " *
             "`openssl pkey -in key.pem -out key-decrypted.pem`."))
@@ -82,6 +83,19 @@ function _load_private_key_pem(pem::AbstractString)
     return _read_pem_key(pem, :PEM_read_bio_PrivateKey)
 end
 
+# `EVP_DigestSign*` signs with whatever key type it is given, so an EC key would
+# silently yield an ECDSA signature in a JWT whose header claims RS256. Reject
+# non-RSA keys. (`EVP_PKEY_get0_RSA` is exported by both OpenSSL 1.1 and 3.x,
+# unlike `EVP_PKEY_id`/`EVP_PKEY_get_id`, and returns NULL for non-RSA keys.)
+function _check_rsa_key(pkey::Ptr{Cvoid})
+    rsa = @ccall libcrypto.EVP_PKEY_get0_RSA(pkey::Ptr{Cvoid})::Ptr{Cvoid}
+    if rsa == C_NULL
+        _clear_openssl_errors()
+        throw(ArgumentError("RS256 signing requires an RSA private key"))
+    end
+    return nothing
+end
+
 # Load either a PEM private key or a PEM public key. Caller must `EVP_PKEY_free`.
 function _load_key_pem_any(pem::AbstractString)
     if occursin("PRIVATE KEY", pem)
@@ -101,11 +115,15 @@ function rsa_sha256_sign(private_key_pem::AbstractString, data::AbstractString)
     rsa_sha256_sign(private_key_pem, Vector{UInt8}(codeunits(data)))
 end
 
+rsa_sha256_sign(private_key_pem::AbstractString, data::AbstractVector{UInt8}) =
+    rsa_sha256_sign(private_key_pem, Vector{UInt8}(data))
+
 function rsa_sha256_sign(private_key_pem::AbstractString, data::Vector{UInt8})
     pkey = _load_private_key_pem(private_key_pem)
     _clear_openssl_errors()
     ctx = C_NULL
     try
+        _check_rsa_key(pkey)
         ctx = @ccall libcrypto.EVP_MD_CTX_new()::Ptr{Cvoid}
         ctx == C_NULL && _throw_openssl_error("EVP_MD_CTX_new")
         md = @ccall libcrypto.EVP_sha256()::Ptr{Cvoid}
@@ -138,9 +156,12 @@ end
 Verify an `RS256` signature produced by [`rsa_sha256_sign`](@ref). Accepts either
 a PEM public key or a PEM private key (whose public part is used).
 """
-function rsa_sha256_verify(key_pem::AbstractString, data::AbstractString, signature::Vector{UInt8})
+function rsa_sha256_verify(key_pem::AbstractString, data::AbstractString, signature::AbstractVector{UInt8})
     rsa_sha256_verify(key_pem, Vector{UInt8}(codeunits(data)), signature)
 end
+
+rsa_sha256_verify(key_pem::AbstractString, data::AbstractVector{UInt8}, signature::AbstractVector{UInt8}) =
+    rsa_sha256_verify(key_pem, Vector{UInt8}(data), Vector{UInt8}(signature))
 
 function rsa_sha256_verify(key_pem::AbstractString, data::Vector{UInt8}, signature::Vector{UInt8})
     pkey = _load_key_pem_any(key_pem)

@@ -35,7 +35,7 @@ auth2 = GitHub.JWTAuth(1234, keypem; iat = DateTime("2016-9-15T14:00"))
 @testset "RS256 signing" begin
     header, payload, sig = split(correct_jwt, '.')
     signing_input = string(header, '.', payload)
-    sig_bytes = base64decode(string(sig, "=" ^ (4 - length(sig) % 4)) |> s -> replace(replace(s, '-' => '+'), '_' => '/'))
+    sig_bytes = base64decode(replace(replace(string(sig, "=" ^ mod(-length(sig), 4)), '-' => '+'), '_' => '/'))
     @test GitHub.rsa_sha256_sign(keypem, signing_input) == sig_bytes
     @test length(sig_bytes) == 256  # 2048-bit key
 
@@ -53,6 +53,19 @@ auth2 = GitHub.JWTAuth(1234, keypem; iat = DateTime("2016-9-15T14:00"))
     @test_throws GitHub.OpenSSLError GitHub.rsa_sha256_sign(pubpem, signing_input)
     # Encrypted keys are rejected up front rather than prompting for a pass phrase
     @test_throws ArgumentError GitHub.rsa_sha256_sign("-----BEGIN ENCRYPTED PRIVATE KEY-----\nAAAA\n-----END ENCRYPTED PRIVATE KEY-----\n", signing_input)
+    # Byte-vector views are accepted, not just `Vector{UInt8}`
+    @test GitHub.rsa_sha256_sign(keypem, codeunits(signing_input)) == sig_bytes
+    @test GitHub.rsa_sha256_verify(pubpem, codeunits(signing_input), view(sig_bytes, :))
+    # Non-RSA keys are rejected instead of producing a non-RS256 signature
+    # Throwaway P-256 key generated for this test (`openssl ecparam -name prime256v1 -genkey -noout`)
+    ecpem = """
+    -----BEGIN EC PRIVATE KEY-----
+    MHcCAQEEIHyAiu+3axTFLU/eEgV+pWBfYvFuPV7ltDIBH/cBmO/ioAoGCCqGSM49
+    AwEHoUQDQgAEch1tFqcAjXDF6VhSKYRON+hWWbiVR/45Os4f/wgQgQSGwJk8cWdC
+    cdvvMOQ5ANacCZUSmejGy/hW9yLSXe2Jaw==
+    -----END EC PRIVATE KEY-----
+    """
+    @test_throws ArgumentError GitHub.rsa_sha256_sign(ecpem, signing_input)
     # Neither a PEM nor an existing file
     @test_throws ArgumentError GitHub.JWTAuth(1234, "definitely/not/a/file.pem")
 end
