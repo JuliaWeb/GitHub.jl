@@ -39,6 +39,23 @@ auth2 = GitHub.JWTAuth(1234, keypem; iat = DateTime("2016-9-15T14:00"))
     @test GitHub.JWTAuth(1234, key; iat = iat).JWT == correct_jwt
     @test GitHub.JWTAuth(1234, key; iat = iat).JWT == correct_jwt
     @test !occursin("PRIVATE", sprint(show, key))
+    # A key file path is accepted, as by `JWTAuth`
+    @test GitHub.JWTAuth(1234, GitHub.RSAPrivateKey(keyfile); iat = iat).JWT == correct_jwt
+    # Signing with key bytes works, and an unsupported key type is a MethodError
+    # (not a stack overflow from the forwarding methods)
+    @test GitHub.rsa_sha256_sign(der, "abc") == GitHub.rsa_sha256_sign(keypem, "abc")
+    @test_throws MethodError GitHub.rsa_sha256_sign(1, "abc")
+    @test_throws MethodError GitHub.rsa_sha256_sign(1, UInt8[1])
+    # A freed key is rejected rather than handed to OpenSSL
+    freed = GitHub.RSAPrivateKey(keypem)
+    finalize(freed)
+    @test_throws ArgumentError GitHub.rsa_sha256_sign(freed, "abc")
+    # Raw pointers cannot be wrapped (two owners would double-free the key)
+    @test_throws MethodError GitHub.RSAPrivateKey(key.ptr)
+    # Encrypted DER (PKCS#8 EncryptedPrivateKeyInfo) gets the same clear error as PEM
+    # SEQUENCE { SEQUENCE { NULL } ... }, with short- and long-form outer lengths
+    @test_throws ArgumentError GitHub.RSAPrivateKey(UInt8[0x30, 0x04, 0x30, 0x02, 0x05, 0x00])
+    @test_throws ArgumentError GitHub.RSAPrivateKey(UInt8[0x30, 0x81, 0x04, 0x30, 0x02, 0x05, 0x00])
 end
 
 @testset "RS256 signing" begin

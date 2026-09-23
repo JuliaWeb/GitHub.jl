@@ -109,9 +109,26 @@ function _check_rsa_key(pkey::Ptr{Cvoid})
     return nothing
 end
 
+# A PKCS#8 `EncryptedPrivateKeyInfo` is a SEQUENCE whose first element is the
+# encryption `AlgorithmIdentifier` (another SEQUENCE, tag 0x30), whereas unencrypted
+# PKCS#1 and PKCS#8 keys start with a version INTEGER (tag 0x02). Detect the former
+# so that it gets the same clear error as an encrypted PEM key.
+function _check_not_encrypted_der(der::Vector{UInt8})
+    length(der) >= 2 || return nothing
+    # Skip the outer SEQUENCE header: short-form length, or 0x8n + n length bytes.
+    hdr = der[2] < 0x80 ? 2 : 2 + Int(der[2] & 0x7f)
+    if length(der) > hdr && der[hdr + 1] == 0x30
+        throw(ArgumentError(
+            "Encrypted private keys are not supported. Decrypt the key first, e.g. " *
+            "`openssl pkey -inform DER -in key.der -out key-decrypted.pem`."))
+    end
+    return nothing
+end
+
 # Parse a DER-encoded private key (PKCS#1 or PKCS#8) into an `EVP_PKEY*`. Caller
 # must `EVP_PKEY_free`.
 function _load_private_key_der(der::Vector{UInt8})
+    _check_not_encrypted_der(der)
     _clear_openssl_errors()
     pkey = GC.@preserve der begin
         # `d2i_AutoPrivateKey` advances the pointer it is given, so pass a copy.
@@ -127,12 +144,19 @@ end
 
 An RSA private key parsed once, so that it can be reused for many signatures
 (e.g. for [`JWTAuth`](@ref)) without re-reading and re-parsing it each time.
-`key` is the PEM text as a string, or the PEM or DER encoding as bytes.
+`key` is the PEM text or the path to a PEM- or DER-encoded key file as a
+string, or the PEM or DER encoding as bytes.
 Encrypted keys and non-RSA keys (including RSA-PSS) are rejected.
 """
+# Marker for the internal constructor below.
+struct _TakeOwnership end
+
 mutable struct RSAPrivateKey
     ptr::Ptr{Cvoid}
-    function RSAPrivateKey(ptr::Ptr{Cvoid})
+    # Only called by `_wrap_rsa_key`, which has checked the key type and transfers
+    # ownership of `ptr`; a public `Ptr` constructor would let two objects own (and
+    # free) the same `EVP_PKEY`.
+    function RSAPrivateKey(::_TakeOwnership, ptr::Ptr{Cvoid})
         key = new(ptr)
         finalizer(_free!, key)
         return key
@@ -145,8 +169,22 @@ function _free!(key::RSAPrivateKey)
     return nothing
 end
 
-function RSAPrivateKey(pem::AbstractString)
-    return _wrap_rsa_key(_load_private_key_pem(pem))
+function RSAPrivateKey(key::AbstractString)
+    occursin("-----BEGIN", key) && return _wrap_rsa_key(_load_private_key_pem(key))
+    _isfile_nothrow(key) && return RSAPrivateKey(read(key))
+    throw(ArgumentError(
+        "key must be the path to a PEM- or DER-encoded RSA private key file, or the PEM text itself"))
+end
+
+# `isfile` throws instead of returning `false` for strings that cannot be a path,
+# e.g. a base64-encoded key (`ENAMETOOLONG`) or one containing NUL bytes.
+function _isfile_nothrow(path::AbstractString)
+    try
+        return isfile(path)
+    catch err
+        err isa Union{Base.IOError, ArgumentError} || rethrow()
+        return false
+    end
 end
 
 function RSAPrivateKey(key::AbstractVector{UInt8})
@@ -166,7 +204,18 @@ function _wrap_rsa_key(pkey::Ptr{Cvoid})
         @ccall libcrypto.EVP_PKEY_free(pkey::Ptr{Cvoid})::Cvoid
         rethrow()
     end
-    return RSAPrivateKey(pkey)
+    return RSAPrivateKey(_TakeOwnership(), pkey)
+end
+
+# Parse `key` into a temporary `RSAPrivateKey`, pass it to `f`, and free it
+# straight away rather than waiting for GC.
+function _with_private_key(f, key)
+    k = RSAPrivateKey(key)
+    try
+        return f(k)
+    finally
+        _free!(k)
+    end
 end
 
 Base.show(io::IO, ::RSAPrivateKey) = print(io, "GitHub.RSAPrivateKey(<redacted>)")
@@ -179,32 +228,34 @@ function _load_key_pem_any(pem::AbstractString)
     return _read_pem_key(pem, :PEM_read_bio_PUBKEY)
 end
 
+# The key is constrained (rather than left untyped) so that an unsupported key type
+# is a `MethodError` instead of the two forwarding methods below recursing forever.
+const _SigningKey = Union{RSAPrivateKey, AbstractString, AbstractVector{UInt8}}
+
 """
     rsa_sha256_sign(key, data) -> Vector{UInt8}
 
 Sign `data` (a `String` or byte vector) with the RSA private `key`, given as an
-[`RSAPrivateKey`](@ref) or as PEM text, producing an RSASSA-PKCS1-v1_5 signature
-over the SHA-256 digest of `data`. This is the `RS256` algorithm used for GitHub
-App JWTs.
+[`RSAPrivateKey`](@ref) or in any form `RSAPrivateKey` accepts, producing an
+RSASSA-PKCS1-v1_5 signature over the SHA-256 digest of `data`. This is the
+`RS256` algorithm used for GitHub App JWTs.
 """
-function rsa_sha256_sign(key, data::AbstractString)
+function rsa_sha256_sign(key::_SigningKey, data::AbstractString)
     rsa_sha256_sign(key, Vector{UInt8}(codeunits(data)))
 end
 
-rsa_sha256_sign(key, data::AbstractVector{UInt8}) = rsa_sha256_sign(key, Vector{UInt8}(data))
+rsa_sha256_sign(key::_SigningKey, data::AbstractVector{UInt8}) = rsa_sha256_sign(key, Vector{UInt8}(data))
 
-function rsa_sha256_sign(private_key_pem::AbstractString, data::Vector{UInt8})
-    key = RSAPrivateKey(private_key_pem)
-    try
-        return rsa_sha256_sign(key, data)
-    finally
-        _free!(key)
-    end
-end
+rsa_sha256_sign(key::Union{AbstractString, AbstractVector{UInt8}}, data::Vector{UInt8}) =
+    _with_private_key(k -> rsa_sha256_sign(k, data), key)
 
 function rsa_sha256_sign(key::RSAPrivateKey, data::Vector{UInt8})
     pkey = key.ptr
-    pkey == C_NULL && throw(ArgumentError("RSAPrivateKey has been freed"))
+    # The pointer is also NULL for a key restored from a precompile cache or by
+    # `deserialize`, which do not carry the OpenSSL object over.
+    pkey == C_NULL && throw(ArgumentError(
+        "RSAPrivateKey has been freed or deserialized; create it at runtime " *
+        "(e.g. in the module's `__init__`) instead of storing it in a precompiled constant"))
     _clear_openssl_errors()
     ctx = C_NULL
     GC.@preserve key try

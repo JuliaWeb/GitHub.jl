@@ -64,39 +64,8 @@ function JWTAuth(app_id::Int, privkey::RSAPrivateKey; iat = now(Dates.UTC), exp_
     JWTAuth(string(algo,'.',data,'.',signature))
 end
 
-function JWTAuth(app_id::Int, privkey::Union{AbstractString, AbstractVector{UInt8}}; kwargs...)
-    key = _private_key(privkey)
-    try
-        return JWTAuth(app_id, key; kwargs...)
-    finally
-        _free!(key)
-    end
-end
-
-# Accept a path to a PEM or DER file, the PEM text itself, or the PEM/DER bytes.
-_private_key(privkey::AbstractVector{UInt8}) = RSAPrivateKey(privkey)
-
-function _private_key(privkey::AbstractString)
-    if occursin("PRIVATE KEY", privkey)
-        return RSAPrivateKey(privkey)
-    elseif _isfile_nothrow(privkey)
-        return RSAPrivateKey(read(privkey))
-    else
-        throw(ArgumentError(
-            "privkey must be the path to a PEM- or DER-encoded RSA private key file, or the PEM text itself"))
-    end
-end
-
-# `isfile` throws instead of returning `false` for strings that cannot be a path,
-# e.g. a base64-encoded key (`ENAMETOOLONG`) or one containing NUL bytes.
-function _isfile_nothrow(path::AbstractString)
-    try
-        return isfile(path)
-    catch err
-        err isa Union{Base.IOError, ArgumentError} || rethrow()
-        return false
-    end
-end
+JWTAuth(app_id::Int, privkey::Union{AbstractString, AbstractVector{UInt8}}; kwargs...) =
+    _with_private_key(k -> JWTAuth(app_id, k; kwargs...), privkey)
 
 ###############
 # API Methods #
