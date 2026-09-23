@@ -43,7 +43,8 @@ sig_header(request::HTTP.Request) = HTTP.header(request, "X-Hub-Signature")
 
 function has_valid_secret(request::HTTP.Request, secret)
     if has_sig_header(request)
-        secret_sha = "sha1="*bytes2hex(SHA.hmac_sha1(Vector{UInt8}(codeunits(secret)), http_payload(request)))
+        key = secret isa AbstractString ? Vector{UInt8}(codeunits(secret)) : Vector{UInt8}(secret)
+        secret_sha = "sha1="*bytes2hex(SHA.hmac_sha1(key, http_payload(request)))
         return sig_header(request) == secret_sha
     end
     return false
