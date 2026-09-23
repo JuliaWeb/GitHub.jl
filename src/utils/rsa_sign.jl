@@ -83,11 +83,13 @@ function _load_private_key_pem(pem::AbstractString)
     _check_not_encrypted_pem(pem)
     # Name the public-key case (as the DER path does) instead of surfacing OpenSSL's
     # bare "DECODER routines::unsupported".
-    if occursin("PUBLIC KEY-----", pem) && !occursin("PRIVATE KEY-----", pem)
+    if occursin("PUBLIC KEY-----", pem) && !_pem_has_private_key(pem)
         throw(ArgumentError("The PEM data is a public key; RS256 signing requires the RSA private key"))
     end
     return _read_pem_key(pem, :PEM_read_bio_PrivateKey)
 end
+
+_pem_has_private_key(pem::AbstractString) = occursin("PRIVATE KEY-----", pem)
 
 # `EVP_DigestSign*` signs with whatever key type it is given, so an EC key would
 # silently yield an ECDSA signature in a JWT whose header claims RS256. Reject
@@ -238,17 +240,24 @@ end
 
 Base.show(io::IO, ::RSAPrivateKey) = print(io, "GitHub.RSAPrivateKey(<redacted>)")
 
-# Load either a PEM private key or a PEM public key. Caller must `EVP_PKEY_free`.
-function _load_key_pem_any(pem::AbstractString)
-    if occursin("PRIVATE KEY", pem)
-        return _load_private_key_pem(pem)
+# The default `deepcopy` would duplicate the raw pointer, and the two finalizers
+# would then free the same `EVP_PKEY` twice. Share the OpenSSL object through its
+# reference count instead.
+function Base.deepcopy_internal(key::RSAPrivateKey, dict::IdDict)
+    haskey(dict, key) && return dict[key]::RSAPrivateKey
+    ptr = key.ptr
+    if ptr != C_NULL
+        rc = @ccall libcrypto.EVP_PKEY_up_ref(ptr::Ptr{Cvoid})::Cint
+        rc == 1 || _throw_openssl_error("EVP_PKEY_up_ref")
     end
-    return _read_pem_key(pem, :PEM_read_bio_PUBKEY)
+    return dict[key] = RSAPrivateKey(_TakeOwnership(), ptr)
 end
 
-# The key is constrained (rather than left untyped) so that an unsupported key type
-# is a `MethodError` instead of the two forwarding methods below recursing forever.
-const _SigningKey = Union{RSAPrivateKey, AbstractString, AbstractVector{UInt8}}
+# Load either a PEM private key or a PEM public key. Caller must `EVP_PKEY_free`.
+function _load_key_pem_any(pem::AbstractString)
+    _pem_has_private_key(pem) && return _load_private_key_pem(pem)
+    return _read_pem_key(pem, :PEM_read_bio_PUBKEY)
+end
 
 """
     rsa_sha256_sign(key, data) -> Vector{UInt8}
@@ -258,16 +267,14 @@ Sign `data` (a `String` or byte vector) with the RSA private `key`, given as an
 RSASSA-PKCS1-v1_5 signature over the SHA-256 digest of `data`. This is the
 `RS256` algorithm used for GitHub App JWTs.
 """
-function rsa_sha256_sign(key::_SigningKey, data::AbstractString)
-    rsa_sha256_sign(key, Vector{UInt8}(codeunits(data)))
-end
+rsa_sha256_sign(key, data::AbstractString) = rsa_sha256_sign(key, codeunits(data))
 
-rsa_sha256_sign(key::_SigningKey, data::AbstractVector{UInt8}) = rsa_sha256_sign(key, Vector{UInt8}(data))
-
-rsa_sha256_sign(key::Union{AbstractString, AbstractVector{UInt8}}, data::Vector{UInt8}) =
+rsa_sha256_sign(key::Union{AbstractString, AbstractVector{UInt8}}, data::AbstractVector{UInt8}) =
     _with_private_key(k -> rsa_sha256_sign(k, data), key)
 
-function rsa_sha256_sign(key::RSAPrivateKey, data::Vector{UInt8})
+function rsa_sha256_sign(key::RSAPrivateKey, data::AbstractVector{UInt8})
+    # libcrypto needs a contiguous buffer; this is a no-op for a `Vector{UInt8}`.
+    data = convert(Vector{UInt8}, data)
     pkey = key.ptr
     # The pointer is also NULL for a key restored from a precompile cache or by
     # `deserialize`, which do not carry the OpenSSL object over.
@@ -308,14 +315,12 @@ end
 Verify an `RS256` signature produced by [`rsa_sha256_sign`](@ref). Accepts either
 a PEM public key or a PEM private key (whose public part is used).
 """
-function rsa_sha256_verify(key_pem::AbstractString, data::AbstractString, signature::AbstractVector{UInt8})
-    rsa_sha256_verify(key_pem, Vector{UInt8}(codeunits(data)), signature)
-end
+rsa_sha256_verify(key_pem::AbstractString, data::AbstractString, signature::AbstractVector{UInt8}) =
+    rsa_sha256_verify(key_pem, codeunits(data), signature)
 
-rsa_sha256_verify(key_pem::AbstractString, data::AbstractVector{UInt8}, signature::AbstractVector{UInt8}) =
-    rsa_sha256_verify(key_pem, Vector{UInt8}(data), Vector{UInt8}(signature))
-
-function rsa_sha256_verify(key_pem::AbstractString, data::Vector{UInt8}, signature::Vector{UInt8})
+function rsa_sha256_verify(key_pem::AbstractString, data::AbstractVector{UInt8}, signature::AbstractVector{UInt8})
+    data = convert(Vector{UInt8}, data)
+    signature = convert(Vector{UInt8}, signature)
     # Reject non-RSA keys here too: with an EC key `EVP_DigestVerifyFinal` fails with
     # an empty error queue ("unknown error"), and an RSA-PSS key would silently
     # verify PSS signatures instead of RS256 ones.

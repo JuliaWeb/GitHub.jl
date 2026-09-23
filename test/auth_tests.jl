@@ -52,6 +52,15 @@ auth2 = GitHub.JWTAuth(1234, keypem; iat = DateTime("2016-9-15T14:00"))
     @test_throws ArgumentError GitHub.rsa_sha256_sign(freed, "abc")
     # Raw pointers cannot be wrapped (two owners would double-free the key)
     @test_throws MethodError GitHub.RSAPrivateKey(key.ptr)
+    # A deep copy shares the OpenSSL object by reference count, so freeing one copy
+    # neither frees the other nor double-frees the key
+    orig = GitHub.RSAPrivateKey(keypem)
+    copied = deepcopy(orig)
+    finalize(orig)
+    @test GitHub.JWTAuth(1234, copied; iat = iat).JWT == correct_jwt
+    finalize(copied)
+    @test_throws ArgumentError GitHub.rsa_sha256_sign(copied, "abc")
+    @test deepcopy(copied).ptr == C_NULL
     # Encrypted DER (PKCS#8 EncryptedPrivateKeyInfo) gets the same clear error as PEM
     # SEQUENCE { SEQUENCE { NULL } ... }, with short- and long-form outer lengths
     @test_throws ArgumentError GitHub.RSAPrivateKey(UInt8[0x30, 0x04, 0x30, 0x02, 0x05, 0x00])
