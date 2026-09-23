@@ -43,33 +43,47 @@ function base64_to_base64url(string)
 end
 
 """
-    JWTAuth(app_id::Int, privkey::AbstractString; iat = now(Dates.UTC), exp_mins = 1)
+    JWTAuth(app_id::Int, privkey; iat = now(Dates.UTC), exp_mins = 1)
 
-Create a JWT for authenticating as the GitHub App `app_id`. `privkey` is either
-the path to the app's PEM-encoded RSA private key file, or the PEM text itself.
+Create a JWT for authenticating as the GitHub App `app_id`. `privkey` is the
+app's RSA private key, given as one of:
+
+- the path to a PEM- or DER-encoded key file;
+- the PEM text itself;
+- the PEM or DER encoding as bytes;
+- an [`RSAPrivateKey`](@ref), to parse the key once and reuse it for many JWTs.
 """
-function JWTAuth(app_id::Int, privkey::AbstractString; iat = now(Dates.UTC), exp_mins = 1)
-    pem = _private_key_pem(privkey)
-
+function JWTAuth(app_id::Int, privkey::RSAPrivateKey; iat = now(Dates.UTC), exp_mins = 1)
     algo = base64_to_base64url(base64encode("{\"typ\":\"JWT\",\"alg\":\"RS256\"}"))
 
     jwt_iat = trunc(Int64, Dates.datetime2unix(iat))
     jwt_exp = trunc(Int64, Dates.datetime2unix(iat+Dates.Minute(exp_mins)))
     data = base64_to_base64url(base64encode("{\"exp\":$(jwt_exp),\"iat\":$(jwt_iat),\"iss\":$(app_id)}"))
 
-    signature = base64_to_base64url(base64encode(rsa_sha256_sign(pem, string(algo,'.',data))))
+    signature = base64_to_base64url(base64encode(rsa_sha256_sign(privkey, string(algo,'.',data))))
     JWTAuth(string(algo,'.',data,'.',signature))
 end
 
-# Accept either a path to a PEM file or the PEM text itself.
-function _private_key_pem(privkey::AbstractString)
+function JWTAuth(app_id::Int, privkey::Union{AbstractString, AbstractVector{UInt8}}; kwargs...)
+    key = _private_key(privkey)
+    try
+        return JWTAuth(app_id, key; kwargs...)
+    finally
+        _free!(key)
+    end
+end
+
+# Accept a path to a PEM or DER file, the PEM text itself, or the PEM/DER bytes.
+_private_key(privkey::AbstractVector{UInt8}) = RSAPrivateKey(privkey)
+
+function _private_key(privkey::AbstractString)
     if occursin("PRIVATE KEY", privkey)
-        return String(privkey)
+        return RSAPrivateKey(privkey)
     elseif _isfile_nothrow(privkey)
-        return read(privkey, String)
+        return RSAPrivateKey(read(privkey))
     else
         throw(ArgumentError(
-            "privkey must be the path to a PEM-encoded RSA private key file, or the PEM text itself"))
+            "privkey must be the path to a PEM- or DER-encoded RSA private key file, or the PEM text itself"))
     end
 end
 

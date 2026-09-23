@@ -312,6 +312,13 @@ authenticate as a Github App using the `JWTAuth` type:
 appauth = JWTAuth(1234, "privkey.pem") # Replace with your app id/privkey file (or the PEM text)
 ```
 
+The key file may be PEM- or DER-encoded. To avoid re-reading and re-parsing the
+key every time a JWT is created, parse it once with `GitHub.RSAPrivateKey`:
+```
+key = GitHub.RSAPrivateKey(read("privkey.pem"))
+appauth = JWTAuth(1234, key)
+```
+
 The following shows a complete example that opens an issue on every repository
 on which your application gets installed:
 

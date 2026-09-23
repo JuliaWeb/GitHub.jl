@@ -37,9 +37,10 @@ _pem_no_password_cb(::Ptr{UInt8}, ::Cint, ::Cint, ::Ptr{Cvoid})::Cint = Cint(-1)
 
 function _check_not_encrypted_pem(pem::AbstractString)
     # "-----BEGIN ENCRYPTED PRIVATE KEY-----" (PKCS#8) or a legacy
-    # "Proc-Type: 4,ENCRYPTED" header. Match the markers exactly rather than the bare
-    # word, which could also occur inside the base64 body.
-    if occursin("-----BEGIN ENCRYPTED", pem) || occursin("Proc-Type: 4,ENCRYPTED", pem)
+    # "Proc-Type: 4,ENCRYPTED" header (OpenSSL tolerates whitespace around its fields).
+    # Match the markers rather than the bare word, which could also occur inside the
+    # base64 body.
+    if occursin("-----BEGIN ENCRYPTED", pem) || occursin(r"Proc-Type:\s*4\s*,\s*ENCRYPTED", pem)
         throw(ArgumentError(
             "Encrypted private keys are not supported. Decrypt the key first, e.g. " *
             "`openssl pkey -in key.pem -out key-decrypted.pem`."))
@@ -108,6 +109,68 @@ function _check_rsa_key(pkey::Ptr{Cvoid})
     return nothing
 end
 
+# Parse a DER-encoded private key (PKCS#1 or PKCS#8) into an `EVP_PKEY*`. Caller
+# must `EVP_PKEY_free`.
+function _load_private_key_der(der::Vector{UInt8})
+    _clear_openssl_errors()
+    pkey = GC.@preserve der begin
+        # `d2i_AutoPrivateKey` advances the pointer it is given, so pass a copy.
+        p = Ref{Ptr{UInt8}}(pointer(der))
+        @ccall libcrypto.d2i_AutoPrivateKey(C_NULL::Ptr{Cvoid}, p::Ref{Ptr{UInt8}}, length(der)::Clong)::Ptr{Cvoid}
+    end
+    pkey == C_NULL && _throw_openssl_error("d2i_AutoPrivateKey")
+    return pkey
+end
+
+"""
+    RSAPrivateKey(key)
+
+An RSA private key parsed once, so that it can be reused for many signatures
+(e.g. for [`JWTAuth`](@ref)) without re-reading and re-parsing it each time.
+`key` is the PEM text as a string, or the PEM or DER encoding as bytes.
+Encrypted keys and non-RSA keys (including RSA-PSS) are rejected.
+"""
+mutable struct RSAPrivateKey
+    ptr::Ptr{Cvoid}
+    function RSAPrivateKey(ptr::Ptr{Cvoid})
+        key = new(ptr)
+        finalizer(_free!, key)
+        return key
+    end
+end
+
+function _free!(key::RSAPrivateKey)
+    ptr, key.ptr = key.ptr, C_NULL
+    ptr != C_NULL && @ccall libcrypto.EVP_PKEY_free(ptr::Ptr{Cvoid})::Cvoid
+    return nothing
+end
+
+function RSAPrivateKey(pem::AbstractString)
+    return _wrap_rsa_key(_load_private_key_pem(pem))
+end
+
+function RSAPrivateKey(key::AbstractVector{UInt8})
+    # DER starts with an ASN.1 SEQUENCE tag; PEM with "-----BEGIN" (or whitespace).
+    pkey = if !isempty(key) && first(key) == 0x30
+        _load_private_key_der(Vector{UInt8}(key))
+    else
+        _load_private_key_pem(String(copy(key)))
+    end
+    return _wrap_rsa_key(pkey)
+end
+
+function _wrap_rsa_key(pkey::Ptr{Cvoid})
+    try
+        _check_rsa_key(pkey)
+    catch
+        @ccall libcrypto.EVP_PKEY_free(pkey::Ptr{Cvoid})::Cvoid
+        rethrow()
+    end
+    return RSAPrivateKey(pkey)
+end
+
+Base.show(io::IO, ::RSAPrivateKey) = print(io, "GitHub.RSAPrivateKey(<redacted>)")
+
 # Load either a PEM private key or a PEM public key. Caller must `EVP_PKEY_free`.
 function _load_key_pem_any(pem::AbstractString)
     if occursin("PRIVATE KEY", pem)
@@ -117,25 +180,34 @@ function _load_key_pem_any(pem::AbstractString)
 end
 
 """
-    rsa_sha256_sign(private_key_pem::AbstractString, data) -> Vector{UInt8}
+    rsa_sha256_sign(key, data) -> Vector{UInt8}
 
-Sign `data` (a `String` or byte vector) with the RSA private key given as PEM
-text, producing an RSASSA-PKCS1-v1_5 signature over the SHA-256 digest of
-`data`. This is the `RS256` algorithm used for GitHub App JWTs.
+Sign `data` (a `String` or byte vector) with the RSA private `key`, given as an
+[`RSAPrivateKey`](@ref) or as PEM text, producing an RSASSA-PKCS1-v1_5 signature
+over the SHA-256 digest of `data`. This is the `RS256` algorithm used for GitHub
+App JWTs.
 """
-function rsa_sha256_sign(private_key_pem::AbstractString, data::AbstractString)
-    rsa_sha256_sign(private_key_pem, Vector{UInt8}(codeunits(data)))
+function rsa_sha256_sign(key, data::AbstractString)
+    rsa_sha256_sign(key, Vector{UInt8}(codeunits(data)))
 end
 
-rsa_sha256_sign(private_key_pem::AbstractString, data::AbstractVector{UInt8}) =
-    rsa_sha256_sign(private_key_pem, Vector{UInt8}(data))
+rsa_sha256_sign(key, data::AbstractVector{UInt8}) = rsa_sha256_sign(key, Vector{UInt8}(data))
 
 function rsa_sha256_sign(private_key_pem::AbstractString, data::Vector{UInt8})
-    pkey = _load_private_key_pem(private_key_pem)
+    key = RSAPrivateKey(private_key_pem)
+    try
+        return rsa_sha256_sign(key, data)
+    finally
+        _free!(key)
+    end
+end
+
+function rsa_sha256_sign(key::RSAPrivateKey, data::Vector{UInt8})
+    pkey = key.ptr
+    pkey == C_NULL && throw(ArgumentError("RSAPrivateKey has been freed"))
     _clear_openssl_errors()
     ctx = C_NULL
-    try
-        _check_rsa_key(pkey)
+    GC.@preserve key try
         ctx = @ccall libcrypto.EVP_MD_CTX_new()::Ptr{Cvoid}
         ctx == C_NULL && _throw_openssl_error("EVP_MD_CTX_new")
         md = @ccall libcrypto.EVP_sha256()::Ptr{Cvoid}
@@ -158,7 +230,6 @@ function rsa_sha256_sign(private_key_pem::AbstractString, data::Vector{UInt8})
         return sig
     finally
         ctx != C_NULL && @ccall libcrypto.EVP_MD_CTX_free(ctx::Ptr{Cvoid})::Cvoid
-        @ccall libcrypto.EVP_PKEY_free(pkey::Ptr{Cvoid})::Cvoid
     end
 end
 

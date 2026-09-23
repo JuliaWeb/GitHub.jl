@@ -22,6 +22,25 @@ auth2 = GitHub.JWTAuth(1234, keypem; iat = DateTime("2016-9-15T14:00"))
 @test auth.JWT == correct_jwt
 @test auth2.JWT == correct_jwt
 
+@testset "JWTAuth key forms" begin
+    iat = DateTime("2016-9-15T14:00")
+    # PEM bytes
+    @test GitHub.JWTAuth(1234, Vector{UInt8}(codeunits(keypem)); iat = iat).JWT == correct_jwt
+    # DER, as bytes and as a file (`openssl pkey -in not_a_real_key.pem -outform DER`)
+    der = base64decode(join(filter(l -> !startswith(l, "-----"), split(strip(keypem), '\n'))))
+    @test GitHub.JWTAuth(1234, der; iat = iat).JWT == correct_jwt
+    mktemp() do path, io
+        write(io, der); close(io)
+        @test GitHub.JWTAuth(1234, path; iat = iat).JWT == correct_jwt
+    end
+    @test_throws GitHub.OpenSSLError GitHub.JWTAuth(1234, UInt8[0x30, 0x03, 0x02, 0x01, 0x00])
+    # A parsed key can be reused
+    key = GitHub.RSAPrivateKey(keypem)
+    @test GitHub.JWTAuth(1234, key; iat = iat).JWT == correct_jwt
+    @test GitHub.JWTAuth(1234, key; iat = iat).JWT == correct_jwt
+    @test !occursin("PRIVATE", sprint(show, key))
+end
+
 @testset "RS256 signing" begin
     header, payload, sig = split(correct_jwt, '.')
     signing_input = string(header, '.', payload)
@@ -43,6 +62,10 @@ auth2 = GitHub.JWTAuth(1234, keypem; iat = DateTime("2016-9-15T14:00"))
     @test_throws GitHub.OpenSSLError GitHub.rsa_sha256_sign(pubpem, signing_input)
     # Encrypted keys are rejected up front rather than prompting for a pass phrase
     @test_throws ArgumentError GitHub.rsa_sha256_sign("-----BEGIN ENCRYPTED PRIVATE KEY-----\nAAAA\n-----END ENCRYPTED PRIVATE KEY-----\n", signing_input)
+    for proctype in ("Proc-Type: 4,ENCRYPTED", "Proc-Type:4,ENCRYPTED", "Proc-Type: 4, ENCRYPTED")
+        legacy = "-----BEGIN RSA PRIVATE KEY-----\n$proctype\nDEK-Info: AES-128-CBC,00\n\nAAAA\n-----END RSA PRIVATE KEY-----\n"
+        @test_throws ArgumentError GitHub.rsa_sha256_sign(legacy, signing_input)
+    end
     # Byte-vector views are accepted, not just `Vector{UInt8}`
     @test GitHub.rsa_sha256_sign(keypem, codeunits(signing_input)) == sig_bytes
     @test GitHub.rsa_sha256_verify(pubpem, codeunits(signing_input), view(sig_bytes, :))
