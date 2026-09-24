@@ -42,21 +42,30 @@ function base64_to_base64url(string)
     replace(replace(replace(string, "=" => ""), '+' => '-'), '/' => '_')
 end
 
-function JWTAuth(app_id::Int, key::MbedTLS.PKContext; iat = now(Dates.UTC), exp_mins = 1)
+"""
+    JWTAuth(app_id::Int, privkey; iat = now(Dates.UTC), exp_mins = 1)
+
+Create a JWT for authenticating as the GitHub App `app_id`. `privkey` is the
+app's RSA private key, given as one of:
+
+- the path to a PEM- or DER-encoded key file;
+- the PEM text itself;
+- the PEM or DER encoding as bytes;
+- an [`RSAPrivateKey`](@ref), to parse the key once and reuse it for many JWTs.
+"""
+function JWTAuth(app_id::Int, privkey::RSAPrivateKey; iat = now(Dates.UTC), exp_mins = 1)
     algo = base64_to_base64url(base64encode("{\"typ\":\"JWT\",\"alg\":\"RS256\"}"))
 
     jwt_iat = trunc(Int64, Dates.datetime2unix(iat))
     jwt_exp = trunc(Int64, Dates.datetime2unix(iat+Dates.Minute(exp_mins)))
     data = base64_to_base64url(base64encode("{\"exp\":$(jwt_exp),\"iat\":$(jwt_iat),\"iss\":$(app_id)}"))
 
-    signature = base64_to_base64url(base64encode(MbedTLS.sign(key, MbedTLS.MD_SHA256,
-        MbedTLS.digest(MbedTLS.MD_SHA256, string(algo,'.',data)), RNG[])))
+    signature = base64_to_base64url(base64encode(rsa_sha256_sign(privkey, string(algo,'.',data))))
     JWTAuth(string(algo,'.',data,'.',signature))
 end
 
-function JWTAuth(app_id::Int, privkey::String; kwargs...)
-    JWTAuth(app_id, MbedTLS.parse_keyfile(privkey); kwargs...)
-end
+JWTAuth(app_id::Int, privkey::Union{AbstractString, AbstractVector{UInt8}}; kwargs...) =
+    _with_private_key(k -> JWTAuth(app_id, k; kwargs...), privkey)
 
 ###############
 # API Methods #

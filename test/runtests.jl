@@ -1,4 +1,4 @@
-using GitHub, JSON, HTTP, MbedTLS, URIs
+using GitHub, JSON, HTTP, URIs
 using Dates, Test, Base64
 using GitHub: Branch, name
 using GitHub.Checks

@@ -234,7 +234,7 @@ end
 
 @testset "Activity" begin
     # test GitHub.stargazers, GitHub.starred
-    @test length(first(stargazers(ghjl; auth = auth))) > 10 # every package should fail tests if it's not popular enough :p
+    @test_skip length(first(stargazers(ghjl; auth = auth))) > 10 # TODO FIXME: GitHub now returns 403 for this endpoint with GITHUB_TOKEN and restricted PATs. https://github.com/JuliaWeb/GitHub.jl/issues/237
     @test_skip hasghobj(ghjl, first(starred(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
 
     # test GitHub.watched, GitHub.watched
@@ -275,9 +275,7 @@ testbot_key =
     @test app(4123; auth=auth).name == "femtocleaner"
     @test app("femtocleaner"; auth=auth).name == "femtocleaner"
 
-    key = MbedTLS.PKContext()
-    MbedTLS.parse_key!(key, base64decode(testbot_key))
-    jwt = GitHub.JWTAuth(4484, key)
+    jwt = GitHub.JWTAuth(4484, base64decode(testbot_key))
     @test app(; auth=jwt).name == "juliawebtestbot"
 
     @test length(installations(jwt)[1]) == 1

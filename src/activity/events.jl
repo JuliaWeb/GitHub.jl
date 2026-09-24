@@ -41,12 +41,33 @@ event_header(request::HTTP.Request) = HTTP.header(request, "X-Github-Event")
 has_sig_header(request::HTTP.Request) = HTTP.hasheader(request, "X-Hub-Signature")
 sig_header(request::HTTP.Request) = HTTP.header(request, "X-Hub-Signature")
 
+has_sig256_header(request::HTTP.Request) = HTTP.hasheader(request, "X-Hub-Signature-256")
+sig256_header(request::HTTP.Request) = HTTP.header(request, "X-Hub-Signature-256")
+
+# Prefer the HMAC-SHA256 signature, which GitHub recommends, and fall back to the
+# legacy HMAC-SHA1 one.
 function has_valid_secret(request::HTTP.Request, secret)
-    if has_sig_header(request)
-        secret_sha = "sha1="*bytes2hex(MbedTLS.digest(MbedTLS.MD_SHA1, http_payload(request), secret))
-        return sig_header(request) == secret_sha
+    key = secret isa AbstractString ? Vector{UInt8}(codeunits(secret)) : Vector{UInt8}(secret)
+    if has_sig256_header(request)
+        expected = "sha256="*bytes2hex(SHA.hmac_sha256(key, http_payload(request)))
+        return _consttime_equal(sig256_header(request), expected)
+    elseif has_sig_header(request)
+        expected = "sha1="*bytes2hex(SHA.hmac_sha1(key, http_payload(request)))
+        return _consttime_equal(sig_header(request), expected)
     end
     return false
+end
+
+# Compare without short-circuiting on the first differing byte, so the response
+# time does not leak how much of a forged signature was correct.
+function _consttime_equal(a::AbstractString, b::AbstractString)
+    x, y = codeunits(a), codeunits(b)
+    length(x) == length(y) || return false
+    acc = 0x00
+    for i in eachindex(x, y)
+        acc |= x[i] ⊻ y[i]
+    end
+    return acc == 0x00
 end
 
 function is_valid_event(request::HTTP.Request, events)

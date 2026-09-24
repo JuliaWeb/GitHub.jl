@@ -13,6 +13,17 @@ end # testset
 @testset "EventListener" begin
     @test !(GitHub.has_valid_secret(event_request, "wrong"))
     @test GitHub.has_valid_secret(event_request, "secret")
+    @test GitHub.has_valid_secret(event_request, Vector{UInt8}(codeunits("secret")))
+    # X-Hub-Signature-256 is preferred when present
+    payload = GitHub.http_payload(event_request)
+    sig256 = "sha256=" * bytes2hex(GitHub.SHA.hmac_sha256(Vector{UInt8}(codeunits("secret")), payload))
+    req256 = HTTP.Request("POST", "/", ["X-Hub-Signature-256" => sig256], payload)
+    @test GitHub.has_valid_secret(req256, "secret")
+    @test !GitHub.has_valid_secret(req256, "wrong")
+    both_bad256 = HTTP.Request("POST", "/", ["X-Hub-Signature-256" => "sha256=" * "0"^64,
+                                             "X-Hub-Signature" => GitHub.sig_header(event_request)], payload)
+    @test !GitHub.has_valid_secret(both_bad256, "secret")
+    @test !GitHub.has_valid_secret(HTTP.Request("POST", "/", Pair{String,String}[], payload), "secret")
     @test !(GitHub.is_valid_event(event_request, ["wrong"]))
     @test GitHub.is_valid_event(event_request, ["commit_comment"])
     @test !(GitHub.from_valid_repo(event, ["JuliaWeb/GitHub.jl"]))
