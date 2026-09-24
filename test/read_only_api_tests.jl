@@ -234,7 +234,7 @@ end
 
 @testset "Activity" begin
     # test GitHub.stargazers, GitHub.starred
-    @test length(first(stargazers(ghjl; auth = auth))) > 10 # every package should fail tests if it's not popular enough :p
+    @test_skip length(first(stargazers(ghjl; auth = auth))) > 10 # TODO FIXME: GitHub now returns 403 for this endpoint with GITHUB_TOKEN and restricted PATs. https://github.com/JuliaWeb/GitHub.jl/issues/237
     @test_skip hasghobj(ghjl, first(starred(testuser; auth = auth))) # TODO FIXME: Fix these tests. https://github.com/JuliaWeb/GitHub.jl/issues/237
 
     # test GitHub.watched, GitHub.watched
